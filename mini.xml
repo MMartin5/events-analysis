@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test: XML definition of a view based on a FSM with an Error state -->
+<tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
+
+  <!-- Pattern -->
+  <pattern version="0" id="mytestanalysis">
+    <head>
+      <traceType id="org.eclipse.linuxtools.lttng2.kernel.tracetype" />
+      <label value="Test2"/>
+      <viewLabelPrefix value="test" />
+    </head>
+
+    <definedValue name="RUNNING" value="1" />
+	  <definedValue name="WAITING" value="0" />
+
+    <location id="CurrentCPU">
+      <stateAttribute type="constant" value="CPUs" />
+      <stateAttribute type="eventField" value="cpu" />
+    </location>
+
+    <location id="CurrentThread">
+      <stateAttribute type="constant" value="Threads" />
+      <stateAttribute type="query">
+        <stateAttribute type="location" value="CurrentCPU" />
+        <stateAttribute type="constant" value="Current_thread" />
+      </stateAttribute>
+    </location>
+
+    <patternHandler>
+
+      <!-- SCHED_SWITCH -->
+      <action id="update_thread">
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="location" value="CurrentCPU" />
+            <stateAttribute type="constant" value="current_thread"/>
+            <stateValue type="eventField" value="next_tid" />
+          </stateChange>
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="location" value="CurrentCPU" />
+            <stateAttribute type="constant" value="previous_thread"/>
+            <stateValue type="eventField" value="prev_tid" />
+          </stateChange>
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="constant" value="Threads" />
+            <stateAttribute type="eventField" value="next_tid" />
+            <stateValue type="int" value="$RUNNING" />
+          </stateChange>
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="constant" value="Threads" />
+            <stateAttribute type="eventField" value="prev_tid" />
+            <stateValue type="int" value="$WAITING" />
+          </stateChange>
+      </action>
+
+
+
+      <fsm id="sched_switch" initial="switch1">
+        <state id="switch1">
+          <transition event="sched_switch" target="switch2" action="update_thread" />
+        </state>
+        <state id="switch2">
+          <transition event="sched_switch" target="switch1" action="update_thread" />
+        </state>
+      </fsm>
+
+    </patternHandler>
+  </pattern>
+
+</tmfxml>
