@@ -57,14 +57,36 @@
           </stateChange>
       </action>
 
+      <test id="switch_bad">
+        <if>
+          <or>
+            <condition>
+              <stateValue type="query" >
+                <stateAttribute type="constant" value="#CurrentScenario" />
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="next_tid" />
+              </stateValue>
+              <stateValue type="int" value="$RUNNING"/>
+            </condition>
+            <condition>
+              <stateValue type="query" >
+                <stateAttribute type="constant" value="#CurrentScenario" />
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="prev_tid" />
+              </stateValue>
+              <stateValue type="int" value="$WAITING"/>
+            </condition>
+          </or>
+        </if>
+      </test>
 
-
-      <fsm id="sched_switch" initial="switch1">
-        <state id="switch1">
-          <transition event="sched_switch" target="switch2" action="update_thread" />
+      <fsm id="sched_switch" initial="switch">
+        <state id="switch">
+          <transition event="sched_switch" target="error" cond="switch_bad" action="update_thread" />
+          <transition event="sched_switch" target="switch" action="update_thread" />
         </state>
-        <state id="switch2">
-          <transition event="sched_switch" target="switch1" action="update_thread" />
+        <state id="error">
+          <transition event="sched_switch" target="switch" action="update_thread" />
         </state>
       </fsm>
 
