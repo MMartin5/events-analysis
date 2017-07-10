@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test: XML definition of a view based on a FSM with an Error state -->
+<tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
+
+  <timeGraphView id="mytestview">
+    <head>
+      <analysis id="mytestanalysis"/>
+      <label value="Test"/>
+    </head>
+
+    <definedValue name="CORRECT" value="0" color="#CCCCCC"/>
+	  <definedValue name="ERROR" value="1" color="#00CCFF"/>
+
+    <entry path="state">
+      <display type="self"/>
+    </entry>
+    <!-- <entry path="#CurrentScenario/Threads/state">
+      <display type="self"/>
+    </entry> -->
+  </timeGraphView>
+
+  <!-- Pattern -->
+  <pattern version="0" id="mytestanalysis">
+    <head>
+      <traceType id="org.eclipse.linuxtools.lttng2.kernel.tracetype" />
+      <label value="Test2"/>
+      <viewLabelPrefix value="test" />
+    </head>
+
+    <definedValue name="RUNNING" value="1" />
+	  <definedValue name="WAITING" value="0" />
+
+    <location id="CurrentCPU">
+      <stateAttribute type="constant" value="CPUs" />
+      <stateAttribute type="eventField" value="cpu" />
+    </location>
+
+    <location id="CurrentThread">
+      <stateAttribute type="constant" value="Threads" />
+      <stateAttribute type="query">
+        <stateAttribute type="location" value="CurrentCPU" />
+        <stateAttribute type="constant" value="Current_thread" />
+      </stateAttribute>
+    </location>
+
+    <patternHandler>
+
+      <!-- SCHED_SWITCH -->
+      <action id="update_thread_ok">
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="location" value="CurrentCPU" />
+            <stateAttribute type="constant" value="current_thread"/>
+            <stateValue type="eventField" value="next_tid" />
+          </stateChange>
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="location" value="CurrentCPU" />
+            <stateAttribute type="constant" value="previous_thread"/>
+            <stateValue type="eventField" value="prev_tid" />
+          </stateChange>
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="constant" value="Threads" />
+            <stateAttribute type="eventField" value="next_tid" />
+            <stateValue type="int" value="$RUNNING" />
+          </stateChange>
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="constant" value="Threads" />
+            <stateAttribute type="eventField" value="prev_tid" />
+            <stateValue type="int" value="$WAITING" />
+          </stateChange>
+          <!-- <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="constant" value="Threads" />
+            <stateAttribute type="eventField" value="next_tid" />
+            <stateAttribute type="constant" value="state" />
+    				<stateValue type="long" value="0" />
+          </stateChange>
+          <stateChange>
+            <stateAttribute type="constant" value="#CurrentScenario" />
+            <stateAttribute type="constant" value="Threads" />
+            <stateAttribute type="eventField" value="prev_tid" />
+            <stateAttribute type="constant" value="state" />
+    				<stateValue type="long" value="0" />
+          </stateChange> -->
+          <stateChange>
+            <stateAttribute type="constant" value="state" />
+    				<stateValue type="long" value="0" />
+          </stateChange>
+      </action>
+
+      <action id="update_thread_error_next">
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="location" value="CurrentCPU" />
+          <stateAttribute type="constant" value="current_thread"/>
+          <stateValue type="eventField" value="next_tid" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="location" value="CurrentCPU" />
+          <stateAttribute type="constant" value="previous_thread"/>
+          <stateValue type="eventField" value="prev_tid" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="next_tid" />
+          <stateValue type="int" value="$RUNNING" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="prev_tid" />
+          <stateValue type="int" value="$WAITING" />
+        </stateChange>
+        <!-- <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="next_tid" />
+          <stateAttribute type="constant" value="state" />
+  				<stateValue type="long" value="1" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="prev_tid" />
+          <stateAttribute type="constant" value="state" />
+  				<stateValue type="long" value="0" />
+        </stateChange> -->
+        <stateChange>
+          <stateAttribute type="constant" value="state" />
+          <stateValue type="long" value="1" />
+        </stateChange>
+      </action>
+
+      <action id="update_thread_error_prev">
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="location" value="CurrentCPU" />
+          <stateAttribute type="constant" value="current_thread"/>
+          <stateValue type="eventField" value="next_tid" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="location" value="CurrentCPU" />
+          <stateAttribute type="constant" value="previous_thread"/>
+          <stateValue type="eventField" value="prev_tid" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="next_tid" />
+          <stateValue type="int" value="$RUNNING" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="prev_tid" />
+          <stateValue type="int" value="$WAITING" />
+        </stateChange>
+        <!-- <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="next_tid" />
+          <stateAttribute type="constant" value="state" />
+  				<stateValue type="long" value="0" />
+        </stateChange>
+        <stateChange>
+          <stateAttribute type="constant" value="#CurrentScenario" />
+          <stateAttribute type="constant" value="Threads" />
+          <stateAttribute type="eventField" value="prev_tid" />
+          <stateAttribute type="constant" value="state" />
+  				<stateValue type="long" value="1" />
+        </stateChange> -->
+        <stateChange>
+          <stateAttribute type="constant" value="state" />
+          <stateValue type="long" value="1" />
+        </stateChange>
+      </action>
+
+      <test id="switch_bad_next">
+        <if>
+          <and>
+            <condition>
+              <stateValue type="query" >
+                <stateAttribute type="constant" value="#CurrentScenario" />
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="next_tid" />
+              </stateValue>
+              <stateValue type="int" value="$RUNNING"/>
+            </condition>
+            <not>
+              <or>
+                <condition>
+                  <stateValue type="eventField" value="next_tid" />
+                  <stateValue type="long" value="0"/>
+                </condition>
+                <condition>
+                  <stateValue type="eventField" value="prev_tid" />
+                  <stateValue type="long" value="0"/>
+                </condition>
+              </or>
+            </not>
+          </and>
+        </if>
+      </test>
+      <test id="switch_bad_prev">
+        <if>
+          <and>
+            <condition>
+              <stateValue type="query" >
+                <stateAttribute type="constant" value="#CurrentScenario" />
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="prev_tid" />
+              </stateValue>
+              <stateValue type="int" value="$WAITING"/>
+            </condition>
+            <not>
+              <or>
+                <condition>
+                  <stateValue type="eventField" value="next_tid" />
+                  <stateValue type="long" value="0"/>
+                </condition>
+                <condition>
+                  <stateValue type="eventField" value="prev_tid" />
+                  <stateValue type="long" value="0"/>
+                </condition>
+              </or>
+            </not>
+          </and>
+        </if>
+      </test>
+
+      <fsm id="sched_switch" initial="switch">
+        <state id="switch">
+          <transition event="sched_switch" target="error" cond="switch_bad_next" action="update_thread_error_next" />
+          <transition event="sched_switch" target="error" cond="switch_bad_prev" action="update_thread_error_prev" />
+          <transition event="sched_switch" target="switch" action="update_thread_ok" />
+        </state>
+        <state id="error">
+          <transition event="sched_switch" target="switch" action="update_thread_ok" />
+        </state>
+      </fsm>
+
+    </patternHandler>
+  </pattern>
+
+</tmfxml>
