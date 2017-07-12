@@ -3,21 +3,20 @@
 <tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
 
+  <!-- View -->
   <timeGraphView id="mytestview">
     <head>
       <analysis id="mytestanalysis"/>
       <label value="Test"/>
     </head>
 
+    <!-- Status of the analysis -->
     <definedValue name="CORRECT" value="0" color="#CCCCCC"/>
 	  <definedValue name="ERROR" value="1" color="#00CCFF"/>
 
     <entry path="state">
       <display type="self"/>
     </entry>
-    <!-- <entry path="#CurrentScenario/Threads/state">
-      <display type="self"/>
-    </entry> -->
   </timeGraphView>
 
   <!-- Pattern -->
@@ -28,6 +27,7 @@
       <viewLabelPrefix value="test" />
     </head>
 
+    <!-- Status of threads -->
     <definedValue name="RUNNING" value="1" />
 	  <definedValue name="WAITING" value="0" />
 
@@ -44,6 +44,7 @@
       </stateAttribute>
     </location>
 
+    <!-- Swapper (tid=0) associated with the current cpu -->
     <location id="CurrentSwapper">
       <stateAttribute type="location" value="CurrentCPU" />
       <stateAttribute type="constant" value="swapper" />
@@ -51,6 +52,7 @@
 
     <patternHandler>
 
+      <!-- Actions -->
       <action id="update_thread">
         <stateChange>
           <stateAttribute type="constant" value="#CurrentScenario" />
@@ -106,6 +108,7 @@
         </stateChange>
       </action>
 
+      <!-- Conditions -->
       <test id="switch_bad_next_swapper">
         <if>
           <and>
@@ -197,23 +200,24 @@
         </if>
       </test>
 
+      <!-- FSM -->
       <fsm id="sched_switch" initial="switch">
         <state id="switch">
-          <!-- error transitions -->
+          <!-- Error transitions -->
           <transition event="sched_switch" target="error" cond="switch_bad_next_swapper" action="update_thread:bad_state:set_swapper_running" />
           <transition event="sched_switch" target="error" cond="switch_bad_prev_swapper" action="update_thread:bad_state:set_swapper_waiting" />
           <transition event="sched_switch" target="error" cond="switch_bad" action="update_thread:bad_state" />
-          <!-- switch transitions -->
+          <!-- Switch transitions -->
           <transition event="sched_switch" target="switch" cond="swapper_is_next" action="update_thread:good_state:set_swapper_running" />
           <transition event="sched_switch" target="switch" cond="swapper_is_prev" action="update_thread:good_state:set_swapper_waiting" />
           <transition event="sched_switch" target="switch" action="update_thread:good_state" />
         </state>
         <state id="error">
-          <!-- error transitions -->
+          <!-- Error transitions -->
           <transition event="sched_switch" target="error" cond="switch_bad_next_swapper" action="update_thread:bad_state:set_swapper_running" />
           <transition event="sched_switch" target="error" cond="switch_bad_prev_swapper" action="update_thread:bad_state:set_swapper_waiting" />
           <transition event="sched_switch" target="error" cond="switch_bad" action="update_thread:bad_state" />
-          <!-- switch transitions -->
+          <!-- Switch transitions -->
           <transition event="sched_switch" target="switch" cond="swapper_is_next" action="update_thread:good_state:set_swapper_running" />
           <transition event="sched_switch" target="switch" cond="swapper_is_prev" action="update_thread:good_state:set_swapper_waiting" />
           <transition event="sched_switch" target="switch" action="update_thread:good_state" />
