@@ -215,7 +215,7 @@
           </stateChange>
         </action>
 
-        <action id="syscall">
+        <action id="action_syscall">
             <stateChange>
                 <stateAttribute type="location" value="CurrentThread" />
                 <stateAttribute type="constant" value="System_call" />
@@ -1017,7 +1017,7 @@
               <!-- if CurrentThread/System_call == null and CurrentCPU/Current_thread == (null or 0) -->
             <transition event="irq_handler_exit" target="state" cond="irq_handler_exit_cond_1_2" action="action_irq_handler_exit:action_irq_handler_exit_thread_status:action_irq_handler_exit_cpu_status" />
               <!-- if CurrentThread/System_call == null -->
-            <transition event="irq_handler_exit" target="state" cond="is_current_thread_system_call_null" action="action_irq_handler_exit:action_irq_handler_exit_thread_status" />
+            <transition event="irq_handler_exit" target="state" cond="irq_handler_exit_cond_1" action="action_irq_handler_exit:action_irq_handler_exit_thread_status" />
               <!-- else if CurrentCPU/Current_thread == (null or 0) -->
             <transition event="irq_handler_exit" target="state" cond="irq_handler_exit_cond_2" action="action_irq_handler_exit:action_irq_handler_exit_thread_status_2:action_irq_handler_exit_cpu_status" />
               <!-- else -->
@@ -1028,7 +1028,7 @@
               <!-- if CurrentThread/System_call == null and CurrentCPU/Current_thread == (null or 0) -->
             <transition event="softirq_exit" target="state" cond="irq_handler_exit_cond_1_2" action="action_softirq_exit:action_irq_handler_exit_thread_status:action_irq_handler_exit_cpu_status" />
               <!-- if CurrentThread/System_call == null -->
-            <transition event="softirq_exit" target="state" cond="is_current_thread_system_call_null" action="action_softirq_exit:action_irq_handler_exit_thread_status" />
+            <transition event="softirq_exit" target="state" cond="irq_handler_exit_cond_1" action="action_softirq_exit:action_irq_handler_exit_thread_status" />
               <!-- else if CurrentCPU/Current_thread == (null or 0) -->
             <transition event="softirq_exit" target="state" cond="irq_handler_exit_cond_2" action="action_softirq_exit:action_irq_handler_exit_thread_status_2:action_irq_handler_exit_cpu_status" />
               <!-- else -->
