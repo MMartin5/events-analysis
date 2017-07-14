@@ -96,7 +96,7 @@
           <stateChange>
               <stateAttribute type="location" value="CurrentCPU" />
               <stateAttribute type="constant" value="Status" />
-              <stateValue type="int" value="$CPU_STATUS_RUN_IRQ" />
+              <stateValue type="int" value="$CPU_STATUS_IRQ" />
           </stateChange>
         </action>
 
@@ -104,7 +104,7 @@
           <stateChange>
               <stateAttribute type="location" value="CurrentCPU" />
               <stateAttribute type="constant" value="Status" />
-              <stateValue type="int" value="$CPU_STATUS_RUN_SOFTIRQ" />
+              <stateValue type="int" value="$CPU_STATUS_SOFTIRQ" />
           </stateChange>
         </action>
 
