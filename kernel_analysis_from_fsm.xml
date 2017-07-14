@@ -16,7 +16,7 @@
     <xyView id="org.eclipse.linuxtools.tmf.analysis.xml.core.tests.xy.pattern.fsm">
         <head>
             <analysis id="kernel.linux.pattern.from.fsm" />
-            <label value="Xml XY view" />
+            <label value="Xml XY view CPU Status" />
         </head>
 
         <entry path="CPUs/*">
@@ -187,7 +187,7 @@
         </test>
 
 
-        <fsm id="kernel_fsm">
+        <fsm id="kernel_fsm" initial="idle">
           <state id="idle">
             <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
             <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
