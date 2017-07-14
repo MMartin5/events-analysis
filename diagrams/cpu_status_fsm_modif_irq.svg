@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/PR-SVG-20010719/DTD/svg10.dtd">
+<svg width="71cm" height="34cm" viewBox="23 -107 1413 670" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <g>
+    <rect style="fill: #ffffff" x="395.332" y="258.514" width="80" height="36" rx="10" ry="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="395.332" y="258.514" width="80" height="36" rx="10" ry="10"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="435.332" y="280.414">
+      <tspan x="435.332" y="280.414">idle</tspan>
+    </text>
+  </g>
+  <g>
+    <rect style="fill: #ffffff" x="758" y="23.5604" width="109.55" height="36" rx="10" ry="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="758" y="23.5604" width="109.55" height="36" rx="10" ry="10"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="812.775" y="45.4604">
+      <tspan x="812.775" y="45.4604">run usermode</tspan>
+    </text>
+  </g>
+  <g>
+    <rect style="fill: #ffffff" x="1273.91" y="41.5426" width="88.4" height="36" rx="10" ry="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="1273.91" y="41.5426" width="88.4" height="36" rx="10" ry="10"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1318.11" y="63.4426">
+      <tspan x="1318.11" y="63.4426">run syscall</tspan>
+    </text>
+  </g>
+  <g>
+    <rect style="fill: #ffffff" x="33.7348" y="258.434" width="80" height="36" rx="10" ry="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="33.7348" y="258.434" width="80" height="36" rx="10" ry="10"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="73.7348" y="280.334">
+      <tspan x="73.7348" y="280.334">irq</tspan>
+    </text>
+  </g>
+  <g>
+    <rect style="fill: #ffffff" x="718.2" y="258.604" width="80" height="36" rx="10" ry="10"/>
+    <rect style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" x="718.2" y="258.604" width="80" height="36" rx="10" ry="10"/>
+    <text font-size="12.8" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="758.2" y="280.504">
+      <tspan x="758.2" y="280.504">softirq</tspan>
+    </text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="73.7348,294.434 73.7348,498.529 395.332,498.529 395.332,298.986 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="400.332,306.75 395.332,296.75 390.332,306.75 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="181.763" y="493.537">[CurrentCPU/Current_thread == null]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="179.582" y="474.999">irq_handler_exit</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="73.7348,258.434 73.7348,172.37 435.332,172.37 435.332,254.042 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="430.332,246.278 435.332,256.278 440.332,246.278 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="398.736" y="163.748">[CurrentCPU/Current_thread == 0]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="410.509" y="146.93">irq_handler_exit</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="718.2,294.604 718.2,385.434 435.332,385.434 435.332,298.986 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="440.332,306.75 435.332,296.75 430.332,306.75 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="566.766" y="375.434">[CurrentCPU/Current_thread == null]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="566.766" y="355.434">softirq_exit</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="718.2,258.604 718.2,227.756 475.332,227.756 475.332,254.042 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="470.332,246.278 475.332,256.278 480.332,246.278 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="586.766" y="217.756">[CurrentCPU/Current_thread == 0]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="586.766" y="197.755">softirq_exit</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1362.31,41.5426 1362.31,-83.13 812.774,-83.13 812.774,19.0883 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="807.774,11.3243 812.774,21.3243 817.774,11.3243 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1079.77" y="-94.6654">exit_syscall</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="758.2,258.604 758.2,197.346 758,197.346 758,64.0325 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="763,71.7965 758,61.7965 753,71.7965 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="736.694" y="177.506">[CurrentThread/System_call == null]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="714.067" y="157.707">softirq_exit</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1318.11,41.5426 1318.25,41.5426 1318.25,-14.1773 867.55,-14.1773 867.55,19.0883 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="862.55,11.3243 867.55,21.3243 872.55,11.3243 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1120.04" y="-20.9044">[newCurrentThread/System_call == null AND next_tid == 0]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1120.88" y="-36.8812">sched_switch</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="758.2,294.604 758.2,372.665 1318.11,372.665 1318.11,82.0147 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1323.11,89.7787 1318.11,79.7787 1313.11,89.7787 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1050.88" y="363.513">[CurrentThread/System_call != null]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1028.15" y="342.665">softirq_exit</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="812.774,59.5604 813.262,59.5604 813.262,147.273 1273.91,147.273 1273.91,82.0147 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1278.91,89.7787 1273.91,79.7787 1268.91,89.7787 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1064.73" y="137.603">[newCurrentThread/System_call != null AND next_tid != 0]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1073.14" y="118.262">sched_switch</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="475.332,276.514 596.766,276.514 596.766,276.604 713.728,276.604 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="705.964,281.604 715.964,276.604 705.964,271.604 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="587.462" y="265.914">softirq_entry</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="867.55,59.5604 1070.73,59.5604 1070.73,59.5426 1269.44,59.5426 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1261.67,64.5426 1271.67,59.5426 1261.67,54.5426 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1072.11" y="74.9568">compat_sys_*</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="867.55,41.5604 1070.73,41.5604 1070.73,41.5426 1269.44,41.5426 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1261.67,46.5426 1271.67,41.5426 1261.67,36.5426 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="1063.71" y="32.9124">sys_*</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="33.7348,258.434 34.6664,258.434 34.6664,23.5604 753.528,23.5604 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="745.764,28.5604 755.764,23.5604 745.764,18.5604 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="436.576" y="14.0684">[CurrentThread/System_call == null]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="438.258" y="-6.95397">irq_handler_exit</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="395.332,276.514 243.623,276.514 243.623,276.434 118.207,276.434 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="125.971,271.434 115.971,276.434 125.971,281.434 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="195.645" y="268.936">irq_handler_entry</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="758,41.5604 275.389,41.5604 275.389,276.434 118.207,276.434 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="125.971,271.434 115.971,276.434 125.971,281.434 "/>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1362.31,77.5426 1359.4,77.5426 1359.4,454.667 275.659,454.667 275.659,276.832 113.735,276.832 113.735,280.906 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="108.735,268.67 113.735,278.67 118.735,268.67 "/>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1362.31,77.5426 1358.94,77.5426 1358.94,276.604 802.672,276.604 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="810.436,271.604 800.436,276.604 810.436,281.604 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="852.659" y="269.429">softirq_entry</text>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="867.55,59.5604 867.55,276.604 802.672,276.604 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="810.436,271.604 800.436,276.604 810.436,281.604 "/>
+  </g>
+  <g>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="33.7348,294.434 33.7348,562.169 1435.31,562.169 1435.31,59.5426 1366.78,59.5426 "/>
+    <polyline style="fill: none; fill-opacity:0; stroke-width: 2; stroke: #000000" points="1374.54,54.5426 1364.54,59.5426 1374.54,64.5426 "/>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="604.972" y="550.855">[CurrentThread/System_call != null]</text>
+    <text font-size="12.7998" style="fill: #000000;text-anchor:middle;font-family:sans-serif;font-style:normal;font-weight:normal" x="610.629" y="529.642">irq_handler_exit</text>
+  </g>
+</svg>
