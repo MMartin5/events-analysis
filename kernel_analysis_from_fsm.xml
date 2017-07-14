@@ -68,6 +68,8 @@
 
       <patternHandler>
 
+	<!-- CPU status update actions -->
+
         <action id="update_cpu_to_idle">
           <stateChange>
               <stateAttribute type="location" value="CurrentCPU" />
@@ -107,6 +109,56 @@
               <stateValue type="int" value="$CPU_STATUS_SOFTIRQ" />
           </stateChange>
         </action>
+
+	<!-- Other actions -->
+
+	<action id="set_current_thread_system_call_null">
+		<stateChange>
+		        <stateAttribute type="location" value="CurrentThread" />
+		        <stateAttribute type="constant" value="System_call" />
+		        <stateValue type="null" />
+	        </stateChange>
+	</action>
+
+	<action id="set_current_cpu_current_thread_next_tid">
+		<stateChange>
+		        <stateAttribute type="location" value="CurrentCPU" />
+		        <stateAttribute type="constant" value="Current_thread" />
+		        <stateValue type="eventField" value="next_tid" forcedType="int" />
+           	</stateChange>
+	</action>
+
+	<action id="set_child_thread_system_call_parent_thread_system_call">
+		<stateChange>
+		        <stateAttribute type="constant" value="Threads" />
+		        <stateAttribute type="eventField" value="child_tid" />
+		        <stateAttribute type="constant" value="System_call" />
+		        <stateValue type="query">
+		            <stateAttribute type="constant" value="Threads" />
+		            <stateAttribute type="eventField" value="parent_tid" />
+		            <stateAttribute type="constant" value="System_call" />
+		        </stateValue>
+            	</stateChange>
+	</action>
+
+	<action id="set_child_thread_system_call_sys_clone">
+		<stateChange>
+		        <stateAttribute type="constant" value="Threads" />
+                   	<stateAttribute type="eventField" value="child_tid" />
+                    	<stateAttribute type="constant" value="System_call" />
+                    	<stateValue type="string" value="sys_clone" />
+            	</stateChange>
+	</action>
+
+	<action id="set_current_thread_system_call_eventname">
+		<stateChange>
+		        <stateAttribute type="location" value="CurrentThread" />
+		        <stateAttribute type="constant" value="System_call" />
+		        <stateValue type="eventName" />
+                </stateChange>
+	</action>
+
+	<!-- Conditions -->
 
         <test id="current_thread_system_call_null">
           <if>
@@ -186,33 +238,55 @@
           </if>
         </test>
 
+	<test id="child_thread_system_call_null">
+		<if>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="child_tid" />
+                        <stateAttribute type="constant" value="System_call" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+	</test>
+
 
         <fsm id="kernel_fsm" initial="idle">
           <state id="idle">
             <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
             <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
+	    <transition event="sched_process_fork" target="idle" action="set_child_thread_system_call_parent_thread_system_call" />
+	    <transition event="sched_process_fork" target="idle" action="set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
           </state>
           <state id="usermode">
             <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
-            <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
-            <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" />
+            <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
+            <transition event="sys_*" target="syscall" action="update_cpu_to_syscall:set_current_thread_system_call_eventname" />
+	    <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall:set_current_thread_system_call_eventname" />
+	    <transition event="sched_process_fork" target="usermode" action="set_child_thread_system_call_parent_thread_system_call" />
+	    <transition event="sched_process_fork" target="usermode" action="set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
           </state>
           <state id="syscall">
             <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
-            <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" />
-            <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode" cond="new_current_thread_system_call_null_and_next_tid_0"/>
+            <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode:set_current_thread_system_call_null" />
+            <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_0"/>
+            <transition event="sched_process_fork" target="syscall" action="set_child_thread_system_call_parent_thread_system_call" />
+	    <transition event="sched_process_fork" target="syscall" action="set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
           </state>
           <state id="irq">
             <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null" />
             <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_0" />
             <transition event="irq_handler_exit" target="usermode" action="update_cpu_to_usermode" cond="current_thread_system_call_null" />
             <transition event="irq_handler_exit" target="syscall" action="update_cpu_to_syscall" cond="current_thread_system_call_not_null" />
+	    <transition event="sched_process_fork" target="irq" action="set_child_thread_system_call_parent_thread_system_call" />
+	    <transition event="sched_process_fork" target="irq" action="set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
           </state>
           <state id="softirq">
             <transition event="softirq_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null" />
             <transition event="softirq_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_0" />
             <transition event="softirq_exit" target="usermode" action="update_cpu_to_usermode" cond="current_thread_system_call_null" />
             <transition event="softirq_exit" target="syscall" action="update_cpu_to_syscall" cond="current_thread_system_call_not_null" />
+	    <transition event="sched_process_fork" target="softirq" action="set_child_thread_system_call_parent_thread_system_call" />
+	    <transition event="sched_process_fork" target="softirq" action="set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
           </state>
         </fsm>
 
