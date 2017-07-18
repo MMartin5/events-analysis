@@ -1,0 +1,183 @@
+
+ADD TO THREAD FSM --> DONE
+        <eventHandler eventName="exit_syscall">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentThread" />
+                <stateAttribute type="constant" value="System_call" />
+                <stateValue type="null" />
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO OTHER
+        <eventHandler eventName="irq_handler_entry">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentIRQ" />
+                <stateValue type="eventField" value="cpu" />
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO OTHER
+        <eventHandler eventName="irq_handler_exit">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentIRQ" />
+                <stateValue type="null" />
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO OTHER
+        <eventHandler eventName="softirq_entry">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentSoftIRQ" />
+                <stateValue type="eventField" value="cpu" />
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO OTHER
+        <eventHandler eventName="softirq_exit">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentSoftIRQ" />
+                <stateValue type="null" />
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO OTHER
+        <eventHandler eventName="softirq_raise">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentSoftIRQ" />
+                <stateValue type="int" value="$SOFT_IRQ_RAISED" />
+            </stateChange>
+        </eventHandler>
+
+        <eventHandler eventName="sched_switch">
+
+ADD TO THREAD FSM
+            <stateChange>
+                <stateAttribute type="location" value="newCurrentThread" />
+                <stateAttribute type="constant" value="Exec_name" />
+                <stateValue type="eventField" value="next_comm" />
+            </stateChange>
+
+ADD TO CPU FSM --> DONE
+            <stateChange>
+                <stateAttribute type="location" value="CurrentCPU" />
+                <stateAttribute type="constant" value="Current_thread" />
+                <stateValue type="eventField" value="next_tid" forcedType="int" />
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO THREAD FSM --> DONE
+        <eventHandler eventName="sched_process_fork">
+            <stateChange>
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="child_tid" />
+                <stateAttribute type="constant" value="PPID" />
+                <stateValue type="eventField" value="parent_tid" forcedType="int" />
+            </stateChange>
+            <stateChange>
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="child_tid" />
+                <stateAttribute type="constant" value="Exec_name" />
+                <stateValue type="eventField" value="child_comm" />
+            </stateChange>
+
+            <stateChange>
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="child_tid" />
+                <stateAttribute type="constant" value="System_call" />
+                <stateValue type="query">
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="parent_tid" />
+                    <stateAttribute type="constant" value="System_call" />
+                </stateValue>
+            </stateChange>
+            <stateChange>
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="child_tid" />
+                        <stateAttribute type="constant" value="System_call" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+                <then>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="child_tid" />
+                    <stateAttribute type="constant" value="System_call" />
+                    <stateValue type="string" value="sys_clone" />
+                </then>
+            </stateChange>
+        </eventHandler>
+
+ADD TO THREAD FSM --> DONE
+        <eventHandler eventName="sched_process_free">
+            <stateChange>
+                <stateAttribute type="constant" value="Threads" />
+                <stateAttribute type="eventField" value="tid" />
+                <stateValue type="delete" />
+            </stateChange>
+        </eventHandler>
+
+ADD TO THREAD FSM --> DONE
+        <eventHandler eventName="lttng_statedump_process_state">
+            <stateChange>
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="tid" />
+                        <stateAttribute type="constant" value="Exec_name" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+                <then>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateAttribute type="constant" value="Exec_name" />
+                    <stateValue type="eventField" value="name" />
+                </then>
+            </stateChange>
+            <stateChange>
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="tid" />
+                        <stateAttribute type="constant" value="PPID" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+                <then>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateAttribute type="constant" value="PPID" />
+                    <stateValue type="eventField" value="ppid" forcedType="int" />
+                </then>
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO THREAD FSM --> DONE
+        <eventHandler eventName="sys_*">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentThread" />
+                <stateAttribute type="constant" value="System_call" />
+                <stateValue type="eventName" />
+            </stateChange>
+
+        </eventHandler>
+
+ADD TO THREAD FSM --> DONE
+        <eventHandler eventName="compat_sys_*">
+            <stateChange>
+                <stateAttribute type="location" value="CurrentThread" />
+                <stateAttribute type="constant" value="System_call" />
+                <stateValue type="eventName" />
+            </stateChange>
+
+        </eventHandler>
+    </stateProvider>
+</tmfxml>
