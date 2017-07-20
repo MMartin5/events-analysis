@@ -686,11 +686,22 @@
                 </if>
             </test>
 
+            <test id="next_tid_0">
+                <if>
+                    <condition>
+                        <field name="next_tid" />
+                        <stateValue type="long" value="0" />
+                    </condition>
+                </if>
+            </test>
+
 
             <fsm id="cpu_fsm" initial="idle">
                 <state id="idle">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
                     <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_0"/>
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
@@ -698,10 +709,12 @@
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
                     <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" />
+                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                 </state>
                 <state id="syscall">
                     <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_0"/>
+                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                 </state>
                 <state id="irq">
                     <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null" />
@@ -846,7 +859,7 @@
                 </state>
             </fsm>
 
-            <fsm id="irq_fsm">
+            <fsm id="irq_fsm" initial="no_irq">
                 <state id="no_irq">
                     <transition event="irq_handler_entry" target="irq" action="update_irq" />
                 </state>
@@ -855,7 +868,7 @@
                 </state>
             </fsm>
 
-            <fsm id="softirq_fsm">
+            <fsm id="softirq_fsm" initial="no_softirq">
                 <state id="no_softirq">
                     <transition event="softirq_entry" target="softirq" action="update_softirq" />
                     <transition event="softirq_raise" target="softirq" action="update_softirq_raised" />
