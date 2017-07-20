@@ -169,6 +169,45 @@
                 </stateChange>
             </action>
 
+            <!-- IRQ update actions -->
+
+            <action id="update_irq">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentIRQ" />
+                    <stateValue type="eventField" value="cpu" />
+                </stateChange>
+            </action>
+
+            <action id="update_no_irq">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentIRQ" />
+                    <stateValue type="null" />
+                </stateChange>
+            </action>
+
+            <!-- SoftIRQ update actions -->
+
+            <action id="update_softirq">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentSoftIRQ" />
+                    <stateValue type="eventField" value="cpu" />
+                </stateChange>
+            </action>
+
+            <action id="update_softirq_raised">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentSoftIRQ" />
+                    <stateValue type="int" value="$SOFT_IRQ_RAISED" />
+                </stateChange>
+            </action>
+
+            <action id="update_no_softirq">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentSoftIRQ" />
+                    <stateValue type="null" />
+                </stateChange>
+            </action>
+
             <!-- Other actions -->
 
             <action id="set_current_thread_system_call_null">
@@ -214,41 +253,6 @@
                     <stateAttribute type="location" value="CurrentThread" />
                     <stateAttribute type="constant" value="System_call" />
                     <stateValue type="eventName" />
-                </stateChange>
-            </action>
-
-            <action id="set_current_irq_cpu">
-                <stateChange>
-                    <stateAttribute type="location" value="CurrentIRQ" />
-                    <stateValue type="eventField" value="cpu" />
-                </stateChange>
-            </action>
-
-            <action id="set_current_irq_null">
-                <stateChange>
-                    <stateAttribute type="location" value="CurrentIRQ" />
-                    <stateValue type="null" />
-                </stateChange>
-            </action>
-
-            <action id="set_current_softirq_cpu">
-                <stateChange>
-                    <stateAttribute type="location" value="CurrentSoftIRQ" />
-                    <stateValue type="eventField" value="cpu" />
-                </stateChange>
-            </action>
-
-            <action id="set_current_softirq_null">
-                <stateChange>
-                    <stateAttribute type="location" value="CurrentSoftIRQ" />
-                    <stateValue type="null" />
-                </stateChange>
-            </action>
-
-            <action id="raise_softirq">
-                <stateChange>
-                    <stateAttribute type="location" value="CurrentSoftIRQ" />
-                    <stateValue type="int" value="$SOFT_IRQ_RAISED" />
                 </stateChange>
             </action>
 
@@ -794,6 +798,25 @@
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="sched_process_free" target="wait_cpu" action="free_process" />
+                </state>
+            </fsm>
+
+            <fsm id="irq_fsm">
+                <state id="no_irq">
+                    <transition event="irq_handler_entry" target="irq" action="update_irq" />
+                </state>
+                <state id="irq">
+                    <transition event="irq_handler_exit" target="no_irq" action="update_no_irq" />
+                </state>
+            </fsm>
+
+            <fsm id="softirq_fsm">
+                <state id="no_softirq">
+                    <transition event="softirq_entry" target="softirq" action="update_softirq" />
+                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised" />
+                </state>
+                <state id="softirq">
+                    <transition event="softirq_exit" target="no_softirq" action="update_no_softirq" />
                 </state>
             </fsm>
 

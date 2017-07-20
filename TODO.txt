@@ -9,7 +9,7 @@ ADD TO THREAD FSM --> DONE
 
         </eventHandler>
 
-ADD TO OTHER
+ADD TO OTHER --> DONE
         <eventHandler eventName="irq_handler_entry">
             <stateChange>
                 <stateAttribute type="location" value="CurrentIRQ" />
@@ -18,7 +18,7 @@ ADD TO OTHER
 
         </eventHandler>
 
-ADD TO OTHER
+ADD TO OTHER --> DONE
         <eventHandler eventName="irq_handler_exit">
             <stateChange>
                 <stateAttribute type="location" value="CurrentIRQ" />
@@ -27,7 +27,7 @@ ADD TO OTHER
 
         </eventHandler>
 
-ADD TO OTHER
+ADD TO OTHER --> DONE
         <eventHandler eventName="softirq_entry">
             <stateChange>
                 <stateAttribute type="location" value="CurrentSoftIRQ" />
@@ -36,7 +36,7 @@ ADD TO OTHER
 
         </eventHandler>
 
-ADD TO OTHER
+ADD TO OTHER --> DONE
         <eventHandler eventName="softirq_exit">
             <stateChange>
                 <stateAttribute type="location" value="CurrentSoftIRQ" />
@@ -45,7 +45,7 @@ ADD TO OTHER
 
         </eventHandler>
 
-ADD TO OTHER
+ADD TO OTHER --> DONE
         <eventHandler eventName="softirq_raise">
             <stateChange>
                 <stateAttribute type="location" value="CurrentSoftIRQ" />
