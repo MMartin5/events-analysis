@@ -652,12 +652,12 @@
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
+                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
                     <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" />
                 </state>
                 <state id="syscall">
-                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
                     <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_0"/>
                 </state>
@@ -753,8 +753,6 @@
                         <!-- lttng_statedump_process_state transitions to unknown -->
                     <transition event="lttng_statedump_process_state" target="unknown" action="update_process_to_unknown" />
 
-                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
-                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="exit_syscall" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" />
                     <transition event="sched_process_free" target="syscall" action="free_process" />
                 </state>
