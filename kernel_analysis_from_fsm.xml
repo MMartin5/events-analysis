@@ -169,6 +169,76 @@
                 </stateChange>
             </action>
 
+            <action id="update_prev_process_to_wait_cpu">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="prev_tid" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_WAIT_FOR_CPU" />
+                </stateChange>
+            </action>
+
+            <action id="update_prev_process_to_wait_blocked">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="prev_tid" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_WAIT_BLOCKED" />
+                </stateChange>
+            </action>
+
+            <action id="update_new_process_to_usermode">
+                <stateChange>
+                    <stateAttribute type="location" value="newCurrentThread" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
+                </stateChange>
+            </action>
+
+            <action id="update_new_process_to_syscall">
+                <stateChange>
+                    <stateAttribute type="location" value="newCurrentThread" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
+                </stateChange>
+            </action>
+
+            <action id="update_child_process_to_wait_cpu">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="child_tid" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_WAIT_FOR_CPU" />
+                </stateChange>
+            </action>
+
+            <action id="update_process_from_tid_to_wait_cpu">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_WAIT_FOR_CPU" />
+                </stateChange>
+            </action>
+
+            <action id="update_process_from_tid_to_wait_blocked">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_WAIT_BLOCKED" />
+                </stateChange>
+            </action>
+
+            <action id="update_process_from_tid_to_unknown">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$PROCESS_STATUS_UNKNOWN" />
+                </stateChange>
+            </action>
+
             <!-- IRQ update actions -->
 
             <action id="update_irq">
@@ -734,17 +804,17 @@
                 <state id="unknown">
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_to_unknown" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_from_tid_to_unknown" />
 
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
@@ -753,17 +823,17 @@
                 <state id="wait_blocked">
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_to_unknown" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_from_tid_to_unknown" />
 
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
@@ -772,66 +842,66 @@
                 <state id="usermode">
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="unknusermodeown" action="update_process_from_tid_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_to_unknown" />
+                    <transition event="lttng_statedump_process_state" target="usermode" action="update_process_from_tid_to_unknown" />
 
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
-                    <transition event="sched_process_fork" target="wait_cpu" action="update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
-                    <transition event="sched_process_fork" target="wait_cpu" action="update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" />
+                    <transition event="sched_process_fork" target="usermode" action="update_child_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
+                    <transition event="sched_process_fork" target="usermode" action="update_child_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" />
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" />
                     <transition event="sched_process_free" target="usermode" action="free_process" />
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
+                    <transition event="sched_switch" target="usermode" action="update_new_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="usermode" action="update_prev_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" /> <!-- stay in the same state because it's the prev process that is being updated -->
+                    <transition event="sched_switch" target="usermode" action="update_prev_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
                 </state>
                 <state id="syscall">
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_to_unknown" />
+                    <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_unknown" />
 
                     <transition event="exit_syscall" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" />
                     <transition event="sched_process_free" target="syscall" action="free_process" />
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="update_new_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="syscall" action="update_prev_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" />
+                    <transition event="sched_switch" target="syscall" action="update_prev_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
                 </state>
                 <state id="interrupted">
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_to_unknown" />
+                    <transition event="lttng_statedump_process_state" target="interrupted" action="update_process_from_tid_to_unknown" />
 
-                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="interrupted" action="update_process_from_tid_to_wait_cpu" cond="test_for_sched_wakeup" />
                     <transition event="softirq_exit" target="usermode" action="update_process_to_usermode" cond="current_thread_system_call_null" />
                     <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="current_thread_system_call_null" />
                     <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="current_thread_system_call_not_null" />
@@ -841,17 +911,17 @@
                 <state id="wait_cpu">
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="update_process_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="update_process_to_unknown" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="update_process_from_tid_to_unknown" />
 
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
