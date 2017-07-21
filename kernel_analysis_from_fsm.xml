@@ -23,11 +23,24 @@
         <definedValue name="CPU_STATUS_RUN_USERMODE" value="1" color="#118811" />
         <definedValue name="CPU_STATUS_RUN_SYSCALL" value="2" color="#0000EE" />
         <definedValue name="CPU_STATUS_IRQ" value="3" color="#DDDD00" />
-        <definedValue name="CPU_STATUS_SOFTIRQ" value="4" color="FF8C00"  />
+        <definedValue name="CPU_STATUS_SOFTIRQ" value="4" color="#FF8C00" />
+
+        <definedValue name="PROCESS_STATUS_UNKNOWN" value="10" color="D3D3D3" />
+        <definedValue name="PROCESS_STATUS_WAIT_BLOCKED" value="11" color="#696969" />
+        <definedValue name="PROCESS_STATUS_RUN_USERMODE" value="12" color="#118811" />
+        <definedValue name="PROCESS_STATUS_RUN_SYSCALL" value="13" color="#0000EE" />
+        <definedValue name="PROCESS_STATUS_INTERRUPTED" value="14" color="#DDDD00" />
+        <definedValue name="PROCESS_STATUS_WAIT_FOR_CPU" value="15" color="#A9A9A9" />
 
         <!-- Control Flow View -->
         <entry path="CPUs/*">
             <display type="constant" value="Status" />
+        </entry>
+        <entry path="Threads">
+            <display type="self" />
+            <entry path="*">
+                <display type="constant" value="Status" />
+            </entry>
         </entry>
     </timeGraphView>
 
@@ -56,12 +69,12 @@
         <definedValue name="CPU_STATUS_IRQ" value="3" />
         <definedValue name="CPU_STATUS_SOFTIRQ" value="4" />
 
-        <definedValue name="PROCESS_STATUS_UNKNOWN" value="0" />
-        <definedValue name="PROCESS_STATUS_WAIT_BLOCKED" value="1" />
-        <definedValue name="PROCESS_STATUS_RUN_USERMODE" value="2" />
-        <definedValue name="PROCESS_STATUS_RUN_SYSCALL" value="3" />
-        <definedValue name="PROCESS_STATUS_INTERRUPTED" value="4" />
-        <definedValue name="PROCESS_STATUS_WAIT_FOR_CPU" value="5" />
+        <definedValue name="PROCESS_STATUS_UNKNOWN" value="10" />
+        <definedValue name="PROCESS_STATUS_WAIT_BLOCKED" value="11" />
+        <definedValue name="PROCESS_STATUS_RUN_USERMODE" value="12" />
+        <definedValue name="PROCESS_STATUS_RUN_SYSCALL" value="13" />
+        <definedValue name="PROCESS_STATUS_INTERRUPTED" value="14" />
+        <definedValue name="PROCESS_STATUS_WAIT_FOR_CPU" value="15" />
 
         <definedValue name="SOFT_IRQ_RAISED" value="-2" />
 
