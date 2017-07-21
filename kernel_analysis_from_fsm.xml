@@ -856,11 +856,13 @@
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
                     <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
                 </state>
                 <state id="syscall">
                     <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" />
+                    <transition event="syscall_exit_*" target="usermode" action="update_cpu_to_usermode" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
                     <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
@@ -938,6 +940,7 @@
                     <transition event="sched_process_fork" target="usermode" action="update_child_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
                     <transition event="sched_process_fork" target="usermode" action="update_child_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" />
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" />
                     <transition event="sched_process_free" target="usermode" action="free_process" />
                     <transition event="sched_switch" target="usermode" action="update_new_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_not_null" />
@@ -960,6 +963,7 @@
                     <transition event="lttng_statedump_process_state" target="syscall" action="update_process_from_tid_to_unknown" />
 
                     <transition event="exit_syscall" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" />
+                    <transition event="syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" />
                     <transition event="sched_process_free" target="syscall" action="free_process" />
                     <transition event="sched_switch" target="syscall" action="update_new_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_null" />
                     <transition event="sched_switch" target="syscall" action="update_prev_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" />
