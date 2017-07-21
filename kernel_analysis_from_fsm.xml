@@ -13,6 +13,24 @@
 <tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
 
+    <timeGraphView id="org.eclipse.linuxtools.tmf.analysis.xml.ui.views.statesystem.fsm">
+        <head>
+            <analysis id="kernel.linux.pattern.from.fsm" />
+            <label value="Xml Sample Kernel View CPU Status from FSM" />
+        </head>
+        <!-- StateValues -->
+        <definedValue name="CPU_STATUS_IDLE" value="0" color="#CCCCCC"/>
+        <definedValue name="CPU_STATUS_RUN_USERMODE" value="1" color="#118811" />
+        <definedValue name="CPU_STATUS_RUN_SYSCALL" value="2" color="#0000EE" />
+        <definedValue name="CPU_STATUS_IRQ" value="3" color="#DDDD00" />
+        <definedValue name="CPU_STATUS_SOFTIRQ" value="4" color="FF8C00"  />
+
+        <!-- Control Flow View -->
+        <entry path="CPUs/*">
+            <display type="constant" value="Status" />
+        </entry>
+    </timeGraphView>
+
     <xyView id="org.eclipse.linuxtools.tmf.analysis.xml.core.tests.xy.pattern.fsm">
         <head>
             <analysis id="kernel.linux.pattern.from.fsm" />
@@ -176,6 +194,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_WAIT_FOR_CPU" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="wait_cpu" />
+                </stateChange> -->
             </action>
 
             <action id="update_prev_process_to_wait_blocked">
@@ -185,6 +210,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_WAIT_BLOCKED" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="wait_blocked" />
+                </stateChange> -->
             </action>
 
             <action id="update_new_process_to_usermode">
@@ -193,6 +225,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="usermode" />
+                </stateChange> -->
             </action>
 
             <action id="update_new_process_to_syscall">
@@ -201,6 +240,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="syscall" />
+                </stateChange> -->
             </action>
 
             <action id="update_child_process_to_wait_cpu">
@@ -210,6 +256,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_WAIT_FOR_CPU" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="wait_cpu" />
+                </stateChange> -->
             </action>
 
             <action id="update_process_from_tid_to_wait_cpu">
@@ -219,6 +272,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_WAIT_FOR_CPU" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="wait_cpu" />
+                </stateChange> -->
             </action>
 
             <action id="update_process_from_tid_to_wait_blocked">
@@ -228,6 +288,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_WAIT_BLOCKED" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="wait_blocked" />
+                </stateChange> -->
             </action>
 
             <action id="update_process_from_tid_to_unknown">
@@ -237,6 +304,13 @@
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_UNKNOWN" />
                 </stateChange>
+                <!-- <stateChange>
+                    <stateAttribute type="constant" value="scenarios" />
+                    <stateAttribute type="constant" value="process_fsm" />
+                    <stateAttribute type="constant" value="" />
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="string" value="unknown" />
+                </stateChange> -->
             </action>
 
             <!-- IRQ update actions -->
