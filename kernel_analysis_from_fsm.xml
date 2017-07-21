@@ -518,7 +518,7 @@
                 </if>
             </test>
 
-            <test id="new_current_thread_system_call_null_and_next_tid_0">
+            <test id="new_current_thread_system_call_null_and_next_tid_not_0">
                 <if>
                     <and>
                         <condition>
@@ -526,10 +526,12 @@
                             <stateAttribute type="constant" value="System_call" />
                             <stateValue type="null" />
                         </condition>
-                        <condition>
-                            <field name="next_tid" />
-                            <stateValue type="long" value="0" />
-                        </condition>
+                        <not>
+                            <condition>
+                                <field name="next_tid" />
+                                <stateValue type="long" value="0" />
+                            </condition>
+                        </not>
                     </and>
                 </if>
             </test>
@@ -845,7 +847,8 @@
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
                     <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_0"/>
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
+                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
@@ -854,11 +857,13 @@
                     <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
                 </state>
                 <state id="syscall">
                     <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" />
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_0"/>
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
                     <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
                 </state>
                 <state id="irq">
                     <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null" />
