@@ -40,6 +40,8 @@
             <display type="self" />
             <entry path="*">
                 <display type="constant" value="Status" />
+                <parent type="constant" value="PPID" />
+                <name type="constant" value="Exec_name" />
             </entry>
         </entry>
     </timeGraphView>
@@ -913,6 +915,7 @@
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="sched_process_free" target="unknown" action="free_process" />
+                    <transition event="sched_wakeup*" target="unknown" action="update_process_from_tid_to_wait_cpu" cond="test_for_sched_wakeup" />
                 </state>
                 <state id="wait_blocked">
                     <!-- WARNING: transitions order is important -->
@@ -932,6 +935,7 @@
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="sched_process_free" target="wait_blocked" action="free_process" />
+                    <transition event="sched_wakeup*" target="wait_blocked" action="update_process_from_tid_to_wait_cpu" cond="test_for_sched_wakeup" />
                 </state>
                 <state id="usermode">
                     <!-- WARNING: transitions order is important -->
@@ -959,6 +963,7 @@
                     <transition event="sched_switch" target="usermode" action="update_new_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="usermode" action="update_prev_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" /> <!-- stay in the same state because it's the prev process that is being updated -->
                     <transition event="sched_switch" target="usermode" action="update_prev_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
+                    <transition event="sched_wakeup*" target="usermode" action="update_process_from_tid_to_wait_cpu" cond="test_for_sched_wakeup" />
                 </state>
                 <state id="syscall">
                     <!-- WARNING: transitions order is important -->
@@ -981,6 +986,7 @@
                     <transition event="sched_switch" target="syscall" action="update_new_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_null" />
                     <transition event="sched_switch" target="syscall" action="update_prev_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" />
                     <transition event="sched_switch" target="syscall" action="update_prev_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
+                    <transition event="sched_wakeup*" target="syscall" action="update_process_from_tid_to_wait_cpu" cond="test_for_sched_wakeup" />
                 </state>
                 <state id="interrupted">
                     <!-- WARNING: transitions order is important -->
@@ -1022,6 +1028,7 @@
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" />
                     <transition event="sched_process_free" target="wait_cpu" action="free_process" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_from_tid_to_wait_cpu" cond="test_for_sched_wakeup" />
                 </state>
             </fsm>
 
