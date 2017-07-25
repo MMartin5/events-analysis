@@ -353,6 +353,11 @@
                     <stateAttribute type="constant" value="thread" />
                     <stateValue type="eventField" value="tid" forcedType="int" />
                 </stateChange>
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
+                    <stateAttribute type="constant" value="hasScenario" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
             </action>
 
             <!-- Conditions on thread id -->
@@ -481,11 +486,19 @@
 
             <test id="new_current_thread_system_call_null">
                 <if>
-                    <condition>
-                        <stateAttribute type="location" value="newCurrentThread" />
-                        <stateAttribute type="constant" value="System_call" />
-                        <stateValue type="null" />
-                    </condition>
+                    <and>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
+                        <condition>
+                            <stateAttribute type="location" value="newCurrentThread" />
+                            <stateAttribute type="constant" value="System_call" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
                 </if>
             </test>
 
@@ -508,13 +521,21 @@
 
             <test id="new_current_thread_system_call_not_null">
                 <if>
-                    <not>
-                        <condition>
-                            <stateAttribute type="location" value="newCurrentThread" />
-                            <stateAttribute type="constant" value="System_call" />
-                            <stateValue type="null" />
-                        </condition>
-                    </not>
+                    <and>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
+                        <not>
+                            <condition>
+                                <stateAttribute type="location" value="newCurrentThread" />
+                                <stateAttribute type="constant" value="System_call" />
+                                <stateValue type="null" />
+                            </condition>
+                        </not>
+                    </and>
                 </if>
             </test>
 
@@ -597,12 +618,20 @@
 
             <test id="child_thread_system_call_null">
                 <if>
-                    <condition>
-                        <stateAttribute type="constant" value="Threads" />
-                        <stateAttribute type="eventField" value="child_tid" />
-                        <stateAttribute type="constant" value="System_call" />
-                        <stateValue type="null" />
-                    </condition>
+                    <and>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="Threads" />
+                            <stateAttribute type="eventField" value="child_tid" />
+                            <stateAttribute type="constant" value="System_call" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
                 </if>
             </test>
 
@@ -627,16 +656,24 @@
             <test id="test_for_wait_blocked_process_state">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="Status" />
-                            <stateValue type="null" />
-                        </condition>
-                        <condition>
-                            <field name="status" />
-                            <stateValue type="long" value="5" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
+                        <and>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="Status" />
+                                <stateValue type="null" />
+                            </condition>
+                            <condition>
+                                <field name="status" />
+                                <stateValue type="long" value="5" />
+                            </condition>
+                        </and>
                     </and>
                 </if>
             </test>
@@ -668,23 +705,31 @@
             <test id="wait_blocked_process_state_and_thread_exec_name_null">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="Exec_name" />
-                            <stateValue type="null" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
                         <and>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
+                                <stateAttribute type="constant" value="Exec_name" />
                                 <stateValue type="null" />
                             </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="5" />
-                            </condition>
+                            <and>
+                                <condition>
+                                    <stateAttribute type="constant" value="Threads" />
+                                    <stateAttribute type="eventField" value="tid" />
+                                    <stateAttribute type="constant" value="Status" />
+                                    <stateValue type="null" />
+                                </condition>
+                                <condition>
+                                    <field name="status" />
+                                    <stateValue type="long" value="5" />
+                                </condition>
+                            </and>
                         </and>
                     </and>
                 </if>
@@ -725,23 +770,31 @@
             <test id="wait_blocked_process_state_and_thread_ppid_null">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="PPID" />
-                            <stateValue type="null" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
                         <and>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
+                                <stateAttribute type="constant" value="PPID" />
                                 <stateValue type="null" />
                             </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="5" />
-                            </condition>
+                            <and>
+                                <condition>
+                                    <stateAttribute type="constant" value="Threads" />
+                                    <stateAttribute type="eventField" value="tid" />
+                                    <stateAttribute type="constant" value="Status" />
+                                    <stateValue type="null" />
+                                </condition>
+                                <condition>
+                                    <field name="status" />
+                                    <stateValue type="long" value="5" />
+                                </condition>
+                            </and>
                         </and>
                     </and>
                 </if>
@@ -782,30 +835,38 @@
             <test id="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="PPID" />
-                            <stateValue type="null" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
                         <and>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Exec_name" />
+                                <stateAttribute type="constant" value="PPID" />
                                 <stateValue type="null" />
                             </condition>
                             <and>
                                 <condition>
                                     <stateAttribute type="constant" value="Threads" />
                                     <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
+                                    <stateAttribute type="constant" value="Exec_name" />
                                     <stateValue type="null" />
                                 </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="5" />
-                                </condition>
+                                <and>
+                                    <condition>
+                                        <stateAttribute type="constant" value="Threads" />
+                                        <stateAttribute type="eventField" value="tid" />
+                                        <stateAttribute type="constant" value="Status" />
+                                        <stateValue type="null" />
+                                    </condition>
+                                    <condition>
+                                        <field name="status" />
+                                        <stateValue type="long" value="5" />
+                                    </condition>
+                                </and>
                             </and>
                         </and>
                     </and>
@@ -855,16 +916,24 @@
             <test id="test_for_wait_cpu_process_state">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="Status" />
-                            <stateValue type="null" />
-                        </condition>
-                        <condition>
-                            <field name="status" />
-                            <stateValue type="long" value="2" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
+                        <and>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="Status" />
+                                <stateValue type="null" />
+                            </condition>
+                            <condition>
+                                <field name="status" />
+                                <stateValue type="long" value="2" />
+                            </condition>
+                        </and>
                     </and>
                 </if>
             </test>
@@ -896,23 +965,31 @@
             <test id="wait_cpu_process_state_and_thread_exec_name_null">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="Exec_name" />
-                            <stateValue type="null" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
                         <and>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
+                                <stateAttribute type="constant" value="Exec_name" />
                                 <stateValue type="null" />
                             </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="2" />
-                            </condition>
+                            <and>
+                                <condition>
+                                    <stateAttribute type="constant" value="Threads" />
+                                    <stateAttribute type="eventField" value="tid" />
+                                    <stateAttribute type="constant" value="Status" />
+                                    <stateValue type="null" />
+                                </condition>
+                                <condition>
+                                    <field name="status" />
+                                    <stateValue type="long" value="2" />
+                                </condition>
+                            </and>
                         </and>
                     </and>
                 </if>
@@ -953,23 +1030,31 @@
             <test id="wait_cpu_process_state_and_thread_ppid_null">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="PPID" />
-                            <stateValue type="null" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
                         <and>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
+                                <stateAttribute type="constant" value="PPID" />
                                 <stateValue type="null" />
                             </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="2" />
-                            </condition>
+                            <and>
+                                <condition>
+                                    <stateAttribute type="constant" value="Threads" />
+                                    <stateAttribute type="eventField" value="tid" />
+                                    <stateAttribute type="constant" value="Status" />
+                                    <stateValue type="null" />
+                                </condition>
+                                <condition>
+                                    <field name="status" />
+                                    <stateValue type="long" value="2" />
+                                </condition>
+                            </and>
                         </and>
                     </and>
                 </if>
@@ -1010,30 +1095,38 @@
             <test id="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null">
                 <if>
                     <and>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="PPID" />
-                            <stateValue type="null" />
-                        </condition>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
                         <and>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Exec_name" />
+                                <stateAttribute type="constant" value="PPID" />
                                 <stateValue type="null" />
                             </condition>
                             <and>
                                 <condition>
                                     <stateAttribute type="constant" value="Threads" />
                                     <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
+                                    <stateAttribute type="constant" value="Exec_name" />
                                     <stateValue type="null" />
                                 </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="2" />
-                                </condition>
+                                <and>
+                                    <condition>
+                                        <stateAttribute type="constant" value="Threads" />
+                                        <stateAttribute type="eventField" value="tid" />
+                                        <stateAttribute type="constant" value="Status" />
+                                        <stateValue type="null" />
+                                    </condition>
+                                    <condition>
+                                        <field name="status" />
+                                        <stateValue type="long" value="2" />
+                                    </condition>
+                                </and>
                             </and>
                         </and>
                     </and>
@@ -1157,10 +1250,18 @@
 
             <test id="prev_state_0">
                 <if>
-                    <condition>
-                        <field name="prev_state" />
-                        <stateValue type="long" value="0" />
-                    </condition>
+                    <and>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
+                        <condition>
+                            <field name="prev_state" />
+                            <stateValue type="long" value="0" />
+                        </condition>
+                    </and>
                 </if>
             </test>
 
@@ -1182,12 +1283,20 @@
 
             <test id="prev_state_not_0">
                 <if>
-                    <not>
-                        <condition>
-                            <field name="prev_state" />
-                            <stateValue type="long" value="0" />
-                        </condition>
-                    </not>
+                    <and>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
+                            </condition>
+                        <not>
+                            <condition>
+                                <field name="prev_state" />
+                                <stateValue type="long" value="0" />
+                            </condition>
+                        </not>
+                    </and>
                 </if>
             </test>
 
@@ -1215,6 +1324,17 @@
                         <field name="next_tid" />
                         <stateValue type="long" value="0" />
                     </condition>
+                </if>
+            </test>
+
+            <test id="test_scenario">
+                <if>
+                        <condition>
+                            <stateAttribute type="constant" value="Threads" />
+                            <stateAttribute type="eventField" value="tid" />
+                            <stateAttribute type="constant" value="hasScenario" />
+                            <stateValue type="null" />
+                        </condition>
                 </if>
             </test>
 
@@ -1274,10 +1394,10 @@
                     <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
                     <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" cond="test_scenario"/>
 
                     <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
-                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" />
+                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="test_scenario" />
 
                     <transition event="sched_switch" target="syscall" action="init_scenario:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="usermode" action="init_scenario:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_null" />
