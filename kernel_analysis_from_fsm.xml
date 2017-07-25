@@ -1173,28 +1173,36 @@
                 </if>
             </test>
 
-            <!-- <test id="test_for_sched_wakeup">
+            <test id="test_for_sched_wakeup">
                 <if>
                     <and>
-                        <not>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
-                                <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
+                                <stateAttribute type="constant" value="hasScenario" />
+                                <stateValue type="null" />
                             </condition>
-                        </not>
-                        <not>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
-                                <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
-                            </condition>
-                        </not>
+                        <and>
+                            <not>
+                                <condition>
+                                    <stateAttribute type="constant" value="Threads" />
+                                    <stateAttribute type="eventField" value="tid" />
+                                    <stateAttribute type="constant" value="Status" />
+                                    <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
+                                </condition>
+                            </not>
+                            <not>
+                                <condition>
+                                    <stateAttribute type="constant" value="Threads" />
+                                    <stateAttribute type="eventField" value="tid" />
+                                    <stateAttribute type="constant" value="Status" />
+                                    <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
+                                </condition>
+                            </not>
+                        </and>
                     </and>
                 </if>
-            </test> -->
+            </test>
 
             <test id="test_tid_and_test_for_sched_wakeup">
                 <if>
@@ -1403,6 +1411,8 @@
                     <transition event="sched_switch" target="usermode" action="init_scenario:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_null" />
                     <transition event="sched_switch" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" />
                     <transition event="sched_switch" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
+
+                    <transition event="sched_wakeup*" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="test_for_sched_wakeup" />
                 </initialState>
                 <state id="unknown">
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
