@@ -1170,7 +1170,7 @@
                         <condition>
                             <stateAttribute type="constant" value="#CurrentScenario" />
                             <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="next_tid" />
+                            <stateValue type="eventField" value="prev_tid" />
                         </condition>
                         <condition>
                             <field name="prev_state" />
@@ -1197,7 +1197,7 @@
                         <condition>
                             <stateAttribute type="constant" value="#CurrentScenario" />
                             <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="next_tid" />
+                            <stateValue type="eventField" value="prev_tid" />
                         </condition>
                         <not>
                             <condition>
@@ -1333,6 +1333,8 @@
                     <transition event="syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
 
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_not_0" />
                 </state>
                 <state id="interrupted">
                     <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_tid_and_test_for_sched_wakeup" />
