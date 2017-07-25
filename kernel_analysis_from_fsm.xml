@@ -26,11 +26,11 @@
         <definedValue name="CPU_STATUS_SOFTIRQ" value="4" color="#FF8C00" />
 
         <definedValue name="PROCESS_STATUS_UNKNOWN" value="10" color="D3D3D3" />
-        <definedValue name="PROCESS_STATUS_WAIT_BLOCKED" value="11" color="#696969" />
+        <definedValue name="PROCESS_STATUS_WAIT_BLOCKED" value="11" color="#A9A9A9" />
         <definedValue name="PROCESS_STATUS_RUN_USERMODE" value="12" color="#118811" />
         <definedValue name="PROCESS_STATUS_RUN_SYSCALL" value="13" color="#0000EE" />
         <definedValue name="PROCESS_STATUS_INTERRUPTED" value="14" color="#DDDD00" />
-        <definedValue name="PROCESS_STATUS_WAIT_FOR_CPU" value="15" color="#A9A9A9" />
+        <definedValue name="PROCESS_STATUS_WAIT_FOR_CPU" value="15" color="#696969" />
 
         <!-- Control Flow View -->
         <entry path="CPUs/*">
