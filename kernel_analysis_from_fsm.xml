@@ -88,13 +88,13 @@
                 <stateAttribute type="constant" value="Current_thread" />
             </stateAttribute>
         </location>
-        <!-- <location id="CurrentThread">
+        <location id="CurrentScenarioThread">
             <stateAttribute type="constant" value="Threads" />
             <stateAttribute type="query">
                 <stateAttribute type="constant" value="#CurrentScenario" />
                 <stateAttribute type="constant" value="thread" />
             </stateAttribute>
-        </location> -->
+        </location>
         <location id="CurrentCPU">
             <stateAttribute type="constant" value="CPUs" />
             <stateAttribute type="eventField" value="cpu" />
@@ -162,7 +162,7 @@
 
             <action id="update_process_to_unknown">
                 <stateChange>
-                    <stateAttribute type="location" value="CurrentThread" />
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_UNKNOWN" />
                 </stateChange>
@@ -170,7 +170,7 @@
 
             <action id="update_process_to_wait_blocked">
                 <stateChange>
-                    <stateAttribute type="location" value="CurrentThread" />
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_WAIT_BLOCKED" />
                 </stateChange>
@@ -178,7 +178,7 @@
 
             <action id="update_process_to_usermode">
                 <stateChange>
-                    <stateAttribute type="location" value="CurrentThread" />
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
                 </stateChange>
@@ -186,7 +186,7 @@
 
             <action id="update_process_to_syscall">
                 <stateChange>
-                    <stateAttribute type="location" value="CurrentThread" />
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
                 </stateChange>
@@ -194,7 +194,7 @@
 
             <action id="update_process_to_interrupted">
                 <stateChange>
-                    <stateAttribute type="location" value="CurrentThread" />
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_INTERRUPTED" />
                 </stateChange>
@@ -202,7 +202,7 @@
 
             <action id="update_process_to_wait_cpu">
                 <stateChange>
-                    <stateAttribute type="location" value="CurrentThread" />
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
                     <stateAttribute type="constant" value="Status" />
                     <stateValue type="int" value="$PROCESS_STATUS_WAIT_FOR_CPU" />
                 </stateChange>
