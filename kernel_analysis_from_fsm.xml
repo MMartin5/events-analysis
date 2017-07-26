@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- ***************************************************************************
-* Copyright (c) 2013 École Polytechnique de Montréal
+* Copyright (c) 2013, 2017 École Polytechnique de Montréal
 *
 * All rights reserved. This program and the accompanying materials are
 * made available under the terms of the Eclipse Public License v1.0 which
@@ -9,14 +9,16 @@
 *
 * Contributors:
 *     Florian Wininger - Initial API and implementation
+*     Marie Martin     - Refactoring to use FSM (pattern)
 *************************************************************************** -->
 <tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
 
+    <!-- View -->
     <timeGraphView id="org.eclipse.linuxtools.tmf.analysis.xml.ui.views.statesystem.fsm">
         <head>
             <analysis id="kernel.linux.pattern.from.fsm" />
-            <label value="Xml Sample Kernel View CPU Status from FSM" />
+            <label value="Xml Sample Kernel View from FSM" />
         </head>
         <!-- StateValues -->
         <definedValue name="CPU_STATUS_IDLE" value="0" color="#CCCCCC"/>
@@ -46,10 +48,11 @@
         </entry>
     </timeGraphView>
 
+    <!-- XY view of CPU status -->
     <xyView id="org.eclipse.linuxtools.tmf.analysis.xml.core.tests.xy.pattern.fsm">
         <head>
             <analysis id="kernel.linux.pattern.from.fsm" />
-            <label value="Xml XY view CPU Status" />
+            <label value="Xml XY view CPU Status from FSM" />
         </head>
 
         <entry path="CPUs/*">
@@ -58,10 +61,11 @@
         </entry>
     </xyView>
 
-    <pattern id="kernel.linux.pattern.from.fsm" version="0">
+    <!-- Pattern definition -->
+    <pattern id="kernel.linux.pattern.from.fsm" version="1">
         <head>
             <traceType id="org.eclipse.linuxtools.lttng2.kernel.tracetype" />
-            <label value="Xml kernel State System Pattern from FSM" />
+            <label value="Xml Kernel State System Pattern from FSM" />
         </head>
 
         <definedValue name="CPU_STATUS_IDLE" value="0" />
@@ -247,7 +251,7 @@
                 </stateChange>
             </action>
 
-            <!-- Other actions -->
+            <!-- Other actions used when a transition occurs -->
 
             <action id="set_current_thread_system_call_null">
                 <stateChange>
@@ -487,6 +491,9 @@
             <test id="new_current_thread_system_call_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -522,6 +529,9 @@
             <test id="new_current_thread_system_call_not_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -619,6 +629,9 @@
             <test id="child_thread_system_call_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -656,6 +669,9 @@
             <test id="test_for_wait_blocked_process_state">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -705,6 +721,9 @@
             <test id="wait_blocked_process_state_and_thread_exec_name_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -770,6 +789,9 @@
             <test id="wait_blocked_process_state_and_thread_ppid_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -835,6 +857,9 @@
             <test id="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -916,6 +941,9 @@
             <test id="test_for_wait_cpu_process_state">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -965,6 +993,9 @@
             <test id="wait_cpu_process_state_and_thread_exec_name_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -1030,6 +1061,9 @@
             <test id="wait_cpu_process_state_and_thread_ppid_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -1095,6 +1129,9 @@
             <test id="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -1176,6 +1213,9 @@
             <test id="test_for_sched_wakeup">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -1234,31 +1274,12 @@
                 </if>
             </test>
 
-            <!-- <test id="thread_exec_name_null">
-                <if>
-                    <condition>
-                        <stateAttribute type="constant" value="Threads" />
-                        <stateAttribute type="eventField" value="tid" />
-                        <stateAttribute type="constant" value="Exec_name" />
-                        <stateValue type="null" />
-                    </condition>
-                </if>
-            </test> -->
-
-            <!-- <test id="thread_ppid_null">
-                <if>
-                    <condition>
-                        <stateAttribute type="constant" value="Threads" />
-                        <stateAttribute type="eventField" value="tid" />
-                        <stateAttribute type="constant" value="PPID" />
-                        <stateValue type="null" />
-                    </condition>
-                </if>
-            </test> -->
-
             <test id="prev_state_0">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -1292,6 +1313,9 @@
             <test id="prev_state_not_0">
                 <if>
                     <and>
+                            <!-- this condition is used only in the initial state
+                                to make sure no scenario has already been
+                                instantiated for this process -->
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
@@ -1337,6 +1361,9 @@
 
             <test id="test_scenario">
                 <if>
+                        <!-- this condition is used only in the initial state
+                            to make sure no scenario has already been
+                            instantiated for this process -->
                         <condition>
                             <stateAttribute type="constant" value="Threads" />
                             <stateAttribute type="eventField" value="tid" />
