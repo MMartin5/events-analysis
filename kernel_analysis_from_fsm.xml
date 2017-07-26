@@ -1482,6 +1482,7 @@
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="compat_syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                 </state>
                 <state id="syscall">
                     <!-- TODO vérifier si irq possibles quand syscall en cours -->
@@ -1492,6 +1493,7 @@
 
                     <transition event="exit_syscall" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="compat_syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
 
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
                     <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
