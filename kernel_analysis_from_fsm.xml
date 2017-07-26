@@ -364,6 +364,14 @@
                 </stateChange>
             </action>
 
+            <action id="set_thread_delete">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateValue type="delete" />
+                </stateChange>
+            </action>
+
             <!-- Conditions on thread id -->
 
             <test id="next_tid_is_current_scenario_thread">
@@ -1455,6 +1463,8 @@
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
                     <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
                     <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_not_0" />
+
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="wait_blocked">
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
@@ -1468,6 +1478,8 @@
 
                     <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
+
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
@@ -1483,6 +1495,8 @@
                     <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
+
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="syscall">
                     <!-- TODO vérifier si irq possibles quand syscall en cours -->
@@ -1498,6 +1512,8 @@
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
                     <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
                     <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_not_0" />
+
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="interrupted">
                     <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_tid_and_test_for_sched_wakeup" />
@@ -1508,6 +1524,8 @@
                     <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_and_current_thread_system_call_not_null"/>
                     <transition event="x86_irq_vectors_*_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null" />
                     <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_and_current_thread_system_call_not_null"/>
+
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="wait_cpu">
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
@@ -1519,7 +1537,10 @@
 
                     <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
+
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
+                <final id="final_state" />
             </fsm>
 
             <fsm id="irq_fsm" initial="no_irq">
