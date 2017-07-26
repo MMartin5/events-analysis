@@ -1472,6 +1472,8 @@
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <!-- should match IPI entry events -->
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
 
                     <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
@@ -1485,6 +1487,8 @@
                     <!-- TODO vérifier si irq possibles quand syscall en cours -->
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <!-- should match IPI entry events -->
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
 
                     <transition event="exit_syscall" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
@@ -1497,9 +1501,11 @@
                     <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_tid_and_test_for_sched_wakeup" />
 
                     <transition event="softirq_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null" />
-                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null"/>
                     <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_current_thread_system_call_not_null"/>
+                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null"/>
                     <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_and_current_thread_system_call_not_null"/>
+                    <transition event="x86_irq_vectors_*_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null" />
+                    <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_and_current_thread_system_call_not_null"/>
                 </state>
                 <state id="wait_cpu">
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
