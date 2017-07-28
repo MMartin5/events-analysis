@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ***************************************************************************
+* Copyright (c) 2013, 2017 École Polytechnique de Montréal
+*
+* All rights reserved. This program and the accompanying materials are
+* made available under the terms of the Eclipse Public License v1.0 which
+* accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v10.html
+*
+* Contributors:
+*     Florian Wininger - Initial API and implementation
+*     Marie Martin     - Refactoring to use FSM (pattern)
+*************************************************************************** -->
+<tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
+
+    <!-- View -->
+    <timeGraphView id="org.eclipse.linuxtools.tmf.analysis.xml.ui.views.statesystem.fsm">
+        <head>
+            <analysis id="kernel.linux.pattern.statedump" />
+            <label value="XML view for state dump" />
+        </head>
+        <!-- StateValues -->
+
+        <definedValue name="START" value="0" color="D3D3D3" />
+        <definedValue name="LOST" value="1" color="#FF0000" />
+        <definedValue name="BUILDING" value="2" color="#A9A9A9" />
+        <definedValue name="COMPLETE" value="3" color="#118811" />
+
+        <!-- Control Flow View -->
+        <entry path="state">
+            <display type="self" />
+        </entry>
+
+    </timeGraphView>
+
+    <!-- Pattern definition -->
+    <pattern id="kernel.linux.pattern.statedump" version="0">
+        <head>
+            <traceType id="org.eclipse.linuxtools.lttng2.kernel.tracetype" />
+            <label value="XML Kernel State System Pattern with State Dump" />
+        </head>
+
+        <definedValue name="START" value="0" />
+        <definedValue name="LOST" value="1" />
+        <definedValue name="BUILDING" value="2" />
+        <definedValue name="COMPLETE" value="3" />
+
+        <patternHandler>
+
+            <!-- Actions -->
+            <action id="set_state_to_start">
+                <stateChange>
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="int" value="$START" />
+                </stateChange>
+            </action>
+
+            <action id="set_state_to_lost">
+                <stateChange>
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="int" value="$LOST" />
+                </stateChange>
+            </action>
+
+            <action id="set_state_to_building">
+                <stateChange>
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="int" value="$BUILDING" />
+                </stateChange>
+            </action>
+
+            <action id="set_state_to_complete">
+                <stateChange>
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="int" value="$COMPLETE" />
+                </stateChange>
+            </action>
+
+            <action id="init_scenario">
+                <stateChange>
+                    <stateAttribute type="constant" value="state" />
+                    <stateValue type="int" value="$LOST" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread_counter" />
+                    <stateValue type="int" value="0" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statedump_with_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread_counter" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statedump_with_next_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="eventField" value="next_tid" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread_counter" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statedump_with_prev_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="eventField" value="prev_tid" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread_counter" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statedump_with_child_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="eventField" value="child_tid" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread_counter" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statedump_with_parent_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="eventField" value="parent_tid" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread_counter" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <!-- Tests -->
+            <test id="test_no_state">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="state" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+            </test>
+
+            <test id="test_statedump_complete">
+                <!-- Test whether or not we added all the existing threads into the state dump -->
+                <if>
+                    <and>
+                        <!-- Test to make sure we are not waiting for a new relevant event for too long -->
+                        <condition>
+                            <elapsedTime unit="ns">
+                                <more since="building" value="1000000" /> <!-- TODO select appropriate waiting time -->
+                            </elapsedTime>
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="constant" value="thread_counter" />
+                            <stateValue type="int" value="709" /> <!-- TODO count threads -->
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="test_end_of_lost_events">
+                <if>
+                    <condition>
+                        <elapsedTime unit="ns">
+                            <more since="lost" value="60659158" /> <!-- TODO get duration field -->
+                        </elapsedTime>
+                    </condition>
+                </if>
+            </test>
+
+            <test id="test_tid">
+                <if>
+                    <and>
+
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="eventField" value="tid" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="test_next_tid">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="eventField" value="next_tid" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+            </test>
+
+            <test id="test_prev_tid">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="eventField" value="prev_tid" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+            </test>
+
+            <test id="test_child_tid">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="eventField" value="child_tid" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+            </test>
+
+            <test id="test_parent_tid">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="eventField" value="parent_tid" />
+                        <stateValue type="null" />
+                    </condition>
+                </if>
+            </test>
+
+            <test id="test_prev_and_next_tid">
+                <if>
+                    <and>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="eventField" value="prev_tid" />
+                            <stateValue type="null" />
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="eventField" value="next_tid" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="test_child_and_parent_tid">
+                <if>
+                    <and>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="eventField" value="child_tid" />
+                            <stateValue type="null" />
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="eventField" value="parent_tid" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <!-- State machines -->
+
+            <fsm id="statedump_building" initial="start">
+                <state id="start">
+                    <transition event="*" target="start" action="set_state_to_start" cond="test_no_state" />
+                    <!-- Lost event - fields: Lost events, duration-->
+                    <transition event="Lost event" target="lost" action="init_scenario" />
+                </state>
+                <state id="lost">
+                    <!-- Start building after 'Lost event' event duration -->
+                    <transition event="*" target="building" cond="test_end_of_lost_events" action="set_state_to_building" />
+                </state>
+                <state id="building">
+                    <transition event="*" target="statedump_complete" cond="test_statedump_complete" action="set_state_to_complete"/>
+                    <!-- We don't use events which rely on cpu/Current_thread because we can't trust that
+                    this field has been correctly updated during 'Lost event' period -->
+                    <transition event="sched_switch" target="building" action="add_process_to_statedump_with_prev_tid:add_process_to_statedump_with_next_tid" cond="test_prev_and_next_tid" />
+                    <transition event="sched_switch" target="building" action="add_process_to_statedump_with_prev_tid" cond="test_prev_tid" />
+                    <transition event="sched_switch" target="building" action="add_process_to_statedump_with_next_tid" cond="test_next_tid" />
+                    <transition event="sched_process_fork" target="building" action="add_process_to_statedump_with_child_tid:add_process_to_statedump_with_parent_tid" cond="test_child_and_parent_tid" />
+                    <transition event="sched_process_fork" target="building" action="add_process_to_statedump_with_child_tid" cond="test_child_tid" />
+                    <transition event="sched_process_fork" target="building" action="add_process_to_statedump_with_parent_tid" cond="test_parent_tid" />
+                    <transition event="sched_process_free" target="building" action="add_process_to_statedump_with_tid" cond="test_tid" />
+                    <transition event="sched_wakeup*" target="building" action="add_process_to_statedump_with_tid" cond="test_tid" />
+                    <transition event="lttng_statedump_process_state" target="building" action="add_process_to_statedump_with_tid" cond="test_tid" />
+                </state>
+                <final id="statedump_complete" />
+            </fsm>
+
+        </patternHandler>
+    </pattern>
+</tmfxml>
