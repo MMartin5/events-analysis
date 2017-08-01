@@ -27,8 +27,14 @@
         <definedValue name="BUILDING" value="2" color="#A9A9A9" />
         <definedValue name="COMPLETE" value="3" color="#118811" />
 
+        <definedValue name="OK" value="10" color="#118811" />
+
         <!-- Control Flow View -->
         <entry path="state">
+            <display type="self" />
+        </entry>
+
+        <entry path="Threads/*">
             <display type="self" />
         </entry>
 
@@ -45,6 +51,8 @@
         <definedValue name="LOST" value="1" />
         <definedValue name="BUILDING" value="2" />
         <definedValue name="COMPLETE" value="3" />
+
+        <definedValue name="OK" value="10" />
 
         <patternHandler>
 
@@ -93,7 +101,7 @@
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="tid" />
-                    <stateValue type="string" value="true" />
+                    <stateValue type="int" value="10" />
                 </stateChange>
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
@@ -106,7 +114,7 @@
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="next_tid" />
-                    <stateValue type="string" value="true" />
+                    <stateValue type="int" value="10" />
                 </stateChange>
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
@@ -119,7 +127,7 @@
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="prev_tid" />
-                    <stateValue type="string" value="true" />
+                    <stateValue type="int" value="10" />
                 </stateChange>
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
@@ -132,7 +140,7 @@
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="child_tid" />
-                    <stateValue type="string" value="true" />
+                    <stateValue type="int" value="10" />
                 </stateChange>
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
@@ -145,7 +153,7 @@
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="parent_tid" />
-                    <stateValue type="string" value="true" />
+                    <stateValue type="int" value="10" />
                 </stateChange>
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
