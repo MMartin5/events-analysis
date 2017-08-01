@@ -87,15 +87,79 @@
 
             <action id="init_scenario">
                 <stateChange>
-                    <stateAttribute type="constant" value="state" />
-                    <stateValue type="int" value="$LOST" />
-                </stateChange>
-                <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
                     <stateAttribute type="constant" value="thread_counter" />
                     <stateValue type="int" value="0" />
                 </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="threads" />
+                    <stateValue type="int" value="0" />
+                </stateChange>
             </action>
+
+            <!-- Statesystem -->
+
+            <action id="add_process_to_statesystem_with_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="tid" />
+                    <stateValue type="null" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="threads" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statesystem_with_next_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="next_tid" />
+                    <stateValue type="null" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="threads" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statesystem_with_prev_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="prev_tid" />
+                    <stateValue type="null" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="threads" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statesystem_with_child_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="child_tid" />
+                    <stateValue type="null" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="threads" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <action id="add_process_to_statesystem_with_parent_tid">
+                <stateChange>
+                    <stateAttribute type="constant" value="Threads" />
+                    <stateAttribute type="eventField" value="parent_tid" />
+                    <stateValue type="null" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="threads" />
+                    <stateValue type="int" increment="true" value="1" />
+                </stateChange>
+            </action>
+
+            <!-- Statedump -->
 
             <action id="add_process_to_statedump_with_tid">
                 <stateChange>
@@ -185,7 +249,9 @@
                         <condition>
                             <stateAttribute type="constant" value="#CurrentScenario" />
                             <stateAttribute type="constant" value="thread_counter" />
-                            <stateValue type="int" value="709" /> <!-- TODO count threads -->
+                            <stateValue type="query">
+                                <stateAttribute type="constant" value="threads" />
+                            </stateValue>
                         </condition>
                     </or>
                 </if>
@@ -290,11 +356,21 @@
 
             <!-- State machines -->
 
-            <fsm id="statedump_building" initial="start">
+            <fsm id="statedump_building" initial="start" multiple="false">
                 <state id="start">
-                    <transition event="*" target="start" action="set_state_to_start" cond="test_no_state" />
+                    <transition event="*" target="start" action="init_scenario:set_state_to_start" cond="test_no_state" />
                     <!-- Lost event - fields: Lost events, duration-->
-                    <transition event="Lost event" target="lost" action="init_scenario" />
+                    <transition event="Lost event" target="lost" action="set_state_to_lost" />
+
+                    <transition event="sched_switch" target="start" action="add_process_to_statesystem_with_prev_tid:add_process_to_statesystem_with_next_tid" cond="test_prev_and_next_tid" />
+                    <transition event="sched_switch" target="start" action="add_process_to_statesystem_with_prev_tid" cond="test_prev_tid" />
+                    <transition event="sched_switch" target="start" action="add_process_to_statesystem_with_next_tid" cond="test_next_tid" />
+                    <transition event="sched_process_fork" target="start" action="add_process_to_statesystem_with_child_tid:add_process_to_statesystem_with_parent_tid" cond="test_child_and_parent_tid" />
+                    <transition event="sched_process_fork" target="start" action="add_process_to_statesystem_with_child_tid" cond="test_child_tid" />
+                    <transition event="sched_process_fork" target="start" action="add_process_to_statesystem_with_parent_tid" cond="test_parent_tid" />
+                    <transition event="sched_process_free" target="start" action="add_process_to_statesystem_with_tid" cond="test_tid" />
+                    <transition event="sched_wakeup*" target="start" action="add_process_to_statesystem_with_tid" cond="test_tid" />
+                    <transition event="lttng_statedump_process_state" target="start" action="add_process_to_statesystem_with_tid" cond="test_tid" />
                 </state>
                 <state id="lost">
                     <!-- Start building after 'Lost event' event duration -->
