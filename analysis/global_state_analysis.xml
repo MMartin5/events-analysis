@@ -17,8 +17,8 @@
     <!-- View -->
     <timeGraphView id="org.eclipse.linuxtools.tmf.analysis.xml.ui.views.statesystem.fsm">
         <head>
-            <analysis id="kernel.linux.pattern.statedump" />
-            <label value="XML view for state dump" />
+            <analysis id="kernel.linux.pattern.globalstate" />
+            <label value="XML view for coherent global state" />
         </head>
         <!-- StateValues -->
 
@@ -41,10 +41,10 @@
     </timeGraphView>
 
     <!-- Pattern definition -->
-    <pattern id="kernel.linux.pattern.statedump" version="0">
+    <pattern id="kernel.linux.pattern.globalstate" version="0">
         <head>
             <traceType id="org.eclipse.linuxtools.lttng2.kernel.tracetype" />
-            <label value="XML Kernel State System Pattern with State Dump" />
+            <label value="XML Kernel State System Pattern with Coherent Global State" />
         </head>
 
         <definedValue name="START" value="0" />
@@ -159,9 +159,9 @@
                 </stateChange>
             </action>
 
-            <!-- Statedump -->
+            <!-- Global state -->
 
-            <action id="add_process_to_statedump_with_tid">
+            <action id="add_process_to_global_state_with_tid">
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="tid" />
@@ -174,7 +174,7 @@
                 </stateChange>
             </action>
 
-            <action id="add_process_to_statedump_with_next_tid">
+            <action id="add_process_to_global_state_with_next_tid">
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="next_tid" />
@@ -187,7 +187,7 @@
                 </stateChange>
             </action>
 
-            <action id="add_process_to_statedump_with_prev_tid">
+            <action id="add_process_to_global_state_with_prev_tid">
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="prev_tid" />
@@ -200,7 +200,7 @@
                 </stateChange>
             </action>
 
-            <action id="add_process_to_statedump_with_child_tid">
+            <action id="add_process_to_global_state_with_child_tid">
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="child_tid" />
@@ -213,7 +213,7 @@
                 </stateChange>
             </action>
 
-            <action id="add_process_to_statedump_with_parent_tid">
+            <action id="add_process_to_global_state_with_parent_tid">
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
                     <stateAttribute type="eventField" value="parent_tid" />
@@ -236,8 +236,8 @@
                 </if>
             </test>
 
-            <test id="test_statedump_complete">
-                <!-- Test whether or not we added all the existing threads into the state dump -->
+            <test id="test_global_state_complete">
+                <!-- Test whether or not we added all the existing threads into the global state -->
                 <if>
                     <or>
                         <!-- Test to make sure we are not waiting for a new relevant event for too long -->
@@ -356,7 +356,7 @@
 
             <!-- State machines -->
 
-            <fsm id="statedump_building" initial="start" multiple="false">
+            <fsm id="global_state_building" initial="start" multiple="false">
                 <state id="start">
                     <transition event="*" target="start" action="init_scenario:set_state_to_start" cond="test_no_state" />
                     <!-- Lost event - fields: Lost events, duration-->
@@ -377,20 +377,20 @@
                     <transition event="*" target="building" cond="test_end_of_lost_events" action="set_state_to_building" />
                 </state>
                 <state id="building">
-                    <transition event="*" target="statedump_complete" cond="test_statedump_complete" action="set_state_to_complete"/>
+                    <transition event="*" target="global_state_complete" cond="test_global_state_complete" action="set_state_to_complete"/>
                     <!-- We don't use events which rely on cpu/Current_thread because we can't trust that
                     this field has been correctly updated during 'Lost event' period -->
-                    <transition event="sched_switch" target="building" action="add_process_to_statedump_with_prev_tid:add_process_to_statedump_with_next_tid" cond="test_prev_and_next_tid" />
-                    <transition event="sched_switch" target="building" action="add_process_to_statedump_with_prev_tid" cond="test_prev_tid" />
-                    <transition event="sched_switch" target="building" action="add_process_to_statedump_with_next_tid" cond="test_next_tid" />
-                    <transition event="sched_process_fork" target="building" action="add_process_to_statedump_with_child_tid:add_process_to_statedump_with_parent_tid" cond="test_child_and_parent_tid" />
-                    <transition event="sched_process_fork" target="building" action="add_process_to_statedump_with_child_tid" cond="test_child_tid" />
-                    <transition event="sched_process_fork" target="building" action="add_process_to_statedump_with_parent_tid" cond="test_parent_tid" />
-                    <transition event="sched_process_free" target="building" action="add_process_to_statedump_with_tid" cond="test_tid" />
-                    <transition event="sched_wakeup*" target="building" action="add_process_to_statedump_with_tid" cond="test_tid" />
-                    <transition event="lttng_statedump_process_state" target="building" action="add_process_to_statedump_with_tid" cond="test_tid" />
+                    <transition event="sched_switch" target="building" action="add_process_to_global_state_with_prev_tid:add_process_to_global_state_with_next_tid" cond="test_prev_and_next_tid" />
+                    <transition event="sched_switch" target="building" action="add_process_to_global_state_with_prev_tid" cond="test_prev_tid" />
+                    <transition event="sched_switch" target="building" action="add_process_to_global_state_with_next_tid" cond="test_next_tid" />
+                    <transition event="sched_process_fork" target="building" action="add_process_to_global_state_with_child_tid:add_process_to_global_state_with_parent_tid" cond="test_child_and_parent_tid" />
+                    <transition event="sched_process_fork" target="building" action="add_process_to_global_state_with_child_tid" cond="test_child_tid" />
+                    <transition event="sched_process_fork" target="building" action="add_process_to_global_state_with_parent_tid" cond="test_parent_tid" />
+                    <transition event="sched_process_free" target="building" action="add_process_to_global_state_with_tid" cond="test_tid" />
+                    <transition event="sched_wakeup*" target="building" action="add_process_to_global_state_with_tid" cond="test_tid" />
+                    <transition event="lttng_statedump_process_state" target="building" action="add_process_to_global_state_with_tid" cond="test_tid" />
                 </state>
-                <final id="statedump_complete" />
+                <final id="global_state_complete" />
             </fsm>
 
         </patternHandler>
