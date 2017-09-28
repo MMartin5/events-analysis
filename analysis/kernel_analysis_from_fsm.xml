@@ -440,27 +440,6 @@
                 </if>
             </test>
 
-            <test id="test_tid_and_current_thread_system_call_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="query">
-                                <stateAttribute type="constant" value="CPUs" />
-                                <stateAttribute type="eventField" value="cpu" />
-                                <stateAttribute type="constant" value="Current_thread" />
-                            </stateValue>
-                        </condition>
-                        <condition>
-                            <stateAttribute type="location" value="CurrentThread" />
-                            <stateAttribute type="constant" value="System_call" />
-                            <stateValue type="null" />
-                        </condition>
-                    </and>
-                </if>
-            </test>
-
             <test id="current_thread_system_call_not_null">
                 <if>
                     <not>
@@ -473,144 +452,36 @@
                 </if>
             </test>
 
-            <test id="test_tid_and_current_thread_system_call_not_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="query">
-                                <stateAttribute type="constant" value="CPUs" />
-                                <stateAttribute type="eventField" value="cpu" />
-                                <stateAttribute type="constant" value="Current_thread" />
-                            </stateValue>
-                        </condition>
-                        <not>
-                            <condition>
-                                <stateAttribute type="location" value="CurrentThread" />
-                                <stateAttribute type="constant" value="System_call" />
-                                <stateValue type="null" />
-                            </condition>
-                        </not>
-                    </and>
-                </if>
-            </test>
-
             <test id="new_current_thread_system_call_null">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <condition>
-                            <stateAttribute type="location" value="newCurrentThread" />
-                            <stateAttribute type="constant" value="System_call" />
-                            <stateValue type="null" />
-                        </condition>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_new_current_thread_system_call_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="next_tid" />
-                        </condition>
-                        <condition>
-                            <stateAttribute type="location" value="newCurrentThread" />
-                            <stateAttribute type="constant" value="System_call" />
-                            <stateValue type="null" />
-                        </condition>
-                    </and>
+                    <condition>
+                        <stateAttribute type="location" value="newCurrentThread" />
+                        <stateAttribute type="constant" value="System_call" />
+                        <stateValue type="null" />
+                    </condition>
                 </if>
             </test>
 
             <test id="new_current_thread_system_call_not_null">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <not>
-                            <condition>
-                                <stateAttribute type="location" value="newCurrentThread" />
-                                <stateAttribute type="constant" value="System_call" />
-                                <stateValue type="null" />
-                            </condition>
-                        </not>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_new_current_thread_system_call_not_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="next_tid" />
-                        </condition>
-                        <not>
-                            <condition>
-                                <stateAttribute type="location" value="newCurrentThread" />
-                                <stateAttribute type="constant" value="System_call" />
-                                <stateValue type="null" />
-                            </condition>
-                        </not>
-                    </and>
-                </if>
-            </test>
-
-            <test id="new_current_thread_system_call_not_null_and_next_tid_not_0">
-                <if>
-                    <and>
-                        <not>
-                            <condition>
-                                <stateAttribute type="location" value="newCurrentThread" />
-                                <stateAttribute type="constant" value="System_call" />
-                                <stateValue type="null" />
-                            </condition>
-                        </not>
-                        <not>
-                            <condition>
-                                <field name="next_tid" />
-                                <stateValue type="long" value="0" />
-                            </condition>
-                        </not>
-                    </and>
-                </if>
-            </test>
-
-            <test id="new_current_thread_system_call_null_and_next_tid_not_0">
-                <if>
-                    <and>
+                    <not>
                         <condition>
                             <stateAttribute type="location" value="newCurrentThread" />
                             <stateAttribute type="constant" value="System_call" />
                             <stateValue type="null" />
                         </condition>
-                        <not>
-                            <condition>
-                                <field name="next_tid" />
-                                <stateValue type="long" value="0" />
-                            </condition>
-                        </not>
-                    </and>
+                    </not>
+                </if>
+            </test>
+
+            <test id="next_tid_not_0">
+                <if>
+                    <not>
+                        <condition>
+                            <field name="next_tid" />
+                            <stateValue type="long" value="0" />
+                        </condition>
+                    </not>
                 </if>
             </test>
 
@@ -636,725 +507,120 @@
 
             <test id="child_thread_system_call_null">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="child_tid" />
-                            <stateAttribute type="constant" value="System_call" />
-                            <stateValue type="null" />
-                        </condition>
-                    </and>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="child_tid" />
+                        <stateAttribute type="constant" value="System_call" />
+                        <stateValue type="null" />
+                    </condition>
                 </if>
             </test>
 
-            <test id="test_tid_and_child_thread_system_call_null">
+            <test id="initial_test">
                 <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="child_tid" />
-                        </condition>
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="child_tid" />
-                            <stateAttribute type="constant" value="System_call" />
-                            <stateValue type="null" />
-                        </condition>
-                    </and>
+                    <!-- this condition is used only in the initial state
+                        to make sure no scenario has already been
+                        instantiated for this process -->
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="tid" />
+                        <stateAttribute type="constant" value="hasScenario" />
+                        <stateValue type="null" />
+                    </condition>
                 </if>
             </test>
 
-            <test id="test_for_wait_blocked_process_state">
+            <test id="thread_ppid_null">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
-                                <stateValue type="null" />
-                            </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="5" />
-                            </condition>
-                        </and>
-                    </and>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="tid" />
+                        <stateAttribute type="constant" value="PPID" />
+                        <stateValue type="null" />
+                    </condition>
                 </if>
             </test>
 
-            <test id="test_tid_and_test_for_wait_blocked_process_state">
+            <test id="thread_exec_name_null">
                 <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="child_tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
-                                <stateValue type="null" />
-                            </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="5" />
-                            </condition>
-                        </and>
-                    </and>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="tid" />
+                        <stateAttribute type="constant" value="Exec_name" />
+                        <stateValue type="null" />
+                    </condition>
                 </if>
             </test>
 
-            <test id="wait_blocked_process_state_and_thread_exec_name_null">
+            <test id="thread_status_null">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Exec_name" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="5" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="tid" />
+                        <stateAttribute type="constant" value="Status" />
+                        <stateValue type="null" />
+                    </condition>
                 </if>
             </test>
 
-            <test id="test_tid_and_wait_blocked_process_state_and_thread_exec_name_null">
+            <test id="status_5">
                 <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Exec_name" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="5" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
+                    <condition>
+                        <field name="status" />
+                        <stateValue type="long" value="5" />
+                    </condition>
                 </if>
             </test>
 
-            <test id="wait_blocked_process_state_and_thread_ppid_null">
+            <test id="status_2">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="5" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_wait_blocked_process_state_and_thread_ppid_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="5" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null">
-                <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Exec_name" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <and>
-                                    <condition>
-                                        <stateAttribute type="constant" value="Threads" />
-                                        <stateAttribute type="eventField" value="tid" />
-                                        <stateAttribute type="constant" value="Status" />
-                                        <stateValue type="null" />
-                                    </condition>
-                                    <condition>
-                                        <field name="status" />
-                                        <stateValue type="long" value="5" />
-                                    </condition>
-                                </and>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Exec_name" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <and>
-                                    <condition>
-                                        <stateAttribute type="constant" value="Threads" />
-                                        <stateAttribute type="eventField" value="tid" />
-                                        <stateAttribute type="constant" value="Status" />
-                                        <stateValue type="null" />
-                                    </condition>
-                                    <condition>
-                                        <field name="status" />
-                                        <stateValue type="long" value="5" />
-                                    </condition>
-                                </and>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_for_wait_cpu_process_state">
-                <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
-                                <stateValue type="null" />
-                            </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="2" />
-                            </condition>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_pid_and_test_for_wait_cpu_process_state">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Status" />
-                                <stateValue type="null" />
-                            </condition>
-                            <condition>
-                                <field name="status" />
-                                <stateValue type="long" value="2" />
-                            </condition>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="wait_cpu_process_state_and_thread_exec_name_null">
-                <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Exec_name" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="2" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_wait_cpu_process_state_and_thread_exec_name_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="Exec_name" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="2" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="wait_cpu_process_state_and_thread_ppid_null">
-                <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="2" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_wait_cpu_process_state_and_thread_ppid_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <condition>
-                                    <field name="status" />
-                                    <stateValue type="long" value="2" />
-                                </condition>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null">
-                <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Exec_name" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <and>
-                                    <condition>
-                                        <stateAttribute type="constant" value="Threads" />
-                                        <stateAttribute type="eventField" value="tid" />
-                                        <stateAttribute type="constant" value="Status" />
-                                        <stateValue type="null" />
-                                    </condition>
-                                    <condition>
-                                        <field name="status" />
-                                        <stateValue type="long" value="2" />
-                                    </condition>
-                                </and>
-                            </and>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="next_tid" />
-                        </condition>
-                        <and>
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="PPID" />
-                                <stateValue type="null" />
-                            </condition>
-                            <and>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Exec_name" />
-                                    <stateValue type="null" />
-                                </condition>
-                                <and>
-                                    <condition>
-                                        <stateAttribute type="constant" value="Threads" />
-                                        <stateAttribute type="eventField" value="tid" />
-                                        <stateAttribute type="constant" value="Status" />
-                                        <stateValue type="null" />
-                                    </condition>
-                                    <condition>
-                                        <field name="status" />
-                                        <stateValue type="long" value="2" />
-                                    </condition>
-                                </and>
-                            </and>
-                        </and>
-                    </and>
+                    <condition>
+                        <field name="status" />
+                        <stateValue type="long" value="2" />
+                    </condition>
                 </if>
             </test>
 
             <test id="test_for_sched_wakeup">
                 <if>
                     <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
+                        <not>
                             <condition>
                                 <stateAttribute type="constant" value="Threads" />
                                 <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
+                                <stateAttribute type="constant" value="Status" />
+                                <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
                             </condition>
-                        <and>
-                            <not>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
-                                </condition>
-                            </not>
-                            <not>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
-                                </condition>
-                            </not>
-                        </and>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_test_for_sched_wakeup">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="tid" />
-                        </condition>
-                        <and>
-                            <not>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="int" value="$PROCESS_STATUS_RUN_USERMODE" />
-                                </condition>
-                            </not>
-                            <not>
-                                <condition>
-                                    <stateAttribute type="constant" value="Threads" />
-                                    <stateAttribute type="eventField" value="tid" />
-                                    <stateAttribute type="constant" value="Status" />
-                                    <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
-                                </condition>
-                            </not>
-                        </and>
+                        </not>
+                        <not>
+                            <condition>
+                                <stateAttribute type="constant" value="Threads" />
+                                <stateAttribute type="eventField" value="tid" />
+                                <stateAttribute type="constant" value="Status" />
+                                <stateValue type="int" value="$PROCESS_STATUS_RUN_SYSCALL" />
+                            </condition>
+                        </not>
                     </and>
                 </if>
             </test>
 
             <test id="prev_state_0">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <condition>
-                            <field name="prev_state" />
-                            <stateValue type="long" value="0" />
-                        </condition>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_prev_state_0">
-                <if>
-                    <and>
-                        <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="prev_tid" />
-                        </condition>
-                        <condition>
-                            <field name="prev_state" />
-                            <stateValue type="long" value="0" />
-                        </condition>
-                    </and>
+                    <condition>
+                        <field name="prev_state" />
+                        <stateValue type="long" value="0" />
+                    </condition>
                 </if>
             </test>
 
             <test id="prev_state_not_0">
                 <if>
-                    <and>
-                            <!-- this condition is used only in the initial state
-                                to make sure no scenario has already been
-                                instantiated for this process -->
-                            <condition>
-                                <stateAttribute type="constant" value="Threads" />
-                                <stateAttribute type="eventField" value="tid" />
-                                <stateAttribute type="constant" value="hasScenario" />
-                                <stateValue type="null" />
-                            </condition>
-                        <not>
-                            <condition>
-                                <field name="prev_state" />
-                                <stateValue type="long" value="0" />
-                            </condition>
-                        </not>
-                    </and>
-                </if>
-            </test>
-
-            <test id="test_tid_and_prev_state_not_0">
-                <if>
-                    <and>
+                    <not>
                         <condition>
-                            <stateAttribute type="constant" value="#CurrentScenario" />
-                            <stateAttribute type="constant" value="thread" />
-                            <stateValue type="eventField" value="prev_tid" />
+                            <field name="prev_state" />
+                            <stateValue type="long" value="0" />
                         </condition>
-                        <not>
-                            <condition>
-                                <field name="prev_state" />
-                                <stateValue type="long" value="0" />
-                            </condition>
-                        </not>
-                    </and>
+                    </not>
                 </if>
             </test>
 
@@ -1367,46 +633,32 @@
                 </if>
             </test>
 
-            <test id="test_scenario">
-                <if>
-                        <!-- this condition is used only in the initial state
-                            to make sure no scenario has already been
-                            instantiated for this process -->
-                        <condition>
-                            <stateAttribute type="constant" value="Threads" />
-                            <stateAttribute type="eventField" value="tid" />
-                            <stateAttribute type="constant" value="hasScenario" />
-                            <stateValue type="null" />
-                        </condition>
-                </if>
-            </test>
-
             <!-- State machines -->
 
             <fsm id="cpu_fsm" initial="idle">
                 <state id="idle">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
                     <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
-                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0"/>
                     <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
                     <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
-                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
                     <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="syscall_entry_*" target="syscall" action="update_cpu_to_syscall" />
                     <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0"/>
                 </state>
                 <state id="syscall">
                     <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" />
                     <transition event="syscall_exit_*" target="usermode" action="update_cpu_to_usermode" />
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null_and_next_tid_not_0"/>
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0"/>
                     <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
-                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null_and_next_tid_not_0"/>
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
                 </state>
                 <state id="irq">
                     <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null" />
@@ -1427,57 +679,61 @@
                 <!-- initial state with initialization action -->
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="wait_blocked_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name" cond="wait_blocked_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_ppid" cond="wait_blocked_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked" cond="test_for_wait_blocked_process_state" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_exec_name_null:thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name" cond="initial_test:status_5:thread_status_null:thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked" cond="initial_test:status_5:thread_status_null" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="wait_cpu_process_state_and_thread_exec_name_null_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name" cond="wait_cpu_process_state_and_thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_ppid" cond="wait_cpu_process_state_and_thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="test_for_wait_cpu_process_state" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_exec_name_null:thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name" cond="initial_test:status_2:thread_status_null:thread_exec_name_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:status_2:thread_status_null" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" cond="test_scenario"/>
+                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" cond="initial_test"/>
 
-                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="child_thread_system_call_null" />
-                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="test_scenario" />
+                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="initial_test:child_thread_system_call_null" />
+                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="initial_test" />
 
-                    <transition event="sched_switch" target="syscall" action="init_scenario:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="init_scenario:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="init_scenario:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test:new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="usermode" action="init_scenario:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test:prev_state_0" />
+                    <transition event="sched_switch" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test:prev_state_not_0" />
 
-                    <transition event="sched_wakeup*" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:test_for_sched_wakeup" />
                 </initialState>
                 <state id="unknown">
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <!-- should match IPI entry events -->
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
 
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
 
-                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_tid_and_test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" />
 
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="wait_blocked">
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <!-- should match IPI entry events -->
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
 
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
 
-                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_tid_and_test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" />
 
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
@@ -1487,9 +743,9 @@
                     <!-- should match IPI entry events -->
                     <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
 
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
 
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
@@ -1509,34 +765,36 @@
                     <transition event="syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
 
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_prev_state_not_0" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="interrupted">
-                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="test_tid_and_test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" />
 
-                    <transition event="softirq_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null" />
-                    <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_current_thread_system_call_not_null"/>
-                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null"/>
-                    <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_and_current_thread_system_call_not_null"/>
-                    <transition event="x86_irq_vectors_*_exit" target="usermode" action="update_process_to_usermode" cond="test_tid_and_current_thread_system_call_null" />
-                    <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="test_tid_and_current_thread_system_call_not_null"/>
+                    <transition event="softirq_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
+                    <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null"/>
+                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null"/>
+                    <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null"/>
+                    <transition event="x86_irq_vectors_*_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
+                    <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null"/>
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="wait_cpu">
+                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <!-- should match IPI entry events -->
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
 
-                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="test_tid_and_new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
