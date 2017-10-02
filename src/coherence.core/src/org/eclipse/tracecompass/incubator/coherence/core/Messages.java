@@ -17,7 +17,7 @@ import org.eclipse.osgi.util.NLS;
  * @author Yonni Chen
  */
 public class Messages extends NLS {
-    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.internal.tmf.analysis.xml.core.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.incubator.coherence.core.messages"; //$NON-NLS-1$
 
     /**
      * Default title of an XML XY chart

@@ -20,7 +20,7 @@ import org.eclipse.osgi.util.NLS;
  * @author Geneviève Bastien
  */
 public class Messages extends NLS {
-    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.internal.tmf.analysis.xml.core.module.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.incubator.coherence.core.module.messages"; //$NON-NLS-1$
 
     /** Property name for file */
     public static String XmlModuleHelper_PropertyFile;

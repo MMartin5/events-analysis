@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.tracecompass.tmf.analysis.xml.core" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.eclipse.tracecompass.incubator.coherence.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.tracecompass.tmf.analysis.xml.core" id="org.eclipse.tracecompass.tmf.analysis.xml.core.xsd" name="%extensionpoint.xsd.name"/>
+         <meta.schema plugin="org.eclipse.tracecompass.incubator.coherence.core" id="org.eclipse.tracecompass.incubator.coherence.core.xsd" name="%extensionpoint.xsd.name"/>
       </appinfo>
       <documentation>
          This extension point allows other plugins to add XSD files that will allow to extend the XML functionnalities

@@ -21,6 +21,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.graphics.RGBA;
@@ -41,6 +43,7 @@ import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlUtils;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
+import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
@@ -65,6 +68,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import com.google.common.collect.Multimap;
+
 import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml.XmlAnalysisModuleType;
 
@@ -84,6 +90,9 @@ public class CoherenceView extends ControlFlowView {
 	private static final RGBA COHERENCE_COLOR = new RGBA(255, 0, 0, 50);
 
 	private String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
+	
+	// TODO: should be removed when incubator analysis xml and tmf ones are merged
+	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
 
 	public CoherenceView() {
 	    super();
@@ -92,6 +101,9 @@ public class CoherenceView extends ControlFlowView {
 	@Override
 	public void dispose() {
 	    super.dispose();
+	    for (IAnalysisModule module : fModules.values()) {
+	    	module.dispose();
+		}
 	}
 
 	@Override
@@ -132,82 +144,40 @@ public class CoherenceView extends ControlFlowView {
         fEvents.clear();
         fMarkers.clear();
     }
-    
-    /*
-     * Legacy (Linux Tools) XML directory.
-     * TODO Remove once we feel the transition phase is over.
+	
+    /**
+     * Get the analysis module required for this view, or create it if it does not exist yet
+     * 
+     * Note: we need this method because TmfTrace.getAnalysisModulesOfClass(..) calls the method
+     * TmfAnalysisManager.getAnalysisModules which returns a map from the multimap of all modules
+     * and we have two analysis with the same id, one from tmf.analysis.xml.core, the other from
+     * incubator.analysis.core
+     * 
+     * @param trace
+     * @param helperClass
+     * @param id
+     * @return
      */
-    private final IPath XML_DIRECTORY_LEGACY =
-            Activator.getDefault().getStateLocation().removeLastSegments(1)
-            .append("org.eclipse.linuxtools.tmf.analysis.xml.core") //$NON-NLS-1$
-            .append("xml_files"); //$NON-NLS-1$
-    
-    private TmfAnalysisModuleHelperXml populateAnalysisModule() {
-        IPath pathToFiles = XmlUtils.getXmlFilesPath();
-        File folder = pathToFiles.toFile();
-        if (!(folder.isDirectory() && folder.exists())) {
-            return null;
-        }
-        /*
-         * Transfer files from Linux Tools directory.
-         */
-        File oldFolder = XML_DIRECTORY_LEGACY.toFile();
-        final File[] oldAnalysisFiles = oldFolder.listFiles();
-        if (oldAnalysisFiles != null) {
-            for (File fromFile : oldAnalysisFiles) {
-                File toFile = pathToFiles.append(fromFile.getName()).toFile();
-                if (!toFile.exists() && !fromFile.isDirectory()) {
-                    try (FileInputStream fis = new FileInputStream(fromFile);
-                            FileOutputStream fos = new FileOutputStream(toFile);
-                            FileChannel source = fis.getChannel();
-                            FileChannel destination = fos.getChannel();) {
-                        destination.transferFrom(source, 0, source.size());
-                    } catch (IOException e) {
-                        String error = Messages.XmlUtils_ErrorCopyingFile;
-                        Activator.logError(error, e);
-                    }
-                }
-            }
-        }
-        TmfAnalysisModuleHelperXml helper = null;
-        Map<String, @NonNull File> files = XmlUtils.listFiles();
-        for (File xmlFile : files.values()) {
-            helper = processFile(xmlFile);
-            if (helper != null) {
-            	break;
-            }
-        }
-        return helper;
-    }
-    
-    private List<@NonNull IAnalysisModuleHelper> fModules = null;
-    
-    private TmfAnalysisModuleHelperXml processFile(@NonNull File xmlFile) {
-        if (!XmlUtils.xmlValidate(xmlFile).isOK()) {
-            return null;
-        }
+    public IAnalysisModule findModule(ITmfTrace trace, Class<? extends IAnalysisModuleHelper> helperClass, String id) {
+    	if (!fModules.containsKey(trace)) {
+	    	Multimap<String, IAnalysisModuleHelper> helpers = TmfAnalysisManager.getAnalysisModules();
+	    	for (IAnalysisModuleHelper helper : helpers.values()) {
+	    		if (helper.appliesToTraceType(trace.getClass())) {
+	    			if (helperClass.isAssignableFrom(helper.getClass())) {
+	    				try {
+				    		IAnalysisModule module = helper.newModule(trace);
+					    	if (id.equals(module.getId())) {
+					    		fModules.put(trace, module);
+					    	}
 
-        TmfAnalysisModuleHelperXml helper = null;
-        
-        try {
-            Document doc = XmlUtils.getDocumentFromFile(xmlFile);
-
-            // Get the pattern module
-            NodeList patternNodes = doc.getElementsByTagName(TmfXmlStrings.PATTERN);
-            for (int i = 0; i < patternNodes.getLength(); i++) {
-                Element node = (Element) patternNodes.item(i);
-                
-                if (node.getAttribute(TmfXmlStrings.ID).equals(FSM_ANALYSIS_ID) ) {
-                	helper = new TmfAnalysisModuleHelperXml(xmlFile, node, XmlAnalysisModuleType.PATTERN);
-                	break;
-                }
-            }
-            	
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            Activator.logError("Error opening XML file", e); //$NON-NLS-1$
-        }
-        
-        return helper;
+	    	            } catch (TmfAnalysisException e) {
+	    	                Activator.logWarning("Error creating analysis module", e);
+	    	            }
+	    			}
+		    	}
+			}
+    	}
+    	return fModules.get(trace);
     }
 
 	/**
@@ -216,27 +186,14 @@ public class CoherenceView extends ControlFlowView {
 	public void requestData() {
 	    ITmfTrace trace = checkNotNull(getTrace());
 	    
-	    @Nullable
-		IAnalysisModule moduleParent = TmfTraceUtils.getAnalysisModuleOfClass(trace, XmlPatternAnalysis.class, FSM_ANALYSIS_ID);
-        if (moduleParent == null) {
-    	    TmfAnalysisModuleHelperXml helper = populateAnalysisModule();
-    	    if (helper == null) {
-    	    	return;
-    	    }
-			try {
-				moduleParent = helper.newModule(trace);
-			} catch (TmfAnalysisException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        }
-	    
-	    if (moduleParent == null) {
-	        return;
-	    }
+		IAnalysisModule moduleParent = findModule(trace, TmfAnalysisModuleHelperXml.class, FSM_ANALYSIS_ID);
+		if (moduleParent == null) {
+			return;
+		}
 
 	    moduleParent.schedule();
 	    moduleParent.waitForCompletion();
+	    
 
 	    XmlPatternStateSystemModule module = ((XmlPatternAnalysis) moduleParent).getStateSystemModule();
 

@@ -18,7 +18,7 @@ import org.eclipse.osgi.util.NLS;
  * @author Geneviève Bastien
  */
 public class Messages extends NLS {
-    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.internal.tmf.analysis.xml.core.model.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.incubator.coherence.core.model.messages"; //$NON-NLS-1$
 
     /** Message for a state undefined */
     public static @Nullable String TmfXmlFsm_StateUndefined;
