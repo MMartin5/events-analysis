@@ -325,14 +325,6 @@
                 </stateChange>
             </action>
 
-            <action id="free_process">
-                <stateChange>
-                    <stateAttribute type="constant" value="Threads" />
-                    <stateAttribute type="eventField" value="tid" />
-                    <stateValue type="delete" />
-                </stateChange>
-            </action>
-
             <action id="set_thread_exec_name">
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
@@ -788,7 +780,7 @@
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
                     <!-- should match IPI entry events -->
                     <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-                    
+
                     <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
