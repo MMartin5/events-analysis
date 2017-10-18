@@ -15,6 +15,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 
 /**
  * An extension of TmfXmlScenario for managing events coherence checking at the state machine level
@@ -78,6 +79,11 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
     @Override
     public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded) {
+
+        if (event instanceof ITmfLostEvent) {
+        	// We start checking the coherence of events when we receive the first 'Lost event'
+        	fPatternHandler.setStartChecking(true);
+        }
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) {

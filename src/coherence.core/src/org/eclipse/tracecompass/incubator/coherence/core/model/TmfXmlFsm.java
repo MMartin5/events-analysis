@@ -22,8 +22,12 @@ import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
+import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
+import org.eclipse.tracecompass.tmf.core.statistics.TmfStateStatistics.Attributes;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -54,7 +58,7 @@ public class TmfXmlFsm {
     protected @Nullable TmfXmlScenario fPendingScenario;
 
     protected boolean fEventCoherent;               /* indicates if at least one scenario has a transition for the current event */
-    protected boolean fCoherenceCheckingNeeded;     /* indicated if we need to keep on checking the coherence for the current event */
+    protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
 
     private final List<ITmfEvent> fProblematicEvents = new ArrayList<>();
 
@@ -374,17 +378,20 @@ public class TmfXmlFsm {
      * @param testMap
      *            The transitions of the pattern
      */
-    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap) {
+    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, boolean startChecking) {
         setEventConsumed(false);
-        // We don't know yet if the event is coherent so we need to check the coherency and we assert it is for now
-        setEventCoherent(true);
-        setCoherenceCheckingNeeded(true);
+        setCoherenceCheckingNeeded(false);
+        if (startChecking) {
+	        // We don't know yet if the event is coherent so we need to check the coherency and we assert it is for now
+	        setEventCoherent(true);
+	        setCoherenceCheckingNeeded(true);
+        }
         boolean isValidInput = handleActiveScenarios(event, testMap);
         /* At this point, isEventCoherent returns false if a) in at least one active scenario there was a possible transition from a state
          * which was not the current state, and b) no active scenario contained a transition from its current state.
          * We check only active scenarios because we don't want to consider entries of initial states as possible transition */
         handlePendingScenario(event, isValidInput);
-        if (!isEventCoherent()) {
+        if (startChecking && !isEventCoherent()) {
             // Temporary display of incoherent events (FIXME)
             System.out.println("[FSM " + fId + "] " + event.getName() + " is problematic at " + event.getTimestamp().toString());
             fProblematicEvents.add(event);
@@ -472,11 +479,16 @@ public class TmfXmlFsm {
      * @param force
      *            True to force the creation of the scenario, false otherwise
      */
-    public synchronized void createScenario(@Nullable ITmfEvent event, TmfXmlPatternEventHandler eventHandler, boolean force) {
+    public synchronized void createScenario(@Nullable ITmfEvent event, TmfXmlPatternEventHandler eventHandler, boolean force, 
+    		boolean isObserver) {
         if (force || isNewScenarioAllowed()) {
-            // fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);
-            fPendingScenario = new TmfXmlScenarioObserver(event, eventHandler, fId, fContainer, fModelFactory);
             fTotalScenarios++;
+            if (isObserver) {
+            	fPendingScenario = new TmfXmlScenarioObserver(event, eventHandler, fId, fContainer, fModelFactory);
+            }
+            else {
+            	fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);
+            }
         }
     }
 
