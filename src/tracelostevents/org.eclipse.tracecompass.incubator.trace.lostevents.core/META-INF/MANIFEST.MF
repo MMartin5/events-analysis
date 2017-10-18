@@ -10,5 +10,13 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
- org.eclipse.tracecompass.common.core
-Export-Package: org.eclipse.tracecompass.incubator.internal.trace.lostevents.core;x-friends:="org.eclipse.tracecompass.incubator.trace.lostevents.core.tests"
+ org.eclipse.tracecompass.common.core,
+ org.eclipse.tracecompass.tmf.core;bundle-version="3.2.0",
+ org.eclipse.tracecompass.tmf.ctf.core;bundle-version="3.0.1",
+ org.eclipse.tracecompass.lttng2.common.core;bundle-version="1.1.0",
+ org.eclipse.tracecompass.analysis.os.linux.core;bundle-version="2.4.0",
+ org.eclipse.tracecompass.ctf.core
+Export-Package: org.eclipse.tracecompass.incubator.internal.trace.lostevents.core;x-friends:="org.eclipse.tracecompass.incubator.trace.lostevents.core.tests",
+ org.eclipse.tracecompass.incubator.trace.lostevents.core.trace
+Import-Package: org.eclipse.tracecompass.internal.ctf.core.trace,
+ org.eclipse.tracecompass.lttng2.kernel.core.trace
