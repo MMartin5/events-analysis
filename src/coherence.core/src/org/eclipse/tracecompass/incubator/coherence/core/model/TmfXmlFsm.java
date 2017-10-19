@@ -382,7 +382,7 @@ public class TmfXmlFsm {
         setEventConsumed(false);
         setCoherenceCheckingNeeded(false);
         if (startChecking) {
-	        // We don't know yet if the event is coherent so we need to check the coherency and we assert it is for now
+	        // We don't know yet if the event is coherent so we need to check the coherence and we assert it is for now
 	        setEventCoherent(true);
 	        setCoherenceCheckingNeeded(true);
         }
@@ -444,7 +444,7 @@ public class TmfXmlFsm {
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
-            handleScenario(scenario, event, isEventCoherent());
+            handleScenario(scenario, event, isEventCoherent()); // TODO: check this isEventCoherent() parameter...
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
                 fPendingScenario = null;

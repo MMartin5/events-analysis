@@ -89,14 +89,15 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         if (out == null) {
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
             if (isCoherenceCheckingNeeded && !checkEvent(event)) {
-                fFsm.setEventCoherent(false); // this event might be incoherent but we need to keep on checking for other scenarios
+                fFsm.setEventCoherent(false);
+                fFsm.setCoherenceCheckingNeeded(false); // as soon as we find a incoherence, we can stop checking
             }
             return;
         }
 
-        /* If there is one transition, then this event is coherent for all scenarios and checking can be stopped */
-        fFsm.setEventCoherent(true);
-        fFsm.setCoherenceCheckingNeeded(false);
+        if (isCoherenceCheckingNeeded) {
+        	fFsm.setEventCoherent(true); // this event might be coherent but we need to keep on checking for other scenarios
+        }
 
         fFsm.setEventConsumed(true);
         // Processing the actions in the transition
