@@ -131,6 +131,7 @@ public class LostEventsTrace extends LttngKernelTrace implements IDefinitionScop
                         fPrevTs = event.getTimestamp().getValue();
                     }
                     updateAttributes(context, event);
+                    ctfContext.increaseRank();
                     needRewind = true; // indicate a need to handle the current "real" event that would be erased by 'Lost event' otherwise
                     return fLostEvent; // return the 'Lost event' without calling advance() on the context
                 }

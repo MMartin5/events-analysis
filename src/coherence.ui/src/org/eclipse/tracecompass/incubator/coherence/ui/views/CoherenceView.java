@@ -101,11 +101,11 @@ public class CoherenceView extends ControlFlowView {
 
 	@Override
 	public void dispose() {
-	    super.dispose();
 	    for (IAnalysisModule module : fModules.values()) {
 	    	TmfSignalManager.deregister(module);
-	    	module.dispose();
+	    	((XmlPatternAnalysis) module).dispose(); // this will dispose the sub-analyses
 		}
+	    super.dispose();
 	}
 
 	@Override
