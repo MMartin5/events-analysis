@@ -85,6 +85,7 @@ public class CoherenceView extends ControlFlowView {
 
 	private final List<IMarkerEvent> fMarkers = new ArrayList<>();
 	private final Map<ITmfEvent, ITmfEvent> fEvents = new HashMap<>(); // pair of (incoherent event, previous coherent event)
+	private final Map<ITmfEvent, ControlFlowEntry> fEventsEntryMap = new HashMap<>(); // pair of (event, associated entry)
 
 	public String COHERENCE_LABEL = "Incoherent";
 	public String COHERENCE = "Coherence warning";
@@ -266,6 +267,8 @@ public class CoherenceView extends ControlFlowView {
                 else { // TODO make sure (event == null) => beginning of the trace
                     fEvents.put(event, traceBeginning);
                 }
+                
+                fEventsEntryMap.put(event, cfEntry);
             }
         }
         refresh();
@@ -290,9 +293,13 @@ public class CoherenceView extends ControlFlowView {
                 // Add incoherent marker
                 long eventTime = event.getTimestamp().getValue();
                 if (eventTime >= startTime && eventTime <= endTime) {
+                	// marker by entry
+                	ControlFlowEntry entry = fEventsEntryMap.get(event);
+                    IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
                     IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
                     if (!fMarkers.contains(marker)) {
                         fMarkers.add(marker);
+                        fMarkers.add(markerByEntry);
                     }
                 }
             }
