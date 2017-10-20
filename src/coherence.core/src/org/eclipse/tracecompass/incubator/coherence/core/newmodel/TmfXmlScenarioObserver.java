@@ -90,7 +90,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
             if (isCoherenceCheckingNeeded && !checkEvent(event)) {
                 fFsm.setEventCoherent(false);
-                fFsm.setCoherenceCheckingNeeded(false); // as soon as we find a incoherence, we can stop checking
+                fFsm.setCoherenceCheckingNeeded(false); // as soon as we find an incoherence, we can stop checking
             }
             return;
         }

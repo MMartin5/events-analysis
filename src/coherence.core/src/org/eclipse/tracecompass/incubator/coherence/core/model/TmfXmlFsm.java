@@ -10,10 +10,14 @@ package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EmptyStackException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -61,7 +65,10 @@ public class TmfXmlFsm {
     protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
 
     private final List<ITmfEvent> fProblematicEvents = new ArrayList<>();
-
+    
+    Map<String, Set<String>> fPrevStates;
+    Map<String, Set<String>> fNextStates;
+    
     /**
      * Factory to create a {@link TmfXmlFsm}
      *
@@ -110,6 +117,8 @@ public class TmfXmlFsm {
             }
         }
 
+        Map<String, Set<String>> prevStates = new HashMap<>();
+        Map<String, Set<String>> nextStates = new HashMap<>();
 
         // Get the FSM states
         NodeList nodesState = node.getElementsByTagName(TmfXmlStrings.STATE);
@@ -152,12 +161,45 @@ public class TmfXmlFsm {
                 statesMap.put(abandonState.getId(), abandonState);
             }
         }
-        return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, abandonStateId, preconditions, statesMap);
+        
+        // Create the maps of previous states and next states
+        for (TmfXmlState state : statesMap.values()) {
+	        for (TmfXmlStateTransition transition : state.getTransitionList()) {
+	        	for (Pattern pattern : transition.getAcceptedEvents()) {
+	        		String eventName = pattern.toString();
+	        		// Add a state to the list of previous states for the current event
+	        		if (prevStates.containsKey(eventName)) {
+	                	Set<String> statesId = prevStates.get(eventName);
+	                	statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
+	    				prevStates.replace(eventName, statesId);
+	        		}
+	        		else {
+	        			Set<String> newSet = new HashSet<>();
+	        			newSet.add(state.getId());
+	        			prevStates.put(eventName, newSet);
+	        		}
+					// Add a state to the list of next states for the current event
+	        		if (nextStates.containsKey(eventName)) {
+	        			Set<String> statesId = nextStates.get(eventName);
+	                	statesId.add(transition.getTarget());
+	    				nextStates.replace(eventName, statesId);
+	        		}
+	        		else {
+	        			Set<String> newSet = new HashSet<>();
+	        			newSet.add(transition.getTarget());
+	        			nextStates.put(eventName, newSet);
+	        		}
+				}
+			}
+        }
+        
+        return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, 
+        		abandonStateId, preconditions, statesMap, prevStates, nextStates);
     }
 
     protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, IXmlStateSystemContainer container, String id, boolean consuming,
             boolean multiple, String initialState, String finalState, String abandonState, List<TmfXmlBasicTransition> preconditions,
-            Map<String, TmfXmlState> states) {
+            Map<String, TmfXmlState> states, Map<String, Set<String>> prevStates, Map<String, Set<String>> nextStates) {
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
         fContainer = container;
@@ -170,6 +212,8 @@ public class TmfXmlFsm {
         fPreconditions = ImmutableList.copyOf(preconditions);
         fStatesMap = ImmutableMap.copyOf(states);
         fActiveScenariosList = new ArrayList<>();
+        fPrevStates = prevStates;
+        fNextStates = nextStates;
     }
 
     /**
