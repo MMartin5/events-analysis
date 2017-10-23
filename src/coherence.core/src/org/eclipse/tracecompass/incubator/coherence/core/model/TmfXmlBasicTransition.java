@@ -33,7 +33,11 @@ public class TmfXmlBasicTransition {
     private final List<Pattern> fAcceptedEvents;
 
 
-    /**
+    public List<Pattern> getAcceptedEvents() {
+		return fAcceptedEvents;
+	}
+
+	/**
      * Constructor
      *
      * @param element

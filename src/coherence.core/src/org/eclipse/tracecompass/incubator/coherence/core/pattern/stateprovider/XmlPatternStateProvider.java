@@ -18,6 +18,7 @@ import java.util.Set;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
+import org.eclipse.tracecompass.ctf.core.CTFStrings;
 import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlModelFactory;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlLocation;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlMapEntry;
@@ -29,8 +30,11 @@ import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlUtils;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
+import org.eclipse.tracecompass.tmf.core.event.TmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
+import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -62,6 +66,8 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
     private final ISegmentListener fListener;
 
     private final @NonNull TmfXmlScenarioHistoryBuilder fHistoryBuilder;
+    
+    private final boolean fWithObservers;
 
     /**
      * @param trace
@@ -143,6 +149,10 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
         /* parser for the event handlers */
         NodeList nodes = doc.getElementsByTagName(TmfXmlStrings.PATTERN_HANDLER);
         fHandler = modelFactory.createPatternEventHandler(NonNullUtils.checkNotNull((Element) nodes.item(0)), this);
+        
+        TmfStatisticsModule module = (TmfStatisticsModule) trace.getAnalysisModule(TmfStatisticsModule.ID);
+        Map<String, Long> statistics = module.getStatistics().getEventTypesTotal();
+        fWithObservers = statistics.containsKey(CTFStrings.LOST_EVENT_NAME); // use scenario observers only if we have some lost events
     }
 
     @Override
@@ -206,7 +216,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 
     @Override
     protected void eventHandle(@NonNull ITmfEvent event) {
-        fHandler.handleEvent(event);
+        fHandler.handleEvent(event, fWithObservers);
     }
 
     /**

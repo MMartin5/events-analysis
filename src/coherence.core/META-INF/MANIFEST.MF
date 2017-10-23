@@ -21,3 +21,5 @@ Export-Package: org.eclipse.tracecompass.incubator.coherence.core.model,
  org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider,
  org.eclipse.tracecompass.incubator.coherence.core.stateprovider,
  org.eclipse.tracecompass.incubator.coherence.module
+Import-Package: org.eclipse.tracecompass.ctf.core,
+ org.eclipse.tracecompass.internal.tmf.ui.markers

@@ -10,10 +10,14 @@ package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EmptyStackException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -22,8 +26,12 @@ import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
+import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
+import org.eclipse.tracecompass.tmf.core.statistics.TmfStateStatistics.Attributes;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -54,11 +62,14 @@ public class TmfXmlFsm {
     protected @Nullable TmfXmlScenario fPendingScenario;
 
     protected boolean fEventCoherent;               /* indicates if at least one scenario has a transition for the current event */
-    protected boolean fCoherenceCheckingNeeded;     /* indicated if we need to keep on checking the coherence for the current event */
+    protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
 
     private final List<ITmfEvent> fProblematicEvents = new ArrayList<>();
+    
+    Map<String, Set<String>> fPrevStates;
+	Map<String, Set<String>> fNextStates;
 
-    /**
+	/**
      * Factory to create a {@link TmfXmlFsm}
      *
      * @param modelFactory
@@ -106,7 +117,6 @@ public class TmfXmlFsm {
             }
         }
 
-
         // Get the FSM states
         NodeList nodesState = node.getElementsByTagName(TmfXmlStrings.STATE);
         for (int i = 0; i < nodesState.getLength(); i++) {
@@ -148,12 +158,48 @@ public class TmfXmlFsm {
                 statesMap.put(abandonState.getId(), abandonState);
             }
         }
-        return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, abandonStateId, preconditions, statesMap);
+
+        Map<String, Set<String>> prevStates = new HashMap<>();
+        Map<String, Set<String>> nextStates = new HashMap<>();
+        
+        // Create the maps of previous states and next states
+        for (TmfXmlState state : statesMap.values()) {
+	        for (TmfXmlStateTransition transition : state.getTransitionList()) {
+	        	for (Pattern pattern : transition.getAcceptedEvents()) {
+	        		String eventName = pattern.toString();
+	        		// Add a state to the list of previous states for the current event
+	        		if (prevStates.containsKey(eventName)) {
+	                	Set<String> statesId = prevStates.get(eventName);
+	                	statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
+	    				prevStates.replace(eventName, statesId);
+	        		}
+	        		else {
+	        			Set<String> newSet = new HashSet<>();
+	        			newSet.add(state.getId());
+	        			prevStates.put(eventName, newSet);
+	        		}
+					// Add a state to the list of next states for the current event
+	        		if (nextStates.containsKey(eventName)) {
+	        			Set<String> statesId = nextStates.get(eventName);
+	                	statesId.add(transition.getTarget());
+	    				nextStates.replace(eventName, statesId);
+	        		}
+	        		else {
+	        			Set<String> newSet = new HashSet<>();
+	        			newSet.add(transition.getTarget());
+	        			nextStates.put(eventName, newSet);
+	        		}
+				}
+			}
+        }
+        
+        return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, 
+        		abandonStateId, preconditions, statesMap, prevStates, nextStates);
     }
 
     protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, IXmlStateSystemContainer container, String id, boolean consuming,
             boolean multiple, String initialState, String finalState, String abandonState, List<TmfXmlBasicTransition> preconditions,
-            Map<String, TmfXmlState> states) {
+            Map<String, TmfXmlState> states, Map<String, Set<String>> prevStates, Map<String, Set<String>> nextStates) {
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
         fContainer = container;
@@ -166,7 +212,17 @@ public class TmfXmlFsm {
         fPreconditions = ImmutableList.copyOf(preconditions);
         fStatesMap = ImmutableMap.copyOf(states);
         fActiveScenariosList = new ArrayList<>();
+        fPrevStates = prevStates;
+        fNextStates = nextStates;
     }
+    
+    public Map<String, Set<String>> getPrevStates() {
+		return fPrevStates;
+	}    
+    
+    public Map<String, Set<String>> getNextStates() {
+		return fNextStates;
+	}
 
     /**
      * Get the fsm ID
@@ -374,17 +430,20 @@ public class TmfXmlFsm {
      * @param testMap
      *            The transitions of the pattern
      */
-    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap) {
+    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, boolean startChecking) {
         setEventConsumed(false);
-        // We don't know yet if the event is coherent so we need to check the coherency and we assert it is for now
-        setEventCoherent(true);
-        setCoherenceCheckingNeeded(true);
+        setCoherenceCheckingNeeded(false);
+        if (startChecking) {
+	        // We don't know yet if the event is coherent so we need to check the coherence and we assert it is for now
+	        setEventCoherent(true);
+	        setCoherenceCheckingNeeded(true);
+        }
         boolean isValidInput = handleActiveScenarios(event, testMap);
         /* At this point, isEventCoherent returns false if a) in at least one active scenario there was a possible transition from a state
          * which was not the current state, and b) no active scenario contained a transition from its current state.
          * We check only active scenarios because we don't want to consider entries of initial states as possible transition */
         handlePendingScenario(event, isValidInput);
-        if (!isEventCoherent()) {
+        if (startChecking && !isEventCoherent()) {
             // Temporary display of incoherent events (FIXME)
             System.out.println("[FSM " + fId + "] " + event.getName() + " is problematic at " + event.getTimestamp().toString());
             fProblematicEvents.add(event);
@@ -437,7 +496,7 @@ public class TmfXmlFsm {
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
-            handleScenario(scenario, event, isEventCoherent());
+            handleScenario(scenario, event, isEventCoherent()); // TODO: check this isEventCoherent() parameter...
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
                 fPendingScenario = null;
@@ -472,11 +531,16 @@ public class TmfXmlFsm {
      * @param force
      *            True to force the creation of the scenario, false otherwise
      */
-    public synchronized void createScenario(@Nullable ITmfEvent event, TmfXmlPatternEventHandler eventHandler, boolean force) {
+    public synchronized void createScenario(@Nullable ITmfEvent event, TmfXmlPatternEventHandler eventHandler, boolean force, 
+    		boolean isObserver) {
         if (force || isNewScenarioAllowed()) {
-            // fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);
-            fPendingScenario = new TmfXmlScenarioObserver(event, eventHandler, fId, fContainer, fModelFactory);
             fTotalScenarios++;
+            if (isObserver) {
+            	fPendingScenario = new TmfXmlScenarioObserver(event, eventHandler, fId, fContainer, fModelFactory);
+            }
+            else {
+            	fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);
+            }
         }
     }
 

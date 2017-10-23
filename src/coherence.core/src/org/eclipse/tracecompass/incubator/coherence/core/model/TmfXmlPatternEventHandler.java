@@ -45,8 +45,18 @@ public class TmfXmlPatternEventHandler {
     protected final Map<String, ITmfXmlAction> fActionMap;
     protected final Map<String, TmfXmlFsm> fFsmMap = new LinkedHashMap<>();
     protected final List<TmfXmlFsm> fActiveFsmList = new ArrayList<>();
+    
+    protected boolean fStartChecking;				/* indicated if we should start checking the coherence */ 
 
-    /**
+    public boolean startChecking() {
+		return fStartChecking;
+	}
+
+	public void setStartChecking(boolean value) {
+		this.fStartChecking = value;
+	}
+
+	/**
      * Constructor
      *
      * @param modelFactory
@@ -99,6 +109,8 @@ public class TmfXmlPatternEventHandler {
             TmfXmlFsm fsm = modelFactory.createFsm(element, fParent);
             fFsmMap.put(fsm.getId(), fsm);
         }
+        
+        fStartChecking = false;
     }
 
     /**
@@ -113,13 +125,13 @@ public class TmfXmlPatternEventHandler {
      * @param force
      *            True to force the creation of the scenario, false otherwise
      */
-    public void startScenario(List<String> fsmIds, @Nullable ITmfEvent event, boolean force) {
+    public void startScenario(List<String> fsmIds, @Nullable ITmfEvent event, boolean force, boolean isObserver) {
         for (String fsmId : fsmIds) {
             TmfXmlFsm fsm = NonNullUtils.checkNotNull(fFsmMap.get(fsmId));
             if (!fActiveFsmList.contains(fsm)) {
                 fActiveFsmList.add(fsm);
             }
-            fsm.createScenario(event, this, force);
+            fsm.createScenario(event, this, force, isObserver);
         }
     }
 
@@ -148,7 +160,7 @@ public class TmfXmlPatternEventHandler {
      * @param event
      *            The trace event to handle
      */
-    public void handleEvent(ITmfEvent event) {
+    public void handleEvent(ITmfEvent event, boolean isObserver) {
         /*
          * Order is important so cannot be parallelized
          */
@@ -163,7 +175,7 @@ public class TmfXmlPatternEventHandler {
                 }
             }
             if (!fsmIds.isEmpty()) {
-                startScenario(fsmIds, null, true);
+                startScenario(fsmIds, null, true, isObserver);
             }
         } else {
             List<String> fsmToStart = new ArrayList<>();
@@ -173,11 +185,11 @@ public class TmfXmlPatternEventHandler {
                 }
             }
             if (!fsmToStart.isEmpty()) {
-                startScenario(fsmToStart, null, false);
+                startScenario(fsmToStart, null, false, isObserver);
             }
         }
         for (TmfXmlFsm fsm : activeFsmList) {
-            fsm.handleEvent(event, fTestMap);
+            fsm.handleEvent(event, fTestMap, fStartChecking);
         }
     }
 

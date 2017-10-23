@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -14,7 +15,9 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHis
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 
 /**
  * An extension of TmfXmlScenario for managing events coherence checking at the state machine level
@@ -75,22 +78,68 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
         return isCoherent;
     }
+    
+    private boolean checkEvent2(ITmfEvent event) {
+        boolean isCoherent = true;
+        
+        Set<String> prevStates = fFsm.getPrevStates().get(event.getName());
+        if (prevStates != null) { // we might have a null set if this event is never accepted by any state of the FSM
+	        Map<String, TmfXmlState> states = fFsm.getStatesMap();
+	        TmfXmlState currentState = states.get(fScenarioInfo.getActiveState());
+	
+	        if (currentState == null) {
+	            return false;
+	        }
+	
+	        TmfXmlStateTransition stateTransition = null;
+	
+	        // We check only in the possible previous states for this event
+	        for (String stateName : prevStates) { // TODO: key is the string of a Pattern
+	        	TmfXmlState state = states.get(stateName);
+	        	if (state == null) { // state is null because stateId in statesMap is not the same as the id of XML state
+	        		state = states.get(TmfXmlState.INITIAL_STATE_ID);
+	        	}
+	            // We check every transition of the state
+	            for (int i = 0; i < state.getTransitionList().size(); i++) {
+	                stateTransition = state.getTransitionList().get(i);
+	                if (stateTransition.test(event, fScenarioInfo, fPatternHandler.getTestMap())) { // true if the transition can be taken
+	                    if (!state.getId().equals(currentState.getId())) {
+	                        /* A transition could have been taken from another state */
+	                        isCoherent = false;
+	                    }
+	                }
+	            }
+	        }
+        }
+
+        return isCoherent;
+    }
 
     @Override
     public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded) {
 
+        if (event instanceof ITmfLostEvent) {
+        	// We start checking the coherence of events when we receive the first 'Lost event'
+        	fPatternHandler.setStartChecking(true);
+        }
+
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) {
+        	// Test another checkEvent method
+          	if(isCoherenceCheckingNeeded && !checkEvent2(event)) {
+          		System.out.println("event is incoherent : " + event.getTimestamp().toString());
+          	}
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
             if (isCoherenceCheckingNeeded && !checkEvent(event)) {
-                fFsm.setEventCoherent(false); // this event might be incoherent but we need to keep on checking for other scenarios
+                fFsm.setEventCoherent(false);
+                fFsm.setCoherenceCheckingNeeded(false); // as soon as we find an incoherence, we can stop checking
             }
             return;
         }
 
-        /* If there is one transition, then this event is coherent for all scenarios and checking can be stopped */
-        fFsm.setEventCoherent(true);
-        fFsm.setCoherenceCheckingNeeded(false);
+        if (isCoherenceCheckingNeeded) {
+        	fFsm.setEventCoherent(true); // this event might be coherent but we need to keep on checking for other scenarios
+        }
 
         fFsm.setEventConsumed(true);
         // Processing the actions in the transition
