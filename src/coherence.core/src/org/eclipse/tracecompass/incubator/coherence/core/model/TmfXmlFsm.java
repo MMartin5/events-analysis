@@ -67,9 +67,9 @@ public class TmfXmlFsm {
     private final List<ITmfEvent> fProblematicEvents = new ArrayList<>();
     
     Map<String, Set<String>> fPrevStates;
-    Map<String, Set<String>> fNextStates;
-    
-    /**
+	Map<String, Set<String>> fNextStates;
+
+	/**
      * Factory to create a {@link TmfXmlFsm}
      *
      * @param modelFactory
@@ -117,9 +117,6 @@ public class TmfXmlFsm {
             }
         }
 
-        Map<String, Set<String>> prevStates = new HashMap<>();
-        Map<String, Set<String>> nextStates = new HashMap<>();
-
         // Get the FSM states
         NodeList nodesState = node.getElementsByTagName(TmfXmlStrings.STATE);
         for (int i = 0; i < nodesState.getLength(); i++) {
@@ -161,6 +158,9 @@ public class TmfXmlFsm {
                 statesMap.put(abandonState.getId(), abandonState);
             }
         }
+
+        Map<String, Set<String>> prevStates = new HashMap<>();
+        Map<String, Set<String>> nextStates = new HashMap<>();
         
         // Create the maps of previous states and next states
         for (TmfXmlState state : statesMap.values()) {
@@ -215,6 +215,14 @@ public class TmfXmlFsm {
         fPrevStates = prevStates;
         fNextStates = nextStates;
     }
+    
+    public Map<String, Set<String>> getPrevStates() {
+		return fPrevStates;
+	}    
+    
+    public Map<String, Set<String>> getNextStates() {
+		return fNextStates;
+	}
 
     /**
      * Get the fsm ID
