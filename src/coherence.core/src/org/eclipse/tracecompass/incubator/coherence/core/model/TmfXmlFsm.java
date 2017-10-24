@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
@@ -29,6 +30,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenario
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStateStatistics.Attributes;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
@@ -47,7 +49,9 @@ import com.google.common.collect.ImmutableMap;
 public class TmfXmlFsm {
 
     protected final Map<String, TmfXmlState> fStatesMap;
+    // TODO one of fActiveScenariosList or fActiveScenariosMap will need to be remove
     protected final List<TmfXmlScenario> fActiveScenariosList;
+    protected final Map<String, TmfXmlScenario> fActiveScenariosMap; // map an active scenario with an attribute which uniquely identify it
     protected final List<TmfXmlBasicTransition> fPreconditions;
     protected final String fId;
     protected final ITmfXmlModelFactory fModelFactory;
@@ -214,6 +218,8 @@ public class TmfXmlFsm {
         fActiveScenariosList = new ArrayList<>();
         fPrevStates = prevStates;
         fNextStates = nextStates;
+        
+        fActiveScenariosMap = new HashMap<>();
     }
     
     public Map<String, Set<String>> getPrevStates() {
@@ -421,6 +427,44 @@ public class TmfXmlFsm {
         }
         return false;
     }
+    
+    /**
+     * Get the values of some predefined attributes in an event
+     * Here, we collect every attribute related to tid
+     * @param event
+     * 			The event from which we collect the values
+     * @param layout
+     * 			The event layout
+     * @return
+     * 			A list of attribute values as strings
+     */
+    List<String> getAttributesForEvent(ITmfEvent event, IKernelAnalysisEventLayout layout) {
+    	List<String> attributes = new ArrayList<>();
+    	ITmfEventField content = event.getContent();
+    	
+    	// We want to collect tid information for process FSM
+    	ITmfEventField prevTid = content.getField(layout.fieldPrevTid());
+    	if (prevTid != null) {
+    		attributes.add(prevTid.getValue().toString());
+    	}
+    	
+    	ITmfEventField nextTid = content.getField(layout.fieldNextTid());
+    	if (nextTid != null) {
+    		attributes.add(nextTid.getValue().toString());
+    	}
+    	
+    	ITmfEventField childTid = content.getField(layout.fieldChildTid());
+    	if (childTid != null) {
+    		attributes.add(childTid.getValue().toString());
+    	}
+    	
+    	ITmfEventField tid = content.getField(layout.fieldTid());
+    	if (tid != null) {
+    		attributes.add(tid.getValue().toString());
+    	}
+    	
+    	return attributes;
+    }
 
     /**
      * Handle the current event
@@ -430,7 +474,8 @@ public class TmfXmlFsm {
      * @param testMap
      *            The transitions of the pattern
      */
-    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, boolean startChecking) {
+    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, boolean startChecking, 
+    		IKernelAnalysisEventLayout layout) {
         setEventConsumed(false);
         setCoherenceCheckingNeeded(false);
         if (startChecking) {
@@ -438,6 +483,17 @@ public class TmfXmlFsm {
 	        setEventCoherent(true);
 	        setCoherenceCheckingNeeded(true);
         }
+        
+        // Handle only the scenarios related to this event, which are identified by the tid of the process it models
+        List<String> eventAttributes = getAttributesForEvent(event, layout);
+        for (String attribute : eventAttributes) {
+        	TmfXmlScenario scenario = fActiveScenariosMap.get(attribute);
+        	if (scenario != null) {
+//	        	scenario.handleEvent(event, isEventCoherent());
+	        	System.out.println("HANDLE SCENARIO");
+        	}
+        }
+        
         boolean isValidInput = handleActiveScenarios(event, testMap);
         /* At this point, isEventCoherent returns false if a) in at least one active scenario there was a possible transition from a state
          * which was not the current state, and b) no active scenario contained a transition from its current state.
@@ -513,6 +569,12 @@ public class TmfXmlFsm {
                 scenario.cancel();
             }
         }
+        
+        for (TmfXmlScenario scenario : fActiveScenariosMap.values()) {
+            if (scenario.isActive()) {
+                scenario.cancel();
+            }
+        }
     }
 
     protected static void handleScenario(TmfXmlScenario scenario, ITmfEvent event, boolean isCoherenceCheckingNeeded) {
@@ -552,6 +614,15 @@ public class TmfXmlFsm {
      */
     private void addActiveScenario(TmfXmlScenario scenario) {
         fActiveScenariosList.add(scenario);
+        
+        if (this.getId().equals("process_fsm")) { // TODO: remove (for testing purpose)
+	        String tid = scenario.getAttribute(); // get the attribute identifying this scenario
+	        if (tid.equals("")) {
+	        	System.out.println("Attribute not found for this scenario.");
+	        	return;
+	        }
+	        fActiveScenariosMap.put(tid, scenario);
+        }
     }
 
     /**

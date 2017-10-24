@@ -18,6 +18,8 @@ import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
@@ -188,8 +190,9 @@ public class TmfXmlPatternEventHandler {
                 startScenario(fsmToStart, null, false, isObserver);
             }
         }
+        IKernelAnalysisEventLayout layout = ((IKernelTrace) fParent.getTrace()).getKernelEventLayout(); // get the event layout used to get the event attributes
         for (TmfXmlFsm fsm : activeFsmList) {
-            fsm.handleEvent(event, fTestMap, fStartChecking);
+            fsm.handleEvent(event, fTestMap, fStartChecking, layout);
         }
     }
 

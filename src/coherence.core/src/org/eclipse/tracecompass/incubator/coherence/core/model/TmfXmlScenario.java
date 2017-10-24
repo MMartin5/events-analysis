@@ -17,6 +17,8 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHis
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
+import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 
 /**
  * This Class implements a Scenario in the XML-defined state system
@@ -137,6 +139,27 @@ public class TmfXmlScenario {
         }
         fScenarioInfo.setActiveState(nextState);
         fHistoryBuilder.update(fContainer, fScenarioInfo, event);
+    }
+    
+    /**
+     * Get the attribute uniquely identifying this scenario 
+     * @return
+     * 			The unique attribute
+     */
+    String getAttribute() {
+    	String value = "";
+    	ITmfStateSystemBuilder ss = (ITmfStateSystemBuilder) fContainer.getStateSystem();
+    	int startingNodeQuark = fScenarioInfo.getQuark();
+    	String subPath = "thread"; // we use tid to identify each scenario from "process_fsm" FSM
+    	int attributeQuark;
+		try {
+			attributeQuark = ss.getQuarkRelative(startingNodeQuark, subPath);
+		} catch (AttributeNotFoundException e) {
+			System.out.println("Attribute not found.");
+			return value;
+		}
+    	value = ss.queryOngoingState(attributeQuark).toString();
+    	return value;
     }
 
 }
