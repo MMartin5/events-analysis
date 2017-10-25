@@ -72,6 +72,18 @@ public class TmfXmlFsm {
     
     Map<String, Set<String>> fPrevStates;
 	Map<String, Set<String>> fNextStates;
+	
+	private Map<ITmfEvent, Set<TmfXmlStateTransition>> fProblematicEventsMap = new HashMap<>();
+	
+	public void addProblematicEvent(ITmfEvent event, Set<TmfXmlStateTransition> transitions) {
+	    if (fProblematicEventsMap.containsKey(event)) {
+	        System.out.println("ERROR: we already have this event flagged as incoherent.");
+	        return;
+	    }
+	    
+	    Set<TmfXmlStateTransition> newSet = new HashSet<>(transitions);
+	    fProblematicEventsMap.put(event, newSet);
+	}
 
 	/**
      * Factory to create a {@link TmfXmlFsm}
@@ -374,6 +386,10 @@ public class TmfXmlFsm {
      */
     public List<ITmfEvent> getProblematicEvents() {
         return fProblematicEvents;
+    }
+    
+    public Map<ITmfEvent, Set<TmfXmlStateTransition>> getProblematicEventsWithTransitions() {
+        return fProblematicEventsMap;
     }
 
     /**

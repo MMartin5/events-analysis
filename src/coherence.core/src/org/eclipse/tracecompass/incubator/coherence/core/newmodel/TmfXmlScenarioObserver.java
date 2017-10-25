@@ -1,5 +1,7 @@
 package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +28,8 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
  *
  */
 public class TmfXmlScenarioObserver extends TmfXmlScenario {
+	
+	Set<TmfXmlStateTransition> currentPossibleTransitions = new HashSet<>();
 
     /**
      * Constructor
@@ -71,6 +75,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
                     if (!state.getId().equals(currentState.getId())) {
                         /* A transition could have been taken from another state */
                         isCoherent = false;
+	        			
+                        currentPossibleTransitions.add(stateTransition);
                     }
                 }
             }
@@ -117,6 +123,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
     @Override
     public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded) {
+    	// Clear current possible transitions set as we receive a new event
+    	currentPossibleTransitions.clear();
 
         if (event instanceof ITmfLostEvent) {
         	// We start checking the coherence of events when we receive the first 'Lost event'
@@ -133,6 +141,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
             if (isCoherenceCheckingNeeded && !checkEvent(event)) {
                 fFsm.setEventCoherent(false);
                 fFsm.setCoherenceCheckingNeeded(false); // as soon as we find an incoherence, we can stop checking
+                // Save incoherences
+                fFsm.addProblematicEvent(event, currentPossibleTransitions);
             }
             return;
         }
