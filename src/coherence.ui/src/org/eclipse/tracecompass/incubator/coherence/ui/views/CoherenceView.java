@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -25,15 +26,19 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.swt.graphics.RGBA;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.analysis.os.linux.core.event.aspect.LinuxTidAspect;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelTidAspect;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
+import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipHandler;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.module.Messages;
@@ -95,6 +100,9 @@ public class CoherenceView extends ControlFlowView {
 	
 	// TODO: should be removed when incubator analysis xml and tmf ones are merged
 	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
+	
+	private CoherenceTooltipHandler fCoherenceToolTipHandler;
+	private Map<ITmfEvent, Set<TmfXmlStateTransition>> pEventsWithTransitions = new HashMap<>();
 
 	public CoherenceView() {
 	    super();
@@ -217,9 +225,12 @@ public class CoherenceView extends ControlFlowView {
         }
 
         List<ITmfEvent> pEvents = new ArrayList<>();
+        
         for (TmfXmlFsm fsm : fsmMap.values()) {
             List<ITmfEvent> events = fsm.getProblematicEvents();
             pEvents.addAll(events);
+            
+            pEventsWithTransitions.putAll(fsm.getProblematicEventsWithTransitions());
         }
 
         ITmfEvent traceBeginning = new TmfEvent(trace, ITmfContext.UNKNOWN_RANK , trace.getStartTime(), null, null);
@@ -348,7 +359,10 @@ public class CoherenceView extends ControlFlowView {
 	            ITimeEvent event = it.next();
 	            if (event.getTime() == prevEvent.getTimestamp().getValue()) {
 	                long incoherentDuration = incoherentEvent.getTimestamp().getValue() - prevEvent.getTimestamp().getValue();
-	                IncoherentEvent newIncoherent = new IncoherentEvent(entry, prevEvent.getTimestamp().getValue(), incoherentDuration);
+	                
+	                Set<TmfXmlStateTransition> transitions = pEventsWithTransitions.get(incoherentEvent);
+	                
+	                IncoherentEvent newIncoherent = new IncoherentEvent(entry, prevEvent.getTimestamp().getValue(), incoherentDuration, transitions);
 	                newList.add(newIncoherent);
 	                // Add the end of the original state as a new TimeEvent if necessary
 	                if (event.getDuration() != incoherentDuration) {
@@ -381,5 +395,21 @@ public class CoherenceView extends ControlFlowView {
 	    // Add the coherence links
 	    linkList.addAll(getCoherenceLinks());
 	    return linkList;
+	}
+	
+	@Override
+    public void createPartControl(Composite parent) {
+        super.createPartControl(parent);
+        
+        // Deactivate old tooltip
+        getTimeGraphViewer().getTimeGraphControl();
+        
+        // Activate new tooltip
+        IStatusLineManager statusManager = getViewSite().getActionBars().getStatusLineManager();
+        fCoherenceToolTipHandler = new CoherenceTooltipHandler(
+        		this.getPresentationProvider(), 
+        		getTimeGraphViewer().getTimeGraphScale().getTimeProvider(), 
+        		statusManager); // FIXME we should not access the statusLineManager this way, but through Control
+		fCoherenceToolTipHandler.activateHoverHelp(getTimeGraphViewer().getTimeGraphControl());
 	}
 }
