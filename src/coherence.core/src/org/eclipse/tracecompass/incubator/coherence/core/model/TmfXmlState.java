@@ -79,7 +79,12 @@ public class TmfXmlState {
         fOnExitActions = onexitActions;
     }
 
-    /**
+    @Override
+	public String toString() {
+		return "State " + fId;
+	}
+
+	/**
      * Constructor
      *
      * @param modelFactory

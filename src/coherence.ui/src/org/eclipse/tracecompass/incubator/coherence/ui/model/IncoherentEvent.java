@@ -3,6 +3,7 @@ package org.eclipse.tracecompass.incubator.coherence.ui.model;
 import java.util.Set;
 
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
 
@@ -32,10 +33,10 @@ public class IncoherentEvent extends TimeEvent {
      * @param duration
      *              The duration of the event
      */
-    public IncoherentEvent(ITimeGraphEntry entry, long time, long duration, Set<TmfXmlStateTransition> transitions) {
+    public IncoherentEvent(ITimeGraphEntry entry, long time, long duration, Set<TmfXmlFsmTransition> transitions) {
         super(entry, time, duration, INCOHERENT_VALUE);
-        for (TmfXmlStateTransition transition : transitions) {
-        	fIncoherence = transition.toString(); // arbitrarily selection of the first possible transition 
+        for (TmfXmlFsmTransition transition : transitions) {
+        	fIncoherence = "should have taken a " + transition.toString(); // arbitrarily selection of the first possible transition 
         	break;
         }
     }

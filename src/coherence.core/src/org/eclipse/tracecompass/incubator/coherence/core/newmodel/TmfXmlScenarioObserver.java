@@ -29,7 +29,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
  */
 public class TmfXmlScenarioObserver extends TmfXmlScenario {
 	
-	Set<TmfXmlStateTransition> currentPossibleTransitions = new HashSet<>();
+	Set<TmfXmlFsmTransition> currentPossibleTransitions = new HashSet<>();
 
     /**
      * Constructor
@@ -76,7 +76,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
                         /* A transition could have been taken from another state */
                         isCoherent = false;
 	        			
-                        currentPossibleTransitions.add(stateTransition);
+                        TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state);
+                        currentPossibleTransitions.add(fsmTransition);
                     }
                 }
             }

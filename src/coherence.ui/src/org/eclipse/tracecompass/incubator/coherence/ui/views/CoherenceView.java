@@ -34,6 +34,7 @@ import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelTidAspect;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
@@ -102,7 +103,7 @@ public class CoherenceView extends ControlFlowView {
 	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
 	
 	private CoherenceTooltipHandler fCoherenceToolTipHandler;
-	private Map<ITmfEvent, Set<TmfXmlStateTransition>> pEventsWithTransitions = new HashMap<>();
+	private Map<ITmfEvent, Set<TmfXmlFsmTransition>> pEventsWithTransitions = new HashMap<>();
 
 	public CoherenceView() {
 	    super();
@@ -360,7 +361,7 @@ public class CoherenceView extends ControlFlowView {
 	            if (event.getTime() == prevEvent.getTimestamp().getValue()) {
 	                long incoherentDuration = incoherentEvent.getTimestamp().getValue() - prevEvent.getTimestamp().getValue();
 	                
-	                Set<TmfXmlStateTransition> transitions = pEventsWithTransitions.get(incoherentEvent);
+	                Set<TmfXmlFsmTransition> transitions = pEventsWithTransitions.get(incoherentEvent);
 	                
 	                IncoherentEvent newIncoherent = new IncoherentEvent(entry, prevEvent.getTimestamp().getValue(), incoherentDuration, transitions);
 	                newList.add(newIncoherent);
@@ -401,7 +402,7 @@ public class CoherenceView extends ControlFlowView {
     public void createPartControl(Composite parent) {
         super.createPartControl(parent);
         
-        // Deactivate old tooltip
+        // TODO Deactivate old tooltip
         getTimeGraphViewer().getTimeGraphControl();
         
         // Activate new tooltip

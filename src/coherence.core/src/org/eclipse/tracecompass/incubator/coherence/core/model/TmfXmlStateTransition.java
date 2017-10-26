@@ -100,4 +100,9 @@ public class TmfXmlStateTransition extends TmfXmlBasicTransition {
     public boolean isStoredFieldsToBeCleared() {
         return fStoredFieldsToBeCleared;
     }
+    
+    @Override
+    public String toString() {
+    	return "State Transition to " + fTarget;
+    }
 }

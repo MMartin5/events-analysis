@@ -26,6 +26,7 @@ import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEven
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
@@ -73,15 +74,15 @@ public class TmfXmlFsm {
     Map<String, Set<String>> fPrevStates;
 	Map<String, Set<String>> fNextStates;
 	
-	private Map<ITmfEvent, Set<TmfXmlStateTransition>> fProblematicEventsMap = new HashMap<>();
+	private Map<ITmfEvent, Set<TmfXmlFsmTransition>> fProblematicEventsMap = new HashMap<>();
 	
-	public void addProblematicEvent(ITmfEvent event, Set<TmfXmlStateTransition> transitions) {
+	public void addProblematicEvent(ITmfEvent event, Set<TmfXmlFsmTransition> transitions) {
 	    if (fProblematicEventsMap.containsKey(event)) {
 	        System.out.println("ERROR: we already have this event flagged as incoherent.");
 	        return;
 	    }
 	    
-	    Set<TmfXmlStateTransition> newSet = new HashSet<>(transitions);
+	    Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
 	    fProblematicEventsMap.put(event, newSet);
 	}
 
@@ -388,7 +389,7 @@ public class TmfXmlFsm {
         return fProblematicEvents;
     }
     
-    public Map<ITmfEvent, Set<TmfXmlStateTransition>> getProblematicEventsWithTransitions() {
+    public Map<ITmfEvent, Set<TmfXmlFsmTransition>> getProblematicEventsWithTransitions() {
         return fProblematicEventsMap;
     }
 

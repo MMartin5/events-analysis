@@ -20,5 +20,7 @@ Require-Bundle: org.eclipse.tracecompass.tmf.core,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.tracecompass.incubator.coherence.core.model,
+ org.eclipse.tracecompass.incubator.coherence.core.newmodel,
  org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider,
  org.eclipse.tracecompass.incubator.coherence.module
+Export-Package: org.eclipse.tracecompass.incubator.coherence.ui.views
