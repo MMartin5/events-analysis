@@ -62,6 +62,7 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
+import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
@@ -91,7 +92,6 @@ public class CoherenceView extends ControlFlowView {
 
 	private final List<IMarkerEvent> fMarkers = new ArrayList<>();
 	private final Map<ITmfEvent, ITmfEvent> fEvents = new HashMap<>(); // pair of (incoherent event, previous coherent event)
-	private final Map<ITmfEvent, ControlFlowEntry> fEventsEntryMap = new HashMap<>(); // pair of (event, associated entry)
 
 	public String COHERENCE_LABEL = "Incoherent";
 	public String COHERENCE = "Coherence warning";
@@ -103,7 +103,7 @@ public class CoherenceView extends ControlFlowView {
 	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
 	
 	private CoherenceTooltipHandler fCoherenceToolTipHandler;
-	private Map<ITmfEvent, Set<TmfXmlFsmTransition>> pEventsWithTransitions = new HashMap<>();
+	private Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> pEventsWithTransitions = new HashMap<>();
 
 	public CoherenceView() {
 	    super();
@@ -250,6 +250,7 @@ public class CoherenceView extends ControlFlowView {
                     continue;
                 }
                 // Look for the right entry, according to the incoherent event tid
+                // TODO should we use the tid from pEventsWithTransitions ?
                 ITimeGraphEntry threadEntry = null;
                 for (TimeGraphEntry entry : traceEntry.getChildren()) {
                     if (entry instanceof ControlFlowEntry) {
@@ -279,8 +280,6 @@ public class CoherenceView extends ControlFlowView {
                 else { // TODO make sure (event == null) => beginning of the trace
                     fEvents.put(event, traceBeginning);
                 }
-                
-                fEventsEntryMap.put(event, cfEntry);
             }
         }
         refresh();
@@ -305,8 +304,11 @@ public class CoherenceView extends ControlFlowView {
                 // Add incoherent marker
                 long eventTime = event.getTimestamp().getValue();
                 if (eventTime >= startTime && eventTime <= endTime) {
-                	// marker by entry
-                	ControlFlowEntry entry = fEventsEntryMap.get(event);
+                	// marker by entry                	
+                	TmfXmlFsmTransition transition = pEventsWithTransitions.get(event).getSecond().iterator().next(); // FIXME arbitrary selection
+                	int tid =  Integer.valueOf(pEventsWithTransitions.get(event).getFirst());
+                	ControlFlowEntry entry = this.findEntry(getTrace(), tid, event.getTimestamp().getValue());
+                	
                     IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
                     IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
                     if (!fMarkers.contains(marker)) {
@@ -361,7 +363,7 @@ public class CoherenceView extends ControlFlowView {
 	            if (event.getTime() == prevEvent.getTimestamp().getValue()) {
 	                long incoherentDuration = incoherentEvent.getTimestamp().getValue() - prevEvent.getTimestamp().getValue();
 	                
-	                Set<TmfXmlFsmTransition> transitions = pEventsWithTransitions.get(incoherentEvent);
+	                Set<TmfXmlFsmTransition> transitions = pEventsWithTransitions.get(incoherentEvent).getSecond();
 	                
 	                IncoherentEvent newIncoherent = new IncoherentEvent(entry, prevEvent.getTimestamp().getValue(), incoherentDuration, transitions);
 	                newList.add(newIncoherent);

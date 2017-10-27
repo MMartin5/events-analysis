@@ -19,6 +19,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
+import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 
 /**
  * This Class implements a Scenario in the XML-defined state system
@@ -30,6 +31,8 @@ public class TmfXmlScenario {
     protected TmfXmlPatternEventHandler fPatternHandler;
     protected TmfXmlScenarioInfo fScenarioInfo;
     protected TmfXmlScenarioHistoryBuilder fHistoryBuilder;
+    
+    protected String fAttribute = null;
 
     /**
      * Constructor
@@ -44,8 +47,9 @@ public class TmfXmlScenario {
      *            The state system container this scenario belongs to
      * @param modelFactory
      *            The model factory
-     */
-    public TmfXmlScenario(@Nullable ITmfEvent event, TmfXmlPatternEventHandler patternHandler, String fsmId, IXmlStateSystemContainer container, ITmfXmlModelFactory modelFactory) {
+     */    
+    public TmfXmlScenario(@Nullable ITmfEvent event, TmfXmlPatternEventHandler patternHandler, String fsmId, 
+    		IXmlStateSystemContainer container, ITmfXmlModelFactory modelFactory) {
         TmfXmlFsm fsm = patternHandler.getFsm(fsmId);
         if (fsm == null) {
             throw new IllegalArgumentException(fsmId + "has not been declared."); //$NON-NLS-1$
@@ -58,6 +62,10 @@ public class TmfXmlScenario {
         int statusQuark = fHistoryBuilder.getScenarioStatusQuark(fContainer, quark);
         fScenarioInfo = new TmfXmlScenarioInfo(fFsm.getInitialStateId(), ScenarioStatusType.PENDING, quark, statusQuark, fFsm);
         fHistoryBuilder.update(fContainer, fScenarioInfo, event);
+        
+        if (event != null) {
+        	fAttribute = setAttribute(); // attribute should be set after the fHistoryBuilder.update if there is an event
+        }
     }
 
     /**
@@ -105,13 +113,15 @@ public class TmfXmlScenario {
      * @param isEventCoherent
      *            Value used only in TmfXmlScenarioObserver
      */
-    public void handleEvent(ITmfEvent event, boolean isEventCoherent) {
+    public void handleEvent(ITmfEvent event, boolean isEventCoherent, int transitionTotal) {
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) {
             return;
         }
 
+        fFsm.increaseTransitionCount();
+        
         fFsm.setEventConsumed(true);
         // Processing the actions in the transition
         final List<String> actions = out.getAction();
@@ -139,14 +149,20 @@ public class TmfXmlScenario {
         }
         fScenarioInfo.setActiveState(nextState);
         fHistoryBuilder.update(fContainer, fScenarioInfo, event);
+        
+        if (fAttribute == null) { // it means this is the first event being handled
+        	fAttribute = setAttribute(); // attribute should be set after the fHistoryBuilder.update
+        }
     }
     
     /**
      * Get the attribute uniquely identifying this scenario 
      * @return
      * 			The unique attribute
+     * 
+     * FIXME works only for process_fsm for now
      */
-    String getAttribute() {
+    protected String setAttribute() {
     	String value = "";
     	ITmfStateSystemBuilder ss = (ITmfStateSystemBuilder) fContainer.getStateSystem();
     	int startingNodeQuark = fScenarioInfo.getQuark();
@@ -158,8 +174,13 @@ public class TmfXmlScenario {
 			System.out.println("Attribute not found.");
 			return value;
 		}
-    	value = ss.queryOngoingState(attributeQuark).toString();
+    	ITmfStateValue sValue = ss.queryOngoingState(attributeQuark);
+    	value = String.valueOf(sValue.unboxInt());
     	return value;
+    }
+    
+    public String getAttribute() {
+    	return fAttribute;
     }
 
 }

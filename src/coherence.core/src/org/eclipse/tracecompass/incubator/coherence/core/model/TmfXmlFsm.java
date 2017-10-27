@@ -35,6 +35,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStateStatistics.Attributes;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
+import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -52,7 +53,6 @@ public class TmfXmlFsm {
     protected final Map<String, TmfXmlState> fStatesMap;
     // TODO one of fActiveScenariosList or fActiveScenariosMap will need to be remove
     protected final List<TmfXmlScenario> fActiveScenariosList;
-    protected final Map<String, TmfXmlScenario> fActiveScenariosMap; // map an active scenario with an attribute which uniquely identify it
     protected final List<TmfXmlBasicTransition> fPreconditions;
     protected final String fId;
     protected final ITmfXmlModelFactory fModelFactory;
@@ -66,24 +66,35 @@ public class TmfXmlFsm {
     protected int fTotalScenarios;
     protected @Nullable TmfXmlScenario fPendingScenario;
 
-    protected boolean fEventCoherent;               /* indicates if at least one scenario has a transition for the current event */
+    protected boolean fHasIncoherence;              /* indicates if there is at least one possible transition that could have been taken */
     protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
+    protected int transitionCount;					/* counter representing the number of transitions taken for the current event */
 
-    private final List<ITmfEvent> fProblematicEvents = new ArrayList<>();
+	private final List<ITmfEvent> fProblematicEvents = new ArrayList<>();
     
     Map<String, Set<String>> fPrevStates;
 	Map<String, Set<String>> fNextStates;
 	
-	private Map<ITmfEvent, Set<TmfXmlFsmTransition>> fProblematicEventsMap = new HashMap<>();
+	/* associates an incoherent event to the attribute identifying the scenario where the incoherence was found and the list of possible transitions */
+	private Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> fProblematicEventsMap = new HashMap<>();
 	
-	public void addProblematicEvent(ITmfEvent event, Set<TmfXmlFsmTransition> transitions) {
+	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions) {
 	    if (fProblematicEventsMap.containsKey(event)) {
 	        System.out.println("ERROR: we already have this event flagged as incoherent.");
 	        return;
 	    }
 	    
 	    Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
-	    fProblematicEventsMap.put(event, newSet);
+	    Pair<String, Set<TmfXmlFsmTransition>> p = new Pair(scenarioAttribute, newSet);
+	    fProblematicEventsMap.put(event, p);
+	}
+
+    public int getTransitionCount() {
+		return transitionCount;
+	}
+
+	public void increaseTransitionCount() {
+		transitionCount++;
 	}
 
 	/**
@@ -231,8 +242,6 @@ public class TmfXmlFsm {
         fActiveScenariosList = new ArrayList<>();
         fPrevStates = prevStates;
         fNextStates = nextStates;
-        
-        fActiveScenariosMap = new HashMap<>();
     }
     
     public Map<String, Set<String>> getPrevStates() {
@@ -368,17 +377,17 @@ public class TmfXmlFsm {
      * Get whether or not the current event is coherent or not
      * @return True if the event is coherent, false if incoherent or unknown
      */
-    public boolean isEventCoherent() {
-        return fEventCoherent;
+    public boolean hasIncoherence() {
+        return fHasIncoherence;
     }
 
     /**
-     * Set whether the current event is coherent
+     * Set the presence of incoherence to true
      * @param value
      *            The coherency of the event
      */
-    public void setEventCoherent(boolean value) {
-        fEventCoherent = value;
+    public void setIncoherence() {
+    	fHasIncoherence = true;
     }
 
     /**
@@ -389,7 +398,7 @@ public class TmfXmlFsm {
         return fProblematicEvents;
     }
     
-    public Map<ITmfEvent, Set<TmfXmlFsmTransition>> getProblematicEventsWithTransitions() {
+    public Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> getProblematicEventsWithTransitions() {
         return fProblematicEventsMap;
     }
 
@@ -497,26 +506,39 @@ public class TmfXmlFsm {
         setCoherenceCheckingNeeded(false);
         if (startChecking) {
 	        // We don't know yet if the event is coherent so we need to check the coherence and we assert it is for now
-	        setEventCoherent(true);
+        	fHasIncoherence = false;
 	        setCoherenceCheckingNeeded(true);
         }
+        
+        // Initialize the counters
+        int transitionTotal = (event.getName().equals(layout.eventSchedSwitch())) ? 2 : 1; // FIXME generalize
+        transitionCount = 0;
         
         // Handle only the scenarios related to this event, which are identified by the tid of the process it models
         List<String> eventAttributes = getAttributesForEvent(event, layout);
         for (String attribute : eventAttributes) {
-        	TmfXmlScenario scenario = fActiveScenariosMap.get(attribute);
+        	TmfXmlScenario scenario = null;
+        	for(TmfXmlScenario s : fActiveScenariosList) {
+        		if (s.getAttribute().equals(attribute)) {
+        			scenario = s;
+        			break;
+        		}
+        	}
+        	
         	if (scenario != null) {
 //	        	scenario.handleEvent(event, isEventCoherent());
-	        	System.out.println("HANDLE SCENARIO");
+//	        	System.out.println("HANDLE SCENARIO");
         	}
         }
         
-        boolean isValidInput = handleActiveScenarios(event, testMap);
-        /* At this point, isEventCoherent returns false if a) in at least one active scenario there was a possible transition from a state
-         * which was not the current state, and b) no active scenario contained a transition from its current state.
-         * We check only active scenarios because we don't want to consider entries of initial states as possible transition */
-        handlePendingScenario(event, isValidInput);
-        if (startChecking && !isEventCoherent()) {
+        boolean isValidInput = handleActiveScenarios(event, testMap, transitionTotal);
+        handlePendingScenario(event, isValidInput, transitionTotal);
+        /* An event is incoherent if we have not found all of the expected transitions and we have found at least one possible transition
+         * that could have been taken (because not founding all the transitions without another possible transition just means that
+         * no transition existed for this event in this FSM) 
+         * This applies only if we were indeed checking the coherence 
+         */
+        if (startChecking && (transitionCount != transitionTotal) && fHasIncoherence) {
             // Temporary display of incoherent events (FIXME)
             System.out.println("[FSM " + fId + "] " + event.getName() + " is problematic at " + event.getTimestamp().toString());
             fProblematicEvents.add(event);
@@ -532,7 +554,7 @@ public class TmfXmlFsm {
      *            The map of transition
      * @return True if the ongoing event validates the preconditions, false otherwise
      */
-    protected boolean handleActiveScenarios(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap) {
+    protected boolean handleActiveScenarios(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, int transitionTotal) {
         if (!validatePreconditions(event, testMap)) {
             return false;
         }
@@ -544,7 +566,7 @@ public class TmfXmlFsm {
             if (!scenario.isActive()) {
                 currentItr.remove();
             } else {
-                handleScenario(scenario, event, isCoherenceCheckingNeeded());
+            	handleScenario(scenario, event, isCoherenceCheckingNeeded(), transitionTotal);
                 if (fConsuming && isEventConsumed()) {
                     return true;
                 }
@@ -562,14 +584,14 @@ public class TmfXmlFsm {
      * @param isInputValid
      *            Either the ongoing event validated the preconditions or not
      */
-    private void handlePendingScenario(ITmfEvent event, boolean isInputValid) {
+    private void handlePendingScenario(ITmfEvent event, boolean isInputValid, int transitionTotal) {
         if (fConsuming && isEventConsumed()) {
             return;
         }
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
-            handleScenario(scenario, event, isEventCoherent()); // TODO: check this isEventCoherent() parameter...
+            handleScenario(scenario, event, fHasIncoherence, transitionTotal); // TODO: check this isEventCoherent() parameter...
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
                 fPendingScenario = null;
@@ -586,17 +608,11 @@ public class TmfXmlFsm {
                 scenario.cancel();
             }
         }
-        
-        for (TmfXmlScenario scenario : fActiveScenariosMap.values()) {
-            if (scenario.isActive()) {
-                scenario.cancel();
-            }
-        }
     }
 
-    protected static void handleScenario(TmfXmlScenario scenario, ITmfEvent event, boolean isCoherenceCheckingNeeded) {
+    protected static void handleScenario(TmfXmlScenario scenario, ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal) {
         if (scenario.isActive() || scenario.isPending()) {
-            scenario.handleEvent(event, isCoherenceCheckingNeeded);
+        	scenario.handleEvent(event, isCoherenceCheckingNeeded, transitionTotal);
         }
     }
 
@@ -631,15 +647,6 @@ public class TmfXmlFsm {
      */
     private void addActiveScenario(TmfXmlScenario scenario) {
         fActiveScenariosList.add(scenario);
-        
-        if (this.getId().equals("process_fsm")) { // TODO: remove (for testing purpose)
-	        String tid = scenario.getAttribute(); // get the attribute identifying this scenario
-	        if (tid.equals("")) {
-	        	System.out.println("Attribute not found for this scenario.");
-	        	return;
-	        }
-	        fActiveScenariosMap.put(tid, scenario);
-        }
     }
 
     /**

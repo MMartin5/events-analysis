@@ -30,7 +30,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 public class TmfXmlScenarioObserver extends TmfXmlScenario {
 	
 	Set<TmfXmlFsmTransition> currentPossibleTransitions = new HashSet<>();
-
+	
     /**
      * Constructor
      *
@@ -40,7 +40,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
      * @param container
      * @param modelFactory
      */
-    public TmfXmlScenarioObserver(@Nullable ITmfEvent event, @NonNull TmfXmlPatternEventHandler patternHandler, @NonNull String fsmId, @NonNull IXmlStateSystemContainer container, @NonNull ITmfXmlModelFactory modelFactory) {
+    public TmfXmlScenarioObserver(@Nullable ITmfEvent event, @NonNull TmfXmlPatternEventHandler patternHandler, @NonNull String fsmId, 
+    		@NonNull IXmlStateSystemContainer container, @NonNull ITmfXmlModelFactory modelFactory) {
         super(event, patternHandler, fsmId, container, modelFactory);
     }
 
@@ -75,7 +76,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
                     if (!state.getId().equals(currentState.getId())) {
                         /* A transition could have been taken from another state */
                         isCoherent = false;
-	        			
+	        			// Save the possible transition
                         TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state);
                         currentPossibleTransitions.add(fsmTransition);
                     }
@@ -123,34 +124,35 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
     }
 
     @Override
-    public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded) {
+    public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal) {
     	// Clear current possible transitions set as we receive a new event
     	currentPossibleTransitions.clear();
 
-        if (event instanceof ITmfLostEvent) {
+        if (!fPatternHandler.startChecking() && (event instanceof ITmfLostEvent)) {
         	// We start checking the coherence of events when we receive the first 'Lost event'
         	fPatternHandler.setStartChecking(true);
         }
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
-        if (out == null) {
-        	// Test another checkEvent method
+        if (out == null) { // No transition from the current state has been found
+        	// Test another checkEvent method !! FIXME : use only one
           	if(isCoherenceCheckingNeeded && !checkEvent2(event)) {
           		System.out.println("event is incoherent : " + event.getTimestamp().toString());
           	}
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
             if (isCoherenceCheckingNeeded && !checkEvent(event)) {
-                fFsm.setEventCoherent(false);
-                fFsm.setCoherenceCheckingNeeded(false); // as soon as we find an incoherence, we can stop checking
+                fFsm.setIncoherence(); // indicates that there is at least one incoherence
                 // Save incoherences
-                fFsm.addProblematicEvent(event, currentPossibleTransitions);
+                fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions); // currentPossibleTransitions has been set in checkEvent
             }
             return;
         }
+        
+        fFsm.increaseTransitionCount(); // we have found a transition from the current state, so we increase the counter on taken transitions
 
-        if (isCoherenceCheckingNeeded) {
-        	fFsm.setEventCoherent(true); // this event might be coherent but we need to keep on checking for other scenarios
-        }
+    	if (isCoherenceCheckingNeeded && (fFsm.getTransitionCount() == transitionTotal)) {
+    		fFsm.setCoherenceCheckingNeeded(false); // as soon as we find all of the needed transitions, we can stop checking
+    	}
 
         fFsm.setEventConsumed(true);
         // Processing the actions in the transition
@@ -179,6 +181,10 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         }
         fScenarioInfo.setActiveState(nextState);
         fHistoryBuilder.update(fContainer, fScenarioInfo, event);
+        
+        if (fAttribute == null) { // it means this is the first event being handled
+        	fAttribute = setAttribute(); // attribute should be set after the fHistoryBuilder.update
+        }
     }
 
 }
