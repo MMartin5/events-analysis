@@ -356,6 +356,32 @@
                 </stateChange>
             </action>
 
+            <action id="init_scenario_prev">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread" />
+                    <stateValue type="eventField" value="prev_tid" forcedType="int" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
+                    <stateAttribute type="constant" value="hasScenario" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+            </action>
+
+            <action id="init_scenario_next">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="thread" />
+                    <stateValue type="eventField" value="next_tid" forcedType="int" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentScenarioThread" />
+                    <stateAttribute type="constant" value="hasScenario" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+            </action>
+
             <action id="set_thread_delete">
                 <stateChange>
                     <stateAttribute type="constant" value="Threads" />
@@ -510,15 +536,64 @@
 
             <test id="initial_test">
                 <if>
+                  <and>
+                      <!-- this condition is used only in the initial state
+                          to make sure no scenario has already been
+                          instantiated for this process -->
+                      <condition>
+                          <stateAttribute type="constant" value="Threads" />
+                          <stateAttribute type="eventField" value="tid" />
+                          <stateAttribute type="constant" value="hasScenario" />
+                          <stateValue type="null" />
+                      </condition>
+                      <condition>
+                          <stateAttribute type="constant" value="#CurrentScenario" />
+                          <stateAttribute type="constant" value="thread" />
+                          <stateValue type="null" />
+                      </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="initial_test_prev">
+                <if>
+                  <and>
                     <!-- this condition is used only in the initial state
                         to make sure no scenario has already been
                         instantiated for this process -->
                     <condition>
                         <stateAttribute type="constant" value="Threads" />
-                        <stateAttribute type="eventField" value="tid" />
+                        <stateAttribute type="eventField" value="prev_tid" />
                         <stateAttribute type="constant" value="hasScenario" />
                         <stateValue type="null" />
                     </condition>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="constant" value="thread" />
+                        <stateValue type="null" />
+                    </condition>
+                  </and>
+                </if>
+            </test>
+
+            <test id="initial_test_next">
+                <if>
+                  <and>
+                    <!-- this condition is used only in the initial state
+                        to make sure no scenario has already been
+                        instantiated for this process -->
+                    <condition>
+                        <stateAttribute type="constant" value="Threads" />
+                        <stateAttribute type="eventField" value="next_tid" />
+                        <stateAttribute type="constant" value="hasScenario" />
+                        <stateValue type="null" />
+                    </condition>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="constant" value="thread" />
+                        <stateValue type="null" />
+                    </condition>
+                  </and>
                 </if>
             </test>
 
@@ -686,10 +761,16 @@
                     <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="initial_test:child_thread_system_call_null" />
                     <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="initial_test" />
 
-                    <transition event="sched_switch" target="syscall" action="init_scenario:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="init_scenario:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test:new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test:prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test:prev_state_not_0" />
+                    <!-- Test prev_tid -->
+                    <transition event="sched_switch" target="syscall" action="init_scenario_prev:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="usermode" action="init_scenario_prev:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_cpu" action="init_scenario_prev:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_0" />
+                    <transition event="sched_switch" target="wait_blocked" action="init_scenario_prev:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_not_0" />
+                    <!-- Test next_tid -->
+                    <transition event="sched_switch" target="syscall" action="init_scenario_next:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_not_null" />
+                    <transition event="sched_switch" target="usermode" action="init_scenario_next:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_cpu" action="init_scenario_next:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_0" />
+                    <transition event="sched_switch" target="wait_blocked" action="init_scenario_next:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_not_0" />
 
                     <transition event="sched_wakeup*" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:test_for_sched_wakeup" />
                 </initialState>
