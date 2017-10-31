@@ -929,7 +929,7 @@ public class ControlFlowView extends AbstractTimeGraphView {
         return null;
     }
 
-    private static List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, Collection<ITmfStateInterval> value) {
+    protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, Collection<ITmfStateInterval> value) {
         List<ITimeEvent> events = new ArrayList<>(value.size());
         ITimeEvent prev = null;
         for (ITmfStateInterval interval : value) {
@@ -956,7 +956,7 @@ public class ControlFlowView extends AbstractTimeGraphView {
      * @param interval
      *            state interval which will generate the new event
      */
-    private static TimeEvent createTimeEvent(ITmfStateInterval interval, ControlFlowEntry controlFlowEntry) {
+    protected static TimeEvent createTimeEvent(ITmfStateInterval interval, ControlFlowEntry controlFlowEntry) {
         long startTime = interval.getStartTime();
         long duration = interval.getEndTime() - startTime + 1;
         Object status = interval.getValue();
