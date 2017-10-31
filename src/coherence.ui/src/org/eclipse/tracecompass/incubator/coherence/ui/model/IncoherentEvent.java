@@ -19,7 +19,9 @@ public class IncoherentEvent extends TimeEvent {
     /**
      * Static value for incoherent events
      */
-    public static int INCOHERENT_VALUE = 7;
+    public static int INCOHERENT_VALUE = 20; // use WAIT_UNKNOWN value
+    
+    public static String INCOHERENT_MSG = "Incoherent";
     
     private String fIncoherence = "not set";
 

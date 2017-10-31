@@ -31,6 +31,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.X
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipHandler;
+import org.eclipse.tracecompass.incubator.internal.coherence.ui.views.CoherencePresentationProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
@@ -50,6 +51,8 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
@@ -88,10 +91,22 @@ public class CoherenceView extends ControlFlowView {
 	CountDownLatch latch; // used to synchronize the creation of time events to the initialization of incoherent events
 	
 	private Map<String, Set<ITmfEvent>> pEntries = new HashMap<>(); // pair of (entry id/scenario attribute, set of associated incoherent events)
+	
+	private final TimeGraphPresentationProvider fNewPresentation; // replace fPresentation from ControlFlowView
 
 	public CoherenceView() {
 	    super();
+	    
+	    fNewPresentation = new CoherencePresentationProvider();
 	}
+	
+	/**
+	 * Override this method in order to return our custom presentation provider
+	 */
+	@Override
+	protected ITimeGraphPresentationProvider2 getPresentationProvider() {
+        return fNewPresentation;
+    }
 
 	@Override
 	public void dispose() {
@@ -492,6 +507,9 @@ public class CoherenceView extends ControlFlowView {
 	@Override
     public void createPartControl(Composite parent) {
         super.createPartControl(parent);
+        
+        // Change the presentation provider to the custom one
+        this.getTimeGraphViewer().setTimeGraphProvider(fNewPresentation);
         
         // TODO Deactivate old tooltip
         getTimeGraphViewer().getTimeGraphControl();

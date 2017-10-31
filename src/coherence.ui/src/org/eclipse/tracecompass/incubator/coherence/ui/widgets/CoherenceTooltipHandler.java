@@ -222,16 +222,13 @@ public class CoherenceTooltipHandler {
 
                     // state
                     String state = fTimeGraphProvider.getEventName(currEvent);
-                    if (state != null) {
-                    	String incoherence = "";
-                        if (currEvent instanceof IncoherentEvent) {
-                        	state = "Incoherent";
-                        	incoherence = ((IncoherentEvent) currEvent).getIncoherence(); 
-                        }
+                    if (state != null) {                        
                         addItem(Messages.TmfTimeTipHandler_TRACE_STATE, state);
-                        if (!incoherence.equals("")) {
+                        if (currEvent instanceof IncoherentEvent) {
+                        	// Add an item to the tooltip to display the incoherence
+                        	String incoherence = ((IncoherentEvent) currEvent).getIncoherence();
                         	addItem("Incoherence", incoherence);
-                        	
+                        	// Change the status to display the incoherence
                         	fStatusLineManager.setMessage("Incoherence: " + incoherence);
                         }
                     }
