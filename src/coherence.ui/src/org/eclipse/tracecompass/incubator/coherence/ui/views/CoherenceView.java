@@ -111,7 +111,6 @@ public class CoherenceView extends ControlFlowView {
 	@Override
 	public void dispose() {
 	    for (IAnalysisModule module : fModules.values()) {
-	    	TmfSignalManager.deregister(module);
 	    	((XmlPatternAnalysis) module).dispose(); // this will dispose the sub-analyses
 		}
 	    super.dispose();
@@ -181,6 +180,9 @@ public class CoherenceView extends ControlFlowView {
 				    		IAnalysisModule module = helper.newModule(trace);
 					    	if (id.equals(module.getId())) {
 					    		fModules.put(trace, module);
+					    	}
+					    	else {
+					    		module.dispose();
 					    	}
 
 	    	            } catch (TmfAnalysisException e) {
@@ -500,7 +502,10 @@ public class CoherenceView extends ControlFlowView {
 	        return Collections.emptyList();
 	    }
 	    // Add the coherence links
-	    linkList.addAll(getCoherenceLinks());
+	    List<ILinkEvent> links = getCoherenceLinks();
+	    if (!links.isEmpty()) {
+	    	linkList.addAll(links);
+	    }
 	    return linkList;
 	}
 	
