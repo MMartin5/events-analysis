@@ -19,6 +19,7 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.ctf.core.CTFStrings;
+import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlModelFactory;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlLocation;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlMapEntry;
@@ -34,6 +35,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.event.TmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
+import org.eclipse.tracecompass.tmf.core.statistics.ITmfStatistics;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.w3c.dom.Element;
@@ -151,8 +153,16 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
         fHandler = modelFactory.createPatternEventHandler(NonNullUtils.checkNotNull((Element) nodes.item(0)), this);
         
         TmfStatisticsModule module = (TmfStatisticsModule) trace.getAnalysisModule(TmfStatisticsModule.ID);
-        Map<String, Long> statistics = module.getStatistics().getEventTypesTotal();
-        fWithObservers = statistics.containsKey(CTFStrings.LOST_EVENT_NAME); // use scenario observers only if we have some lost events
+        module.schedule();
+		module.waitForCompletion();
+        ITmfStatistics statistics = module.getStatistics();
+        if (statistics != null) {
+	        Map<String, Long> eventTypesStat = statistics.getEventTypesTotal();
+	        fWithObservers = eventTypesStat.containsKey(CTFStrings.LOST_EVENT_NAME); // use scenario observers only if we have some lost events
+        }
+        else {
+        	fWithObservers = false;
+        }
     }
 
     @Override

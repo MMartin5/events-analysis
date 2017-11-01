@@ -125,6 +125,8 @@ public class CoherenceView extends ControlFlowView {
 		    super.traceSelected(signal);
 		    fEvents.clear();
 		    fMarkers.clear();
+		    pEventsWithTransitions.clear();
+		    pEntries.clear();
 		    Thread thread = new Thread() {
 	            @Override
 	            public void run() {
@@ -140,6 +142,10 @@ public class CoherenceView extends ControlFlowView {
     public void traceOpened(@Nullable TmfTraceOpenedSignal signal) {
 		latch = new CountDownLatch(1);
         super.traceOpened(signal);
+        fEvents.clear();
+	    fMarkers.clear();
+	    pEventsWithTransitions.clear();
+	    pEntries.clear();
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -469,6 +475,13 @@ public class CoherenceView extends ControlFlowView {
 	 *         The list of links used by the coherence view
 	 */
 	public List<@NonNull ILinkEvent> getCoherenceLinks() {
+		try {
+			latch.await(); // wait for the end of requestData
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	    List<ILinkEvent> links = new ArrayList<>();
 	    if (fEvents.isEmpty()) {
             return Collections.emptyList();
@@ -495,6 +508,13 @@ public class CoherenceView extends ControlFlowView {
 	@Override
 	protected List<@NonNull ILinkEvent> getLinkList(long zoomStartTime, long zoomEndTime, long resolution,
             @NonNull IProgressMonitor monitor) {
+		try {
+			latch.await(); // wait for the end of requestData
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	    List<@NonNull ILinkEvent> linkList = new ArrayList<>();
 	    // Look for "normal" links for ControlFlow view
 	    linkList = super.getLinkList(zoomStartTime, zoomEndTime, resolution, monitor);
