@@ -372,8 +372,8 @@ public class CoherenceView extends ControlFlowView {
 		try {
 			latch.await(); // wait for the end of requestData
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Activator.getDefault().logError("Cannot create time events", e);
+			return Collections.emptyList();
 		}
 		
 		List<ITimeEvent> events = new ArrayList<>(value.size());
