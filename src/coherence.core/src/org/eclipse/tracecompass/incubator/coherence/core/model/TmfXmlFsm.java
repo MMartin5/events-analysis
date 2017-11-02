@@ -78,6 +78,24 @@ public class TmfXmlFsm {
 	/* associates an incoherent event to the attribute identifying the scenario where the incoherence was found and the list of possible transitions */
 	private Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> fProblematicEventsMap = new HashMap<>();
 	
+	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
+	
+	public void increaseTransitionCounter(TmfXmlFsmTransition transition) {
+		if (fTransitionsCounters.containsKey(transition)) {
+			Long value = fTransitionsCounters.get(transition);
+			fTransitionsCounters.replace(transition, value+1);
+			return;
+		}
+		fTransitionsCounters.put(transition, new Long(1));
+	}
+	
+	// FIXME delete at some point
+	public void debugDisplayTransitionsCtr() {
+		for (TmfXmlFsmTransition transition : fTransitionsCounters.keySet()) {
+			System.out.println(transition.toString() + " " + fTransitionsCounters.get(transition).toString());
+		}
+	}
+	
 	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions) {
 	    if (fProblematicEventsMap.containsKey(event)) {
 	        System.out.println("ERROR: we already have this event flagged as incoherent.");

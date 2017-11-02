@@ -241,6 +241,8 @@ public class CoherenceView extends ControlFlowView {
             pEvents.addAll(events);
             
             pEventsWithTransitions.putAll(fsm.getProblematicEventsWithTransitions());
+            
+            fsm.debugDisplayTransitionsCtr(); //FIXME
         }
 
         ITmfEvent traceBeginning = new TmfEvent(trace, ITmfContext.UNKNOWN_RANK , trace.getStartTime(), null, null);

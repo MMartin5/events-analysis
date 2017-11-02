@@ -77,7 +77,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
                         /* A transition could have been taken from another state */
                         isCoherent = false;
 	        			// Save the possible transition
-                        TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state);
+                        TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state, event.getName());
                         currentPossibleTransitions.add(fsmTransition);
                     }
                 }
@@ -147,6 +147,11 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
             }
             return;
         }
+        
+        // Increase transitions counter
+        TmfXmlState currentState = fFsm.getStatesMap().get(fScenarioInfo.getActiveState());
+        TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(out, currentState, event.getName());
+        fFsm.increaseTransitionCounter(fsmTransition);
         
         fFsm.increaseTransitionCount(); // we have found a transition from the current state, so we increase the counter on taken transitions
 
