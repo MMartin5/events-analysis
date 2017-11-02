@@ -77,9 +77,15 @@ public class TmfXmlFsm {
 	
 	/* associates an incoherent event to the attribute identifying the scenario where the incoherence was found and the list of possible transitions */
 	private Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> fProblematicEventsMap = new HashMap<>();
+	private Map<ITmfEvent, Pair<String, TmfXmlFsmTransition>> fNewProblematicEventsMap = new HashMap<>();
 	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	
+	/**
+	 * Increase the counter of the given transition
+	 * @param transition
+	 * 				A triggered transition
+	 */
 	public void increaseTransitionCounter(TmfXmlFsmTransition transition) {
 		if (fTransitionsCounters.containsKey(transition)) {
 			Long value = fTransitionsCounters.get(transition);
@@ -87,13 +93,6 @@ public class TmfXmlFsm {
 			return;
 		}
 		fTransitionsCounters.put(transition, new Long(1));
-	}
-	
-	// FIXME delete at some point
-	public void debugDisplayTransitionsCtr() {
-		for (TmfXmlFsmTransition transition : fTransitionsCounters.keySet()) {
-			System.out.println(transition.toString() + " " + fTransitionsCounters.get(transition).toString());
-		}
 	}
 	
 	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions) {
@@ -105,6 +104,31 @@ public class TmfXmlFsm {
 	    Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
 	    Pair<String, Set<TmfXmlFsmTransition>> p = new Pair(scenarioAttribute, newSet);
 	    fProblematicEventsMap.put(event, p);
+	}
+	
+	/**
+	 * Select a transition from the list of possible transitions for each incoherent event
+	 * We select the most probable transition, considering that the most frequent one is the most probable
+	 */
+	public void setTransitions() {
+		for (ITmfEvent event : fProblematicEventsMap.keySet() ) {
+			String scenarioAttribute = fProblematicEventsMap.get(event).getFirst();
+			Set<TmfXmlFsmTransition> transitions = fProblematicEventsMap.get(event).getSecond();
+			TmfXmlFsmTransition transition = null;
+		    for (TmfXmlFsmTransition t : transitions) {
+		    	if ((fTransitionsCounters.containsKey(t)) && 
+		    			((transition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(transition)))) {
+		    		transition = t;
+		    	}
+		    }
+		    
+		    if (transition == null) { // every possible transition has never been taken in this fsm
+		    	transition = transitions.iterator().next(); // select first transition
+		    }
+		    
+		    Pair<String, TmfXmlFsmTransition> p2 = new Pair(scenarioAttribute, transition);
+		    fNewProblematicEventsMap.put(event, p2);
+		}
 	}
 
     public int getTransitionCount() {
@@ -416,8 +440,8 @@ public class TmfXmlFsm {
         return fProblematicEvents;
     }
     
-    public Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> getProblematicEventsWithTransitions() {
-        return fProblematicEventsMap;
+    public Map<ITmfEvent, Pair<String, TmfXmlFsmTransition>> getProblematicEventsWithTransitions() {
+        return fNewProblematicEventsMap;
     }
 
     /**

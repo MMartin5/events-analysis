@@ -35,12 +35,9 @@ public class IncoherentEvent extends TimeEvent {
      * @param duration
      *              The duration of the event
      */
-    public IncoherentEvent(ITimeGraphEntry entry, long time, long duration, Set<TmfXmlFsmTransition> transitions) {
+    public IncoherentEvent(ITimeGraphEntry entry, long time, long duration, TmfXmlFsmTransition transition) {
         super(entry, time, duration, INCOHERENT_VALUE);
-        for (TmfXmlFsmTransition transition : transitions) {
-        	fIncoherence = "should have taken a " + transition.toString(); // arbitrarily selection of the first possible transition 
-        	break;
-        }
+    	fIncoherence = "should have taken a " + transition.toString();
     }
     
     public String getIncoherence() {

@@ -86,7 +86,7 @@ public class CoherenceView extends ControlFlowView {
 	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
 	
 	private CoherenceTooltipHandler fCoherenceToolTipHandler;
-	private Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> pEventsWithTransitions = new HashMap<>();
+	private Map<ITmfEvent, Pair<String, TmfXmlFsmTransition>> pEventsWithTransitions = new HashMap<>();
 	
 	CountDownLatch latch; // used to synchronize the creation of time events to the initialization of incoherent events
 	
@@ -240,9 +240,8 @@ public class CoherenceView extends ControlFlowView {
             List<ITmfEvent> events = fsm.getProblematicEvents();
             pEvents.addAll(events);
             
+            fsm.setTransitions();
             pEventsWithTransitions.putAll(fsm.getProblematicEventsWithTransitions());
-            
-            fsm.debugDisplayTransitionsCtr(); //FIXME
         }
 
         ITmfEvent traceBeginning = new TmfEvent(trace, ITmfContext.UNKNOWN_RANK , trace.getStartTime(), null, null);
@@ -323,8 +322,7 @@ public class CoherenceView extends ControlFlowView {
                 // Add incoherent marker
                 long eventTime = event.getTimestamp().getValue();
                 if (eventTime >= startTime && eventTime <= endTime) {
-                	// marker by entry                	
-                	TmfXmlFsmTransition transition = pEventsWithTransitions.get(event).getSecond().iterator().next(); // FIXME arbitrary selection
+                	// marker by entry
                 	int tid =  Integer.valueOf(pEventsWithTransitions.get(event).getFirst());
                 	ControlFlowEntry entry = this.findEntry(getTrace(), tid, event.getTimestamp().getValue());
                 	
@@ -413,9 +411,9 @@ public class CoherenceView extends ControlFlowView {
 		        			|| ((prevEvent.getTimestamp().getValue() < interval.getStartTime()) && (incoherentEvent.getTimestamp().getValue() > interval.getStartTime())))) {
 		        		// Add the incoherent time event
 		        		long incoherentDuration = incoherentEvent.getTimestamp().getValue() - prevEvent.getTimestamp().getValue();
-		                Set<TmfXmlFsmTransition> transitions = pEventsWithTransitions.get(incoherentEvent).getSecond();
+		                TmfXmlFsmTransition transition = pEventsWithTransitions.get(incoherentEvent).getSecond();
 		                
-		                IncoherentEvent newIncoherent = new IncoherentEvent(controlFlowEntry, prevEvent.getTimestamp().getValue(), incoherentDuration, transitions);
+		                IncoherentEvent newIncoherent = new IncoherentEvent(controlFlowEntry, prevEvent.getTimestamp().getValue(), incoherentDuration, transition);
 		                
 		                if (prev != null) {
 				            long prevEnd = prev.getTime() + prev.getDuration();
