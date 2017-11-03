@@ -1,5 +1,9 @@
 package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +34,10 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 public class TmfXmlScenarioObserver extends TmfXmlScenario {
 	
 	Set<TmfXmlFsmTransition> currentPossibleTransitions = new HashSet<>();
+	Method checkMethod;
+	
+	public static String ALGO1 = "checkEvent";
+	public static String ALGO2 = "checkEvent2";
 	
     /**
      * Constructor
@@ -41,8 +49,18 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
      * @param modelFactory
      */
     public TmfXmlScenarioObserver(@Nullable ITmfEvent event, @NonNull TmfXmlPatternEventHandler patternHandler, @NonNull String fsmId, 
-    		@NonNull IXmlStateSystemContainer container, @NonNull ITmfXmlModelFactory modelFactory) {
+    		@NonNull IXmlStateSystemContainer container, @NonNull ITmfXmlModelFactory modelFactory, String algoId) {
         super(event, patternHandler, fsmId, container, modelFactory);
+        
+        try {
+        	Class[] args = new Class[1];
+        	args[0] = ITmfEvent.class;
+			checkMethod = TmfXmlScenarioObserver.class.getDeclaredMethod(algoId, args);
+		} catch (NoSuchMethodException e) {
+			Activator.logError("No such algorithm", e);
+		} catch (SecurityException e) {
+			Activator.logError("SecurityException while trying to get the coherence algorithm", e);
+		}
     }
 
     /**
@@ -135,16 +153,16 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) { // No transition from the current state has been found
-        	// Test another checkEvent method !! FIXME : use only one
-          	if(isCoherenceCheckingNeeded && !checkEvent2(event)) {
-          		System.out.println("event is incoherent : " + event.getTimestamp().toString());
-          	}
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
-            if (isCoherenceCheckingNeeded && !checkEvent(event)) {
-                fFsm.setIncoherence(); // indicates that there is at least one incoherence
-                // Save incoherences
-                fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions); // currentPossibleTransitions has been set in checkEvent
-            }
+			try {
+				if (isCoherenceCheckingNeeded && !((boolean) checkMethod.invoke(this, event))) {
+				    fFsm.setIncoherence(); // indicates that there is at least one incoherence
+				    // Save incoherences
+				    fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions); // currentPossibleTransitions has been set in checkEvent
+				}
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				Activator.logError("Error while invoking the method to check event", e);
+			}
             return;
         }
         

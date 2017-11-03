@@ -14,6 +14,7 @@ import java.nio.file.Path;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 
@@ -61,6 +62,18 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 
     public XmlPatternStateProvider getStateProvider() {
         return fStateProvider;
+    }
+    
+    /**
+     * Select a new algorithm for the coherence checking instead of the default one
+     * It should be called before the start of event handling 
+     * @param algoId
+     * 			The id of the algorithm to use
+     */
+    public void changeCoherenceAlgorithm(String algoId) {
+    	for (TmfXmlFsm fsm : fStateProvider.getEventHandler().getFsmMap().values()) {
+    		fsm.setCoherenceAlgorithm(algoId);
+    	}
     }
 
 }

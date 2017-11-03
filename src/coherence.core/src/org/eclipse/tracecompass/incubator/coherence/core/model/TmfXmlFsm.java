@@ -81,6 +81,8 @@ public class TmfXmlFsm {
 	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	
+	private String fCoherenceAlgo;
+	
 	/**
 	 * Increase the counter of the given transition
 	 * @param transition
@@ -284,6 +286,7 @@ public class TmfXmlFsm {
         fActiveScenariosList = new ArrayList<>();
         fPrevStates = prevStates;
         fNextStates = nextStates;
+        fCoherenceAlgo = TmfXmlScenarioObserver.ALGO1; // by default, use this coherence algorithm
     }
     
     public Map<String, Set<String>> getPrevStates() {
@@ -445,6 +448,15 @@ public class TmfXmlFsm {
     }
 
     /**
+     * Select a new algorithm for the scenario observers instead of the default one
+     * @param algoId
+     * 			The id of the algorithm to use
+     */
+    public void setCoherenceAlgorithm(String algoId) {
+    	fCoherenceAlgo = algoId;
+    }
+
+    /**
      * Process the active event and determine the next step of this fsm
      *
      * @param event
@@ -581,8 +593,6 @@ public class TmfXmlFsm {
          * This applies only if we were indeed checking the coherence 
          */
         if (startChecking && (transitionCount != transitionTotal) && fHasIncoherence) {
-            // Temporary display of incoherent events (FIXME)
-            System.out.println("[FSM " + fId + "] " + event.getName() + " is problematic at " + event.getTimestamp().toString());
             fProblematicEvents.add(event);
         }
     }
@@ -673,7 +683,7 @@ public class TmfXmlFsm {
         if (force || isNewScenarioAllowed()) {
             fTotalScenarios++;
             if (isObserver) {
-            	fPendingScenario = new TmfXmlScenarioObserver(event, eventHandler, fId, fContainer, fModelFactory);
+            	fPendingScenario = new TmfXmlScenarioObserver(event, eventHandler, fId, fContainer, fModelFactory, fCoherenceAlgo);
             }
             else {
             	fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);
