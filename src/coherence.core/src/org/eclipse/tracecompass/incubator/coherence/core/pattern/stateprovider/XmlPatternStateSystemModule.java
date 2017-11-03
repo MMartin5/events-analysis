@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 
@@ -30,6 +31,8 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
     private @Nullable Path fXmlFile;
     private final ISegmentListener fListener;
     private @Nullable XmlPatternStateProvider fStateProvider;
+    
+    private String fAlgoId;
 
     /**
      * Constructor
@@ -41,12 +44,16 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
         super();
         fListener = listener;
         fStateProvider = null;
+        fAlgoId = TmfXmlScenarioObserver.ALGO1; // by default, use this coherence algorithm
     }
 
     @Override
     protected @NonNull ITmfStateProvider createStateProvider() {
         String id = getId();
         fStateProvider = new XmlPatternStateProvider(checkNotNull(getTrace()), id, fXmlFile, fListener);
+        for (TmfXmlFsm fsm : fStateProvider.getEventHandler().getFsmMap().values()) {
+    		fsm.setCoherenceAlgorithm(fAlgoId);
+    	}
         return fStateProvider;
     }
 
@@ -71,9 +78,7 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
      * 			The id of the algorithm to use
      */
     public void changeCoherenceAlgorithm(String algoId) {
-    	for (TmfXmlFsm fsm : fStateProvider.getEventHandler().getFsmMap().values()) {
-    		fsm.setCoherenceAlgorithm(algoId);
-    	}
+    	fAlgoId = algoId;
     }
 
 }

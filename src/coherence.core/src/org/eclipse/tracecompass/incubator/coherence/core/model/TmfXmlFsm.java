@@ -286,7 +286,6 @@ public class TmfXmlFsm {
         fActiveScenariosList = new ArrayList<>();
         fPrevStates = prevStates;
         fNextStates = nextStates;
-        fCoherenceAlgo = TmfXmlScenarioObserver.ALGO1; // by default, use this coherence algorithm
     }
     
     public Map<String, Set<String>> getPrevStates() {
