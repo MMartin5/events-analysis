@@ -18,9 +18,11 @@ import org.eclipse.test.performance.Dimension;
 import org.eclipse.test.performance.Performance;
 import org.eclipse.test.performance.PerformanceMeter;
 import org.eclipse.tracecompass.incubator.coherence.core.module.XmlUtils;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.tests.Activator;
 import org.eclipse.tracecompass.incubator.trace.lostevents.core.trace.LostEventsTrace;
+import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.model.TmfXmlScenario;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.tests.stateprovider.XmlModuleTestBase;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
@@ -44,10 +46,10 @@ public class CoherenceAnalysisBenchmark {
      * Test test ID for kernel analysis benchmarks
      */
     public static final String TEST_ID = "org.eclipse.tracecompass#Coherence checking#";
-    private static final String TEST_BUILD = "Building Graph (%s)";
-    private static final String TEST_MEMORY = "Memory Usage (%s)";
+    private static final String TEST_BUILD = "Running Coherence Analysis (%s) Using Algorithm %s";
+    private static final String TEST_MEMORY = "Memory Usage (%s) Using Algorithm %s";
 
-    private static final int LOOP_COUNT = 25;
+    private static final int LOOP_COUNT = 5; // 25
 
     private interface RunMethod {
         void execute(PerformanceMeter pm, IAnalysisModule module);
@@ -79,22 +81,27 @@ public class CoherenceAnalysisBenchmark {
 
     private static List<@NonNull IAnalysisModuleHelper> fModules = null;
     
+    private static Set<String> fAlgoIds = new HashSet<>(Arrays.asList(TmfXmlScenarioObserver.ALGO1, TmfXmlScenarioObserver.ALGO2));
+    
     /**
      * Run all benchmarks
      */
     @Test
     public void runAllBenchmarks() {
         for (String trace : fTraceSet) {
+        	
+        	for (String algo : fAlgoIds) {
 
-            runOneBenchmark(trace,
-                    String.format(TEST_BUILD, trace.toString()),
-                    cpu,
-                    Dimension.CPU_TIME);
-
-            runOneBenchmark(trace,
-                    String.format(TEST_MEMORY, trace.toString()),
-                    memory,
-                    Dimension.USED_JAVA_HEAP);
+	            runOneBenchmark(trace,
+	                    String.format(TEST_BUILD, trace.toString(), algo),
+	                    cpu,
+	                    Dimension.CPU_TIME, algo);
+	
+	            runOneBenchmark(trace,
+	                    String.format(TEST_MEMORY, trace.toString(), algo),
+	                    memory,
+	                    Dimension.USED_JAVA_HEAP, algo);
+        	}
         }
     }
 
@@ -106,7 +113,7 @@ public class CoherenceAnalysisBenchmark {
      * @param method
      * @param dimension
      */
-    private static void runOneBenchmark(@NonNull String testTrace, String testName, RunMethod method, Dimension dimension) {
+    private static void runOneBenchmark(@NonNull String testTrace, String testName, RunMethod method, Dimension dimension, String algo) {
         Performance perf = Performance.getDefault();
         PerformanceMeter pm = perf.createPerformanceMeter(TEST_ID + testName);
         perf.tagAsSummary(pm, "Execution graph " + testName, dimension);
@@ -142,6 +149,8 @@ public class CoherenceAnalysisBenchmark {
                 module.setId(moduleId);
                 
                 module.setTrace(trace);
+                
+                module.getStateSystemModule().changeCoherenceAlgorithm(algo); // set the algorithm we want to test
                 
                 method.execute(pm, module);
             	
