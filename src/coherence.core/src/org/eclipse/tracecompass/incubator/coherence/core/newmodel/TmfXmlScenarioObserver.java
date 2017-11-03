@@ -132,6 +132,9 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 	                    if (!state.getId().equals(currentState.getId())) {
 	                        /* A transition could have been taken from another state */
 	                        isCoherent = false;
+	                        // Save the possible transition
+	                        TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state, event.getName());
+	                        currentPossibleTransitions.add(fsmTransition);
 	                    }
 	                }
 	            }
