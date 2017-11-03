@@ -34,6 +34,8 @@ public class LostEventsTrace extends LttngKernelTrace implements IDefinitionScop
 
     CtfTmfEvent fLostEvent = null;
 
+    static public String ID = "org.eclipse.tracecompass.incubator.trace.lostevents.core.LostEventTrace";
+
     public LostEventsTrace() {
         super();
         fTsBegin = 0;
