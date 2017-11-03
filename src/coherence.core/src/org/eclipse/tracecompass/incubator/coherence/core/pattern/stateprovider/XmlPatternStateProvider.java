@@ -30,6 +30,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.readwrite.TmfXmlReadWri
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlUtils;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
+import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.event.TmfLostEvent;
@@ -38,6 +39,7 @@ import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statistics.ITmfStatistics;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -151,8 +153,12 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
         /* parser for the event handlers */
         NodeList nodes = doc.getElementsByTagName(TmfXmlStrings.PATTERN_HANDLER);
         fHandler = modelFactory.createPatternEventHandler(NonNullUtils.checkNotNull((Element) nodes.item(0)), this);
-        
-        TmfStatisticsModule module = (TmfStatisticsModule) trace.getAnalysisModule(TmfStatisticsModule.ID);
+       
+        TmfStatisticsModule module = (TmfStatisticsModule) TmfTraceUtils.getAnalysisModuleOfClass(trace, TmfStatisticsModule.class, TmfStatisticsModule.ID);
+        if (module == null) {
+        	fWithObservers = false;
+        	return;
+        }
         module.schedule();
 		module.waitForCompletion();
         ITmfStatistics statistics = module.getStatistics();
