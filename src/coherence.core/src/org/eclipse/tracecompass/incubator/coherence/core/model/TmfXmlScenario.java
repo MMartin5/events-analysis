@@ -166,7 +166,7 @@ public class TmfXmlScenario {
     	String value = "";
     	ITmfStateSystemBuilder ss = (ITmfStateSystemBuilder) fContainer.getStateSystem();
     	int startingNodeQuark = fScenarioInfo.getQuark();
-    	String subPath = "thread"; // we use tid to identify each scenario from "process_fsm" FSM
+    	String subPath = "attribute"; // we use tid to identify each scenario from "process_fsm" FSM, and cpu id for "cpu_fsm" FSM => found in "attribute" field
     	int attributeQuark;
 		try {
 			attributeQuark = ss.getQuarkRelative(startingNodeQuark, subPath);

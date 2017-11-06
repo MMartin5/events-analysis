@@ -96,7 +96,7 @@
             <stateAttribute type="constant" value="Threads" />
             <stateAttribute type="query">
                 <stateAttribute type="constant" value="#CurrentScenario" />
-                <stateAttribute type="constant" value="thread" />
+                <stateAttribute type="constant" value="attribute" />
             </stateAttribute>
         </location>
         <location id="CurrentCPU">
@@ -346,7 +346,7 @@
             <action id="init_scenario">
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
-                    <stateAttribute type="constant" value="thread" />
+                    <stateAttribute type="constant" value="attribute" />
                     <stateValue type="eventField" value="tid" forcedType="int" />
                 </stateChange>
                 <stateChange>
@@ -359,7 +359,7 @@
             <action id="init_scenario_prev">
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
-                    <stateAttribute type="constant" value="thread" />
+                    <stateAttribute type="constant" value="attribute" />
                     <stateValue type="eventField" value="prev_tid" forcedType="int" />
                 </stateChange>
                 <stateChange>
@@ -372,7 +372,7 @@
             <action id="init_scenario_next">
                 <stateChange>
                     <stateAttribute type="constant" value="#CurrentScenario" />
-                    <stateAttribute type="constant" value="thread" />
+                    <stateAttribute type="constant" value="attribute" />
                     <stateValue type="eventField" value="next_tid" forcedType="int" />
                 </stateChange>
                 <stateChange>
@@ -390,13 +390,21 @@
                 </stateChange>
             </action>
 
+	    <action id="init_cpu">
+		<stateChange>
+		    <stateAttribute type="constant" value="#CurrentScenario" />
+		    <stateAttribute type="constant" value="attribute" />
+		    <stateValue type="eventField" value="cpu" forcedType="int" />
+		</stateChange>
+	    </action>
+
             <!-- Conditions on thread id -->
 
             <test id="next_tid_is_current_scenario_thread">
                 <if>
                     <condition>
                         <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="thread" />
+                        <stateAttribute type="constant" value="attribute" />
                         <stateValue type="eventField" value="next_tid" />
                     </condition>
                 </if>
@@ -406,7 +414,7 @@
                 <if>
                     <condition>
                         <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="thread" />
+                        <stateAttribute type="constant" value="attribute" />
                         <stateValue type="eventField" value="prev_tid" />
                     </condition>
                 </if>
@@ -416,7 +424,7 @@
                 <if>
                     <condition>
                         <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="thread" />
+                        <stateAttribute type="constant" value="attribute" />
                         <stateValue type="eventField" value="child_tid" />
                     </condition>
                 </if>
@@ -426,7 +434,7 @@
                 <if>
                     <condition>
                         <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="thread" />
+                        <stateAttribute type="constant" value="attribute" />
                         <stateValue type="eventField" value="tid" />
                     </condition>
                 </if>
@@ -436,7 +444,7 @@
                 <if>
                     <condition>
                         <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="thread" />
+                        <stateAttribute type="constant" value="attribute" />
                         <stateValue type="query">
                             <stateAttribute type="constant" value="CPUs" />
                             <stateAttribute type="eventField" value="cpu" />
@@ -548,7 +556,7 @@
                       </condition>
                       <condition>
                           <stateAttribute type="constant" value="#CurrentScenario" />
-                          <stateAttribute type="constant" value="thread" />
+                          <stateAttribute type="constant" value="attribute" />
                           <stateValue type="null" />
                       </condition>
                     </and>
@@ -569,7 +577,7 @@
                     </condition>
                     <condition>
                         <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="thread" />
+                        <stateAttribute type="constant" value="attribute" />
                         <stateValue type="null" />
                     </condition>
                   </and>
@@ -590,7 +598,7 @@
                     </condition>
                     <condition>
                         <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="thread" />
+                        <stateAttribute type="constant" value="attribute" />
                         <stateValue type="null" />
                     </condition>
                   </and>
@@ -704,11 +712,11 @@
 
             <fsm id="cpu_fsm" initial="idle">
                 <state id="idle">
-                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
-                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0"/>
-                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
+                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq:init_cpu" />
+                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq:init_cpu" />
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_null:next_tid_not_0"/>
+                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid:init_cpu" />
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
