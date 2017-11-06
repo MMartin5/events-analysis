@@ -88,7 +88,7 @@ public class CoherenceView extends ControlFlowView {
 	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
 	
 	private CoherenceTooltipHandler fCoherenceToolTipHandler;
-	private Map<ITmfEvent, Pair<String, TmfXmlFsmTransition>> pEventsWithTransitions = new HashMap<>();
+	private Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> pEventsWithTransitions = new HashMap<>();
 	
 	CountDownLatch latch; // used to synchronize the creation of time events to the initialization of incoherent events
 	
@@ -244,19 +244,21 @@ public class CoherenceView extends ControlFlowView {
             pEventsWithTransitions.putAll(fsm.getProblematicEventsWithTransitions());
         }
 
-        for (ITmfEvent event : fEvents) {   
-            // Add the incoherent event to the set of the corresponding entry
-            String tidStr = pEventsWithTransitions.get(event).getFirst(); 
-            if (pEntries.containsKey(tidStr)) {
-            	Set<ITmfEvent> eventSet = pEntries.get(tidStr);
-            	eventSet.add(event);
-            	pEntries.replace(tidStr, eventSet);
-    		}
-    		else {
-    			Set<ITmfEvent> newSet = new HashSet<>();
-    			newSet.add(event);
-    			pEntries.put(tidStr, newSet);
-    		}
+        for (ITmfEvent event : fEvents) {
+        	for (Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(event)) {
+	            // Add the incoherent event to the set of the corresponding entry
+	            String tidStr = p.getFirst(); 
+	            if (pEntries.containsKey(tidStr)) {
+	            	Set<ITmfEvent> eventSet = pEntries.get(tidStr);
+	            	eventSet.add(event);
+	            	pEntries.replace(tidStr, eventSet);
+	    		}
+	    		else {
+	    			Set<ITmfEvent> newSet = new HashSet<>();
+	    			newSet.add(event);
+	    			pEntries.put(tidStr, newSet);
+	    		}
+        	}
         }
         
         latch.countDown(); // decrease the countdown
@@ -282,16 +284,18 @@ public class CoherenceView extends ControlFlowView {
                 // Add incoherent marker
                 long eventTime = event.getTimestamp().getValue();
                 if (eventTime >= startTime && eventTime <= endTime) {
-                	// marker by entry
-                	int tid =  Integer.valueOf(pEventsWithTransitions.get(event).getFirst());
-                	ControlFlowEntry entry = this.findEntry(getTrace(), tid, event.getTimestamp().getValue());
-                	
-                    IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
-                    IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
-                    if (!fMarkers.contains(marker)) {
-                        fMarkers.add(marker);
-                        fMarkers.add(markerByEntry);
-                    }
+                	for (Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(event)) {
+	                	// marker by entry
+	                	int tid =  Integer.valueOf(p.getFirst());
+	                	ControlFlowEntry entry = this.findEntry(getTrace(), tid, event.getTimestamp().getValue());
+	                	
+	                    IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
+	                    IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
+	                    if (!fMarkers.contains(markerByEntry)) {
+	                        fMarkers.add(marker);
+	                        fMarkers.add(markerByEntry);
+	                    }
+                	}
                 }
             }
 	    }
@@ -376,7 +380,18 @@ public class CoherenceView extends ControlFlowView {
 		        		}
 		        		// Add the incoherent time event
 		        		long incoherentDuration = incoherentEvent.getTimestamp().getValue() - lastEventTs;
-		                TmfXmlFsmTransition transition = pEventsWithTransitions.get(incoherentEvent).getSecond();
+		        		TmfXmlFsmTransition transition = null;
+		        		for(Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(incoherentEvent)) {
+		        			if (p.getFirst().equals(String.valueOf(controlFlowEntry.getThreadId()))) {
+		        				transition = p.getSecond();
+		        				break;
+		        			}
+		        		}
+		        		
+		        		if (transition == null) {
+		        			Activator.logError("Problem finding the transition associated to this event.");
+		        			break;
+		        		}
 		                
 		                IncoherentEvent newIncoherent = new IncoherentEvent(controlFlowEntry, lastEventTs, incoherentDuration, transition);
 		                
@@ -413,7 +428,18 @@ public class CoherenceView extends ControlFlowView {
 		        	else if ((incoherentEvent != null) && ((incoherentEvent.getTimestamp().getValue() > interval.getStartTime()) && (incoherentEvent.getTimestamp().getValue() < interval.getEndTime()))) {
 		        		// Add the incoherent time event
 		        		long incoherentDuration = incoherentEvent.getTimestamp().getValue() - interval.getStartTime();
-		                TmfXmlFsmTransition transition = pEventsWithTransitions.get(incoherentEvent).getSecond();
+		        		TmfXmlFsmTransition transition = null;
+		        		for(Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(incoherentEvent)) {
+		        			if (p.getFirst().equals(String.valueOf(controlFlowEntry.getThreadId()))) {
+		        				transition = p.getSecond();
+		        				break;
+		        			}
+		        		}
+		        		
+		        		if (transition == null) {
+		        			Activator.logError("Problem finding the transition associated to this event.");
+		        			break;
+		        		}
 		                
 		                IncoherentEvent newIncoherent = new IncoherentEvent(controlFlowEntry, interval.getStartTime(), incoherentDuration, transition);
 		                

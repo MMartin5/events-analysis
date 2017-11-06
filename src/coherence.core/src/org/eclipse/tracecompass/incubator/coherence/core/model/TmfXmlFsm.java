@@ -76,8 +76,8 @@ public class TmfXmlFsm {
 	Map<String, Set<String>> fNextStates;
 	
 	/* associates an incoherent event to the attribute identifying the scenario where the incoherence was found and the list of possible transitions */
-	private Map<ITmfEvent, Pair<String, Set<TmfXmlFsmTransition>>> fProblematicEventsMap = new HashMap<>();
-	private Map<ITmfEvent, Pair<String, TmfXmlFsmTransition>> fNewProblematicEventsMap = new HashMap<>();
+	private Map<ITmfEvent, List<Pair<String, Set<TmfXmlFsmTransition>>>> fProblematicEventsMap = new HashMap<>();
+	private Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> fNewProblematicEventsMap = new HashMap<>();
 	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	
@@ -98,14 +98,20 @@ public class TmfXmlFsm {
 	}
 	
 	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions) {
-	    if (fProblematicEventsMap.containsKey(event)) {
-	        System.out.println("ERROR: we already have this event flagged as incoherent.");
+	    if (fProblematicEventsMap.containsKey(event)) {	        
+	        List<Pair<String, Set<TmfXmlFsmTransition>>> list = fProblematicEventsMap.get(event);
+	        Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
+	        Pair<String, Set<TmfXmlFsmTransition>> p = new Pair(scenarioAttribute, newSet);
+		    list.add(p);
+		    fProblematicEventsMap.replace(event, list);
 	        return;
 	    }
 	    
 	    Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
-	    Pair<String, Set<TmfXmlFsmTransition>> p = new Pair(scenarioAttribute, newSet);
-	    fProblematicEventsMap.put(event, p);
+	    Pair<String, Set<TmfXmlFsmTransition>> p = new Pair(scenarioAttribute, newSet);	    
+	    List<Pair<String, Set<TmfXmlFsmTransition>>> newList = new ArrayList<>();
+	    newList.add(p);
+	    fProblematicEventsMap.put(event, newList);
 	}
 	
 	/**
@@ -114,22 +120,34 @@ public class TmfXmlFsm {
 	 */
 	public void setTransitions() {
 		for (ITmfEvent event : fProblematicEventsMap.keySet() ) {
-			String scenarioAttribute = fProblematicEventsMap.get(event).getFirst();
-			Set<TmfXmlFsmTransition> transitions = fProblematicEventsMap.get(event).getSecond();
-			TmfXmlFsmTransition transition = null;
-		    for (TmfXmlFsmTransition t : transitions) {
-		    	if ((fTransitionsCounters.containsKey(t)) && 
-		    			((transition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(transition)))) {
-		    		transition = t;
-		    	}
-		    }
-		    
-		    if (transition == null) { // every possible transition has never been taken in this fsm
-		    	transition = transitions.iterator().next(); // select first transition
-		    }
-		    
-		    Pair<String, TmfXmlFsmTransition> p2 = new Pair(scenarioAttribute, transition);
-		    fNewProblematicEventsMap.put(event, p2);
+			for (Pair<String, Set<TmfXmlFsmTransition>> p : fProblematicEventsMap.get(event)) {
+				String scenarioAttribute = p.getFirst();
+				Set<TmfXmlFsmTransition> transitions = p.getSecond();
+				TmfXmlFsmTransition transition = null;
+			    for (TmfXmlFsmTransition t : transitions) {
+			    	if ((fTransitionsCounters.containsKey(t)) && 
+			    			((transition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(transition)))) {
+			    		transition = t;
+			    	}
+			    }
+			    
+			    if (transition == null) { // every possible transition has never been taken in this fsm
+			    	transition = transitions.iterator().next(); // select first transition
+			    }
+			    
+			    Pair<String, TmfXmlFsmTransition> p2 = new Pair(scenarioAttribute, transition);
+			    
+			    if (fNewProblematicEventsMap.containsKey(event)) {
+			    	List<Pair<String, TmfXmlFsmTransition>> list = fNewProblematicEventsMap.get(event);
+				    list.add(p2);
+				    fNewProblematicEventsMap.replace(event, list);
+			    }
+			    else {
+			    	List<Pair<String, TmfXmlFsmTransition>> list = new ArrayList<>();
+			    	list.add(p2);
+			    	fNewProblematicEventsMap.put(event, list);
+			    }
+			}
 		}
 	}
 
@@ -442,7 +460,7 @@ public class TmfXmlFsm {
         return fProblematicEvents;
     }
     
-    public Map<ITmfEvent, Pair<String, TmfXmlFsmTransition>> getProblematicEventsWithTransitions() {
+    public Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> getProblematicEventsWithTransitions() {
         return fNewProblematicEventsMap;
     }
 
