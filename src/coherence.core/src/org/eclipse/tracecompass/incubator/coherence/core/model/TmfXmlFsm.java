@@ -10,7 +10,6 @@ package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -28,13 +27,9 @@ import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
-import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
-import org.eclipse.tracecompass.tmf.core.statistics.TmfStateStatistics.Attributes;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -51,7 +46,6 @@ import com.google.common.collect.ImmutableMap;
 public class TmfXmlFsm {
 
     protected final Map<String, TmfXmlState> fStatesMap;
-    // TODO one of fActiveScenariosList or fActiveScenariosMap will need to be remove
     protected final List<TmfXmlScenario> fActiveScenariosList;
     protected final List<TmfXmlBasicTransition> fPreconditions;
     protected final String fId;
@@ -98,20 +92,18 @@ public class TmfXmlFsm {
 	}
 	
 	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions) {
-	    if (fProblematicEventsMap.containsKey(event)) {	        
-	        List<Pair<String, Set<TmfXmlFsmTransition>>> list = fProblematicEventsMap.get(event);
-	        Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
-	        Pair<String, Set<TmfXmlFsmTransition>> p = new Pair(scenarioAttribute, newSet);
-		    list.add(p);
-		    fProblematicEventsMap.replace(event, list);
-	        return;
-	    }
-	    
-	    Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
-	    Pair<String, Set<TmfXmlFsmTransition>> p = new Pair(scenarioAttribute, newSet);	    
-	    List<Pair<String, Set<TmfXmlFsmTransition>>> newList = new ArrayList<>();
-	    newList.add(p);
-	    fProblematicEventsMap.put(event, newList);
+		List<Pair<String, Set<TmfXmlFsmTransition>>> list;
+		if (fProblematicEventsMap.containsKey(event)) {	        
+	        list = fProblematicEventsMap.get(event);
+		}
+		else {
+			list = new ArrayList<>();
+		}
+		
+        Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
+        Pair<String, Set<TmfXmlFsmTransition>> p = new Pair<String, Set<TmfXmlFsmTransition>>(scenarioAttribute, newSet);
+	    list.add(p);
+	    fProblematicEventsMap.put(event, list);
 	}
 	
 	/**
@@ -135,18 +127,17 @@ public class TmfXmlFsm {
 			    	transition = transitions.iterator().next(); // select first transition
 			    }
 			    
-			    Pair<String, TmfXmlFsmTransition> p2 = new Pair(scenarioAttribute, transition);
+			    Pair<String, TmfXmlFsmTransition> p2 = new Pair<String, TmfXmlFsmTransition>(scenarioAttribute, transition);
 			    
+			    List<Pair<String, TmfXmlFsmTransition>> list;
 			    if (fNewProblematicEventsMap.containsKey(event)) {
-			    	List<Pair<String, TmfXmlFsmTransition>> list = fNewProblematicEventsMap.get(event);
-				    list.add(p2);
-				    fNewProblematicEventsMap.replace(event, list);
+			    	list = fNewProblematicEventsMap.get(event);
 			    }
 			    else {
-			    	List<Pair<String, TmfXmlFsmTransition>> list = new ArrayList<>();
-			    	list.add(p2);
-			    	fNewProblematicEventsMap.put(event, list);
+			    	list = new ArrayList<>();
 			    }
+		    	list.add(p2);
+		    	fNewProblematicEventsMap.put(event, list);
 			}
 		}
 	}
@@ -258,27 +249,25 @@ public class TmfXmlFsm {
 	        	for (Pattern pattern : transition.getAcceptedEvents()) {
 	        		String eventName = pattern.toString();
 	        		// Add a state to the list of previous states for the current event
+	        		Set<String> statesId;
 	        		if (prevStates.containsKey(eventName)) {
-	                	Set<String> statesId = prevStates.get(eventName);
-	                	statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
-	    				prevStates.replace(eventName, statesId);
+	                	statesId = prevStates.get(eventName);
 	        		}
 	        		else {
-	        			Set<String> newSet = new HashSet<>();
-	        			newSet.add(state.getId());
-	        			prevStates.put(eventName, newSet);
+	        			statesId = new HashSet<>();
 	        		}
+	        		statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
+    				prevStates.replace(eventName, statesId);
+    				
 					// Add a state to the list of next states for the current event
 	        		if (nextStates.containsKey(eventName)) {
-	        			Set<String> statesId = nextStates.get(eventName);
-	                	statesId.add(transition.getTarget());
-	    				nextStates.replace(eventName, statesId);
+	        			statesId = nextStates.get(eventName);
 	        		}
 	        		else {
-	        			Set<String> newSet = new HashSet<>();
-	        			newSet.add(transition.getTarget());
-	        			nextStates.put(eventName, newSet);
+	        			statesId = new HashSet<>();
 	        		}
+	        		statesId.add(transition.getTarget());
+    				nextStates.replace(eventName, statesId);
 				}
 			}
         }

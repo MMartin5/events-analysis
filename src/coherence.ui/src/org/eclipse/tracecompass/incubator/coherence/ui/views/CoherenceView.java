@@ -11,18 +11,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Predicate;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelTidAspect;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
@@ -39,39 +35,23 @@ import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
-import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
-import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeLinkEvent;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.TimeGraphColorScheme;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.Utils;
-
 import com.google.common.collect.Multimap;
 import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 
-/* TODO
- * 1. récupérer fFsmMap de TmfXmlPatternEventHandler pour initialiser fFsm --> OK
- * 2. pour chaque événement incohérent des FSM, ajouter un marqueur sur la vue à cet événement --> OK
- * 3. pour chaque marqueur, chercher l'évenement précedent et marquer la zone entre ces 2 points comme incohérente
- */
 
 public class CoherenceView extends ControlFlowView {
 
@@ -247,17 +227,16 @@ public class CoherenceView extends ControlFlowView {
         for (ITmfEvent event : fEvents) {
         	for (Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(event)) {
 	            // Add the incoherent event to the set of the corresponding entry
-	            String tidStr = p.getFirst(); 
+	            String tidStr = p.getFirst();
+	            Set<ITmfEvent> eventSet;
 	            if (pEntries.containsKey(tidStr)) {
-	            	Set<ITmfEvent> eventSet = pEntries.get(tidStr);
-	            	eventSet.add(event);
-	            	pEntries.replace(tidStr, eventSet);
+	            	eventSet = pEntries.get(tidStr);
 	    		}
 	    		else {
-	    			Set<ITmfEvent> newSet = new HashSet<>();
-	    			newSet.add(event);
-	    			pEntries.put(tidStr, newSet);
+	    			eventSet = new HashSet<>();
 	    		}
+    			eventSet.add(event);
+    			pEntries.put(tidStr, eventSet);
         	}
         }
         

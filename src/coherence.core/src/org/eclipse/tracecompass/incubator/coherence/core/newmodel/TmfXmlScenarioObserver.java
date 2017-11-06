@@ -1,10 +1,7 @@
 package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +18,6 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHis
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
-import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 
