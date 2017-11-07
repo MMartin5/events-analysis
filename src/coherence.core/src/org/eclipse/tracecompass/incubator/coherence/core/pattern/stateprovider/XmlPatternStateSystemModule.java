@@ -51,9 +51,14 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
     protected @NonNull ITmfStateProvider createStateProvider() {
         String id = getId();
         fStateProvider = new XmlPatternStateProvider(checkNotNull(getTrace()), id, fXmlFile, fListener);
-        for (TmfXmlFsm fsm : fStateProvider.getEventHandler().getFsmMap().values()) {
-    		fsm.setCoherenceAlgorithm(fAlgoId);
-    	}
+        if (fAlgoId == null) {
+        	fStateProvider.setNoObservers();
+        }
+        else {
+	        for (TmfXmlFsm fsm : fStateProvider.getEventHandler().getFsmMap().values()) {
+	    		fsm.setCoherenceAlgorithm(fAlgoId);
+	    	}
+        }
         return fStateProvider;
     }
 

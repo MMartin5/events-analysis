@@ -71,7 +71,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 
     private final @NonNull TmfXmlScenarioHistoryBuilder fHistoryBuilder;
     
-    private final boolean fWithObservers;
+    private boolean fWithObservers;
 
     /**
      * @param trace
@@ -169,6 +169,10 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
         else {
         	fWithObservers = false;
         }
+    }
+    
+    public void setNoObservers() {
+    	fWithObservers = false;
     }
 
     @Override
