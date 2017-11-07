@@ -23,6 +23,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.X
 import org.eclipse.tracecompass.incubator.coherence.core.tests.Activator;
 import org.eclipse.tracecompass.incubator.trace.lostevents.core.trace.LostEventsTrace;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.model.TmfXmlScenario;
+import org.eclipse.tracecompass.lttng2.kernel.core.trace.LttngKernelTrace;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.tests.stateprovider.XmlModuleTestBase;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
@@ -49,7 +50,7 @@ public class CoherenceAnalysisBenchmark {
     private static final String TEST_BUILD = "Running Coherence Analysis (%s) Using Algorithm %s";
     private static final String TEST_MEMORY = "Memory Usage (%s) Using Algorithm %s";
 
-    private static final int LOOP_COUNT = 5; // 25
+    private static final int LOOP_COUNT = 25;
 
     private interface RunMethod {
         void execute(PerformanceMeter pm, IAnalysisModule module);
@@ -58,10 +59,6 @@ public class CoherenceAnalysisBenchmark {
     private RunMethod cpu = (pm, module) -> {
         pm.start();
         TmfTestHelper.executeAnalysis(module);
-        
-//        module.schedule();
-//        module.waitForCompletion();
-        
         pm.stop();
     };
 
@@ -78,8 +75,6 @@ public class CoherenceAnalysisBenchmark {
     		"/home/mmartin/Master/Traces/trace777/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/")); // FIXME
     
     private static final String fXMLAnalysisFile = "testfiles/kernel_analysis_from_fsm.xml";
-
-    private static List<@NonNull IAnalysisModuleHelper> fModules = null;
     
     private static Set<String> fAlgoIds = new HashSet<>(Arrays.asList(TmfXmlScenarioObserver.ALGO1, TmfXmlScenarioObserver.ALGO2));
     
@@ -89,6 +84,16 @@ public class CoherenceAnalysisBenchmark {
     @Test
     public void runAllBenchmarks() {
         for (String trace : fTraceSet) {
+        	
+        	runOneBenchmark(trace,
+                    String.format(TEST_BUILD, trace.toString(), "no checking"),
+                    cpu,
+                    Dimension.CPU_TIME, null);
+
+            runOneBenchmark(trace,
+                    String.format(TEST_MEMORY, trace.toString(), "no checking"),
+                    memory,
+                    Dimension.USED_JAVA_HEAP, null);
         	
         	for (String algo : fAlgoIds) {
 
@@ -107,6 +112,7 @@ public class CoherenceAnalysisBenchmark {
 
     /**
      * @see org.eclipse.tracecompass.tmf.analysis.xml.core.tests.model.FsmTest
+     * @see org.eclipse.tracecompass.lttng2.kernel.core.tests.perf.analysis.execgraph.KernelExecutionGraphBenchmark
      * 
      * @param testTrace
      * @param testName
@@ -151,7 +157,7 @@ public class CoherenceAnalysisBenchmark {
                 module.setTrace(trace);
                 
                 module.getStateSystemModule().changeCoherenceAlgorithm(algo); // set the algorithm we want to test
-                
+            	
                 method.execute(pm, module);
             	
                 /*
