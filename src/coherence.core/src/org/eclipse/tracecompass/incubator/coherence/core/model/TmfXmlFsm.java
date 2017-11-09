@@ -68,6 +68,7 @@ public class TmfXmlFsm {
     
     Map<String, Set<String>> fPrevStates;
 	Map<String, Set<String>> fNextStates;
+	Map<String, Set<TmfXmlFsmTransition>> fPrevStatesForState;
 	
 	/* associates an incoherent event to the attribute identifying the scenario where the incoherence was found and the list of possible transitions */
 	private Map<ITmfEvent, List<Pair<String, Set<TmfXmlFsmTransition>>>> fProblematicEventsMap = new HashMap<>();
@@ -132,7 +133,8 @@ public class TmfXmlFsm {
 		List<TmfXmlFsmTransition> transitions = new ArrayList<>();
 		
 		// Find possible transitions for the current event and state
-		Set<TmfXmlFsmTransition> possibleTransitions = TmfXmlScenarioObserver.computePossibleTransitions(currentTransition.from(), this.getStatesMap());
+//		Set<TmfXmlFsmTransition> possibleTransitions = TmfXmlScenarioObserver.computePossibleTransitions(currentTransition.from(), this.getStatesMap());
+		Set<TmfXmlFsmTransition> possibleTransitions = fPrevStatesForState.get(currentTransition.from().getId());
 		
 		// Find best transition
 		TmfXmlFsmTransition bestTransition = null;
@@ -317,6 +319,7 @@ public class TmfXmlFsm {
 
         Map<String, Set<String>> prevStates = new HashMap<>();
         Map<String, Set<String>> nextStates = new HashMap<>();
+        Map<String, Set<TmfXmlFsmTransition>> prevStatesForState = new HashMap<>();
         
         // Create the maps of previous states and next states
         for (TmfXmlState state : statesMap.values()) {
@@ -343,17 +346,24 @@ public class TmfXmlFsm {
 	        		}
 	        		statesId.add(transition.getTarget());
     				nextStates.replace(eventName, statesId);
+    				
+    				// Add a state to the list of previous states for the target state
+    				TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(transition, state, eventName);
+    				String targetState = transition.getTarget();
+    				Set<TmfXmlFsmTransition> set = (prevStatesForState.containsKey(targetState)) ? prevStatesForState.get(targetState) : new HashSet<>();
+    				set.add(fsmTransition);
+    				prevStatesForState.put(targetState, set);
 				}
 			}
         }
         
         return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, 
-        		abandonStateId, preconditions, statesMap, prevStates, nextStates);
+        		abandonStateId, preconditions, statesMap, prevStates, nextStates, prevStatesForState);
     }
 
     protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, IXmlStateSystemContainer container, String id, boolean consuming,
             boolean multiple, String initialState, String finalState, String abandonState, List<TmfXmlBasicTransition> preconditions,
-            Map<String, TmfXmlState> states, Map<String, Set<String>> prevStates, Map<String, Set<String>> nextStates) {
+            Map<String, TmfXmlState> states, Map<String, Set<String>> prevStates, Map<String, Set<String>> nextStates, Map<String, Set<TmfXmlFsmTransition>> prevStatesForState) {
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
         fContainer = container;
@@ -368,6 +378,7 @@ public class TmfXmlFsm {
         fActiveScenariosList = new ArrayList<>();
         fPrevStates = prevStates;
         fNextStates = nextStates;
+        fPrevStatesForState = prevStatesForState;
     }
     
     public Map<String, Set<String>> getPrevStates() {
