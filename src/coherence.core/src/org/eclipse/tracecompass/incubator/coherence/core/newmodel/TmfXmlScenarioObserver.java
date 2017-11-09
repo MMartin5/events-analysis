@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -14,9 +15,11 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlAction;
 import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlModelFactory;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioInfo;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder.ScenarioStatusType;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlTransitionValidator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
@@ -57,6 +60,61 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 		} catch (SecurityException e) {
 			Activator.logError("SecurityException while trying to get the coherence algorithm", e);
 		}
+    }
+    
+    /**
+     * Computes the list of every possible transition, including the transition from the current state
+     * @param event
+     * @param statesMap
+     * @param scenarioInfo
+     * @param patternHandler
+     * @return
+     * 			The list of possible transitions
+     */
+    public static Set<TmfXmlFsmTransition> computePossibleTransitions(ITmfEvent event, 
+    		Map<String, TmfXmlState> statesMap, 
+    		TmfXmlScenarioInfo scenarioInfo,
+    		Map<String, TmfXmlTransitionValidator> testMap) {
+    	
+    	Set<TmfXmlFsmTransition> possibleTransitions = new HashSet<>();
+    	TmfXmlStateTransition stateTransition = null;
+    	
+    	// We check every state
+    	for (TmfXmlState state : statesMap.values()) {
+            // We check every transition of the state
+            for (int i = 0; i < state.getTransitionList().size(); i++) {
+                stateTransition = state.getTransitionList().get(i);
+                if (stateTransition.test(event, scenarioInfo, testMap)) { // true if the transition can be taken
+                    TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state, event.getName());
+                    possibleTransitions.add(fsmTransition);
+                }
+            }
+        }
+    	
+    	return possibleTransitions;
+    }
+    
+    public static Set<TmfXmlFsmTransition> computePossibleTransitions(TmfXmlState currentState,	Map<String, TmfXmlState> statesMap) {
+    	
+    	Set<TmfXmlFsmTransition> possibleTransitions = new HashSet<>();
+    	TmfXmlStateTransition stateTransition = null;
+    	
+    	// We check every state
+    	for (TmfXmlState state : statesMap.values()) {
+            // We check every transition of the state
+            for (int i = 0; i < state.getTransitionList().size(); i++) {
+                stateTransition = state.getTransitionList().get(i);
+                if (stateTransition.getTarget().equals(currentState.getId())) { // the current state can be reached with this transition
+                	for (Pattern eventPattern : stateTransition.getAcceptedEvents()) { // insert one transition per accepted event
+                		String eventName = eventPattern.toString();
+	                    TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state, eventName);
+	                    possibleTransitions.add(fsmTransition);
+                	}
+                }
+            }
+        }
+    	
+    	return possibleTransitions;
     }
 
     /**
@@ -108,7 +166,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         if (prevStates != null) { // we might have a null set if this event is never accepted by any state of the FSM
 	        Map<String, TmfXmlState> states = fFsm.getStatesMap();
 	        TmfXmlState currentState = states.get(fScenarioInfo.getActiveState());
-	
+	        	
 	        if (currentState == null) {
 	            return false;
 	        }
@@ -157,7 +215,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 				if (isCoherenceCheckingNeeded && !((boolean) checkMethod.invoke(this, event))) {
 				    fFsm.setIncoherence(); // indicates that there is at least one incoherence
 				    // Save incoherences
-				    fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions); // currentPossibleTransitions has been set in checkEvent
+				    fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fScenarioInfo.getActiveState()); // currentPossibleTransitions has been set in checkEvent
 				}
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				Activator.logError("Error while invoking the method to check event", e);

@@ -73,6 +73,8 @@ public class TmfXmlFsm {
 	private Map<ITmfEvent, List<Pair<String, Set<TmfXmlFsmTransition>>>> fProblematicEventsMap = new HashMap<>();
 	private Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> fNewProblematicEventsMap = new HashMap<>();
 	
+	private Map<ITmfEvent, List<Pair<String, String>>> fProblematicEventsMapForTarget = new HashMap<>(); // pair(entry, previous state)
+	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	
 	private String fCoherenceAlgo;
@@ -91,19 +93,70 @@ public class TmfXmlFsm {
 		fTransitionsCounters.put(transition, new Long(1));
 	}
 	
-	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions) {
+	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions, String currentState) {
 		List<Pair<String, Set<TmfXmlFsmTransition>>> list;
+		List<Pair<String, String>> list2;
 		if (fProblematicEventsMap.containsKey(event)) {	        
 	        list = fProblematicEventsMap.get(event);
+	        list2 = fProblematicEventsMapForTarget.get(event);
 		}
 		else {
 			list = new ArrayList<>();
+			list2 = new ArrayList<>();
 		}
 		
         Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
         Pair<String, Set<TmfXmlFsmTransition>> p = new Pair<String, Set<TmfXmlFsmTransition>>(scenarioAttribute, newSet);
 	    list.add(p);
 	    fProblematicEventsMap.put(event, list);
+	    
+	    Pair<String, String> p2 = new Pair<String, String>(scenarioAttribute, currentState);
+	    list2.add(p2);
+	    fProblematicEventsMapForTarget.put(event, list2);
+	}
+	
+	private TmfXmlScenario getScenario(String attribute) {
+		for (TmfXmlScenario scenario : fActiveScenariosList) {
+			if (scenario.getAttribute().equals(attribute)) {
+				return scenario;
+			}
+		}
+		
+		return null;
+	}
+	
+	// FIXME delete counter when a better way to find best transition is found (ctr is to make sure that we don't get stuck in an infinite loop)
+	private List<TmfXmlFsmTransition> computeMissingTransitions(TmfXmlFsmTransition currentTransition, 
+			String target, 
+			Map<String, TmfXmlTransitionValidator> testMap, int ctr) {
+		List<TmfXmlFsmTransition> transitions = new ArrayList<>();
+		
+		// Find possible transitions for the current event and state
+		Set<TmfXmlFsmTransition> possibleTransitions = TmfXmlScenarioObserver.computePossibleTransitions(currentTransition.from(), this.getStatesMap());
+		
+		// Find best transition
+		TmfXmlFsmTransition bestTransition = null;
+		for (TmfXmlFsmTransition t : possibleTransitions) {
+	    	if ((fTransitionsCounters.containsKey(t)) && 
+	    			((bestTransition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(bestTransition)))) {
+	    		bestTransition = t;
+	    	}
+	    }
+	    
+	    if (bestTransition == null) { // every possible transition has never been taken in this fsm
+	    	bestTransition = transitions.iterator().next(); // select first transition
+	    }
+		
+	    // Test if we should keep on backwarding or stop
+		if (ctr > 20 || target.equals(bestTransition.from().getId())) { // stop
+			List<TmfXmlFsmTransition> newList = new ArrayList<>();
+			newList.add(bestTransition);
+			return newList;
+		}
+		else { // continue
+			transitions.addAll(computeMissingTransitions(bestTransition, target, testMap, ++ctr));
+			return transitions;
+		}
 	}
 	
 	/**
@@ -114,6 +167,12 @@ public class TmfXmlFsm {
 		for (ITmfEvent event : fProblematicEventsMap.keySet() ) {
 			for (Pair<String, Set<TmfXmlFsmTransition>> p : fProblematicEventsMap.get(event)) {
 				String scenarioAttribute = p.getFirst();
+				
+				TmfXmlScenario scenario = getScenario(scenarioAttribute);
+				scenario.getScenarioInfos();
+				Map<String, TmfXmlTransitionValidator> testMap = scenario.fPatternHandler.getTestMap();
+				
+				
 				Set<TmfXmlFsmTransition> transitions = p.getSecond();
 				TmfXmlFsmTransition transition = null;
 			    for (TmfXmlFsmTransition t : transitions) {
@@ -125,6 +184,23 @@ public class TmfXmlFsm {
 			    
 			    if (transition == null) { // every possible transition has never been taken in this fsm
 			    	transition = transitions.iterator().next(); // select first transition
+			    }
+			    
+			    String target = "";
+			    for (Pair<String, String> p2: fProblematicEventsMapForTarget.get(event)) {
+			    	if (p2.getFirst() == scenarioAttribute) {
+			    		target = p2.getSecond();
+			    	}
+			    }
+			    
+			    List<TmfXmlFsmTransition> inferredTransitions = computeMissingTransitions(transition, target, testMap, 1);
+			    // FIXME remove this debug log
+			    if (!scenarioAttribute.equals("0")) {
+			    	System.out.println("# For event : " + event.toString());
+			    	for (TmfXmlFsmTransition infTransition : inferredTransitions) {
+			    		System.out.println(infTransition.toString());
+			    	}
+			    	System.out.println(transition.toString());
 			    }
 			    
 			    Pair<String, TmfXmlFsmTransition> p2 = new Pair<String, TmfXmlFsmTransition>(scenarioAttribute, transition);

@@ -46,5 +46,8 @@ public class TmfXmlFsmTransition {
 		return fFromState;
 	}
 	
+	public String getEvent() {
+		return fEvent;
+	}
 	
 }
