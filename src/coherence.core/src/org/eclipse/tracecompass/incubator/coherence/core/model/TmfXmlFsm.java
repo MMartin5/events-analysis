@@ -128,7 +128,7 @@ public class TmfXmlFsm {
 	// FIXME delete counter when a better way to find best transition is found (ctr is to make sure that we don't get stuck in an infinite loop)
 	private List<TmfXmlFsmTransition> computeMissingTransitions(TmfXmlFsmTransition currentTransition, 
 			String target, 
-			Map<String, TmfXmlTransitionValidator> testMap, int ctr) {
+			int ctr) {
 		List<TmfXmlFsmTransition> transitions = new ArrayList<>();
 		
 		// Find possible transitions for the current event and state
@@ -144,7 +144,7 @@ public class TmfXmlFsm {
 	    }
 	    
 	    if (bestTransition == null) { // every possible transition has never been taken in this fsm
-	    	bestTransition = transitions.iterator().next(); // select first transition
+	    	bestTransition = possibleTransitions.iterator().next(); // select first transition
 	    }
 		
 	    // Test if we should keep on backwarding or stop
@@ -154,7 +154,7 @@ public class TmfXmlFsm {
 			return newList;
 		}
 		else { // continue
-			transitions.addAll(computeMissingTransitions(bestTransition, target, testMap, ++ctr));
+			transitions.addAll(computeMissingTransitions(bestTransition, target, ++ctr));
 			return transitions;
 		}
 	}
@@ -170,7 +170,6 @@ public class TmfXmlFsm {
 				
 				TmfXmlScenario scenario = getScenario(scenarioAttribute);
 				scenario.getScenarioInfos();
-				Map<String, TmfXmlTransitionValidator> testMap = scenario.fPatternHandler.getTestMap();
 				
 				
 				Set<TmfXmlFsmTransition> transitions = p.getSecond();
@@ -193,7 +192,7 @@ public class TmfXmlFsm {
 			    	}
 			    }
 			    
-			    List<TmfXmlFsmTransition> inferredTransitions = computeMissingTransitions(transition, target, testMap, 1);
+			    List<TmfXmlFsmTransition> inferredTransitions = computeMissingTransitions(transition, target, 1);
 			    // FIXME remove this debug log
 			    if (!scenarioAttribute.equals("0")) {
 			    	System.out.println("# For event : " + event.toString());
