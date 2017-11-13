@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
@@ -164,10 +167,16 @@ public class TmfXmlFsm {
 	/**
 	 * Select a transition from the list of possible transitions for each incoherent event
 	 * We select the most probable transition, considering that the most frequent one is the most probable
+	 * @return 
+	 * 			The status of this operation
 	 */
-	public void setTransitions() {
+	public IStatus setTransitions(IProgressMonitor monitor) {
 		for (ITmfEvent event : fProblematicEventsMap.keySet() ) {
 			for (Pair<String, Set<TmfXmlFsmTransition>> p : fProblematicEventsMap.get(event)) {
+				if (monitor != null && monitor.isCanceled()) { // check that job has not been canceled
+					return Status.CANCEL_STATUS;
+				}
+				
 				String scenarioAttribute = p.getFirst();
 				
 				TmfXmlScenario scenario = getScenario(scenarioAttribute);
@@ -217,6 +226,8 @@ public class TmfXmlFsm {
 		    	fNewProblematicEventsMap.put(event, list);
 			}
 		}
+		
+		return Status.OK_STATUS;
 	}
 
     public int getTransitionCount() {

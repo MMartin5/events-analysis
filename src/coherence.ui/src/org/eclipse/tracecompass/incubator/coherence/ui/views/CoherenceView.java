@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.IStatusLineManager;
@@ -55,11 +58,12 @@ import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelp
 
 public class CoherenceView extends ControlFlowView {
 
-	private final List<IMarkerEvent> fMarkers = new ArrayList<>();
-	private final List<ITmfEvent> fEvents = new ArrayList<>(); // list of incoherent events
+	private final List<IMarkerEvent> fMarkers = Collections.synchronizedList(new ArrayList<>());
+	private final List<ITmfEvent> fEvents = Collections.synchronizedList(new ArrayList<>()); // list of incoherent events
 
 	public String COHERENCE_LABEL = "Incoherent";
 	public String COHERENCE = "Coherence warning";
+	public String CERTAINTY = "Uncertain state";
 	private static final RGBA COHERENCE_COLOR = new RGBA(255, 0, 0, 50);
 
 	private String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
@@ -68,13 +72,13 @@ public class CoherenceView extends ControlFlowView {
 	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
 	
 	private CoherenceTooltipHandler fCoherenceToolTipHandler;
-	private Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> pEventsWithTransitions = new HashMap<>();
+	private Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> pEventsWithTransitions = Collections.synchronizedMap(new HashMap<>());
 	
-	CountDownLatch latch; // used to synchronize the creation of time events to the initialization of incoherent events
-	
-	private Map<String, Set<ITmfEvent>> pEntries = new HashMap<>(); // pair of (entry id/scenario attribute, set of associated incoherent events)
+	private Map<String, Set<ITmfEvent>> pEntries = Collections.synchronizedMap(new HashMap<>()); // pair of (entry id/scenario attribute, set of associated incoherent events)
 	
 	private final TimeGraphPresentationProvider fNewPresentation; // replace fPresentation from ControlFlowView
+	
+	private Job fJob;
 
 	public CoherenceView() {
 	    super();
@@ -92,6 +96,10 @@ public class CoherenceView extends ControlFlowView {
 
 	@Override
 	public void dispose() {
+		if (fJob != null) {
+			fJob.cancel();
+			fJob = null;
+		}
 	    for (IAnalysisModule module : fModules.values()) {
 	    	((XmlPatternAnalysis) module).dispose(); // this will dispose the sub-analyses
 		}
@@ -103,43 +111,66 @@ public class CoherenceView extends ControlFlowView {
 	public void traceSelected(@Nullable TmfTraceSelectedSignal signal) {
 		// Make sure we don't request data twice for the same trace
 		if (getTrace() != signal.getTrace()) {
-			latch = new CountDownLatch(1);
-		    super.traceSelected(signal);
-		    fEvents.clear();
-		    fMarkers.clear();
-		    pEventsWithTransitions.clear();
-		    pEntries.clear();
-		    Thread thread = new Thread() {
-	            @Override
-	            public void run() {
-	                requestData();
-	            }
-	        };
-	        thread.start();
+			super.traceSelected(signal);
+		    Job job = fJob;
+		    if (job != null) { // a job is already running => cancel it
+	            job.cancel();
+	        }		
+			job = new Job("(trace selected) CoherenceView request data " + getTrace().getPath()) {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					try {
+						fEvents.clear();
+						fMarkers.clear();
+						pEventsWithTransitions.clear();
+						pEntries.clear();
+						return requestData(monitor);
+					} finally {
+						fJob = null;
+					}
+				}
+			};
+			fJob = job;
+			job.schedule();
+			return;
 		}
+		super.traceSelected(signal);
 	}
 
 	@TmfSignalHandler
     @Override
     public void traceOpened(@Nullable TmfTraceOpenedSignal signal) {
-		latch = new CountDownLatch(1);
         super.traceOpened(signal);
-        fEvents.clear();
-	    fMarkers.clear();
-	    pEventsWithTransitions.clear();
-	    pEntries.clear();
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                requestData();
-            }
-        };
-        thread.start();
+	    
+        Job job = fJob;
+	    if (job != null) { // a job is already running => cancel it
+            job.cancel();
+        }		
+		job = new Job("(trace opened) CoherenceView request data " + getTrace().getPath()) {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				try {
+					fEvents.clear();
+					fMarkers.clear();
+					pEventsWithTransitions.clear();
+					pEntries.clear();
+					return requestData(monitor);
+				} finally {
+					fJob = null;
+				}
+			}
+		};
+		fJob = job;
+		job.schedule();
     }
 
 	@TmfSignalHandler
     @Override
     public void traceClosed(@Nullable TmfTraceClosedSignal signal) {
+		if (fJob != null) {
+            fJob.cancel();
+            fJob = null;
+        }	
         super.traceClosed(signal);
         fEvents.clear();
         fMarkers.clear();
@@ -185,47 +216,62 @@ public class CoherenceView extends ControlFlowView {
 
 	/**
 	 * Run the XML analysis and collect the state machines from the analysis
+	 * @return 
 	 */
-	public void requestData() {
-	    ITmfTrace trace = checkNotNull(getTrace());
+	public @NonNull IStatus requestData(IProgressMonitor monitor) {
+		ITmfTrace trace = checkNotNull(getTrace());
+		
+		if (monitor.isCanceled()) {
+    		return Status.CANCEL_STATUS;
+    	}
 	    
 		IAnalysisModule moduleParent = findModule(trace, TmfAnalysisModuleHelperXml.class, FSM_ANALYSIS_ID);
-		if (moduleParent == null) {
-			return;
+		if (moduleParent == null || monitor.isCanceled()) {
+			return Status.CANCEL_STATUS;
 		}
 
 	    moduleParent.schedule();
-	    moduleParent.waitForCompletion();
+	    moduleParent.waitForCompletion(monitor);
 	    
 
 	    XmlPatternStateSystemModule module = ((XmlPatternAnalysis) moduleParent).getStateSystemModule();
 
         XmlPatternStateProvider provider = module.getStateProvider();
-        if (provider == null) {
-            return;
+        if (provider == null || monitor.isCanceled()) {
+        	return Status.CANCEL_STATUS;
         }
 
         TmfXmlPatternEventHandler handler = provider.getEventHandler();
-        if (handler == null) {
-            return;
+        if (handler == null || monitor.isCanceled()) {
+            return Status.CANCEL_STATUS;
         }
 
         Map<String, TmfXmlFsm> fsmMap = handler.getFsmMap();
 
-        if (fsmMap.isEmpty()) {
-            return;
+        if (fsmMap.isEmpty() || monitor.isCanceled()) {
+            return Status.CANCEL_STATUS;
         }
         
         for (TmfXmlFsm fsm : fsmMap.values()) {
+        	if (monitor.isCanceled()) {
+        		return Status.CANCEL_STATUS;
+        	}
+        	
             List<ITmfEvent> events = fsm.getProblematicEvents();
             fEvents.addAll(events);
             
-            fsm.setTransitions();
+            IStatus ret = fsm.setTransitions(monitor);
+            if (ret != Status.OK_STATUS) {
+            	return ret;
+            }
             pEventsWithTransitions.putAll(fsm.getProblematicEventsWithTransitions());
         }
 
         for (ITmfEvent event : fEvents) {
         	for (Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(event)) {
+        		if (monitor.isCanceled()) {
+            		return Status.CANCEL_STATUS;
+            	}
 	            // Add the incoherent event to the set of the corresponding entry
 	            String tidStr = p.getFirst();
 	            Set<ITmfEvent> eventSet;
@@ -240,13 +286,13 @@ public class CoherenceView extends ControlFlowView {
         	}
         }
         
-        latch.countDown(); // decrease the countdown
         refresh();
+        return Status.OK_STATUS;
 	}
 
 	@Override
 	protected @NonNull List<String> getViewMarkerCategories() {
-	    return Arrays.asList(COHERENCE);
+	    return Arrays.asList(COHERENCE, CERTAINTY);
 
 	}
 
@@ -254,6 +300,7 @@ public class CoherenceView extends ControlFlowView {
 	protected List<IMarkerEvent> getViewMarkerList(long startTime, long endTime,
 	        long resolution, @NonNull IProgressMonitor monitor) {
 
+		/* Coherence markers */
 	    if (fMarkers.size() != fEvents.size()) { // return markers directly if we already created all of them
     	    if (fEvents.isEmpty()) {
     	        return Collections.emptyList();
@@ -278,6 +325,10 @@ public class CoherenceView extends ControlFlowView {
                 }
             }
 	    }
+	    
+	    /* Certainty markers */
+	    // TODO insert markers here to show uncertain states
+//	    for (getEntryList(trace))
 
 	    return fMarkers;
 	}
@@ -313,9 +364,11 @@ public class CoherenceView extends ControlFlowView {
 	@Override
 	protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, Collection<ITmfStateInterval> value) {
 		try {
-			latch.await(); // wait for the end of requestData
+			if (fJob != null) { // a job is being run
+				fJob.join(); // wait for the end of requestData
+			}
 		} catch (InterruptedException e) {
-			Activator.getDefault().logError("Cannot create time events", e);
+			Activator.getDefault().logError("The job was interrupted", e);
 			return Collections.emptyList();
 		}
 		
