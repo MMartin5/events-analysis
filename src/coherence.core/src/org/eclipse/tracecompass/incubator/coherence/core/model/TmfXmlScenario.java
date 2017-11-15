@@ -33,6 +33,8 @@ public class TmfXmlScenario {
     protected TmfXmlScenarioHistoryBuilder fHistoryBuilder;
     
     protected String fAttribute = null;
+    
+    public static String ATTRIBUTE_PATH = "attribute";
 
     /**
      * Constructor
@@ -166,7 +168,7 @@ public class TmfXmlScenario {
     	String value = "";
     	ITmfStateSystemBuilder ss = (ITmfStateSystemBuilder) fContainer.getStateSystem();
     	int startingNodeQuark = fScenarioInfo.getQuark();
-    	String subPath = "attribute"; // we use tid to identify each scenario from "process_fsm" FSM, and cpu id for "cpu_fsm" FSM => found in "attribute" field
+    	String subPath = ATTRIBUTE_PATH; // we use tid to identify each scenario from "process_fsm" FSM, and cpu id for "cpu_fsm" FSM => found in "attribute" field
     	int attributeQuark;
 		try {
 			attributeQuark = ss.getQuarkRelative(startingNodeQuark, subPath);
@@ -175,6 +177,7 @@ public class TmfXmlScenario {
 			return value;
 		}
     	ITmfStateValue sValue = ss.queryOngoingState(attributeQuark);
+//    	value = sValue.unboxStr();
     	value = String.valueOf(sValue.unboxInt());
     	return value;
     }

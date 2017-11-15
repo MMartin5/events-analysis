@@ -203,9 +203,14 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
     	// Clear current possible transitions set as we receive a new event
     	currentPossibleTransitions.clear();
 
-        if (!fPatternHandler.startChecking() && (event instanceof ITmfLostEvent)) {
-        	// We start checking the coherence of events when we receive the first 'Lost event'
-        	fPatternHandler.setStartChecking(true);
+        if (event instanceof ITmfLostEvent) {
+        	// The entry state becomes uncertain
+        	fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
+        	
+        	if (!fPatternHandler.startChecking()) {    	
+	        	// We start checking the coherence of events when we receive the first 'Lost event'
+	        	fPatternHandler.setStartChecking(true, event);
+        	}
         }
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
@@ -245,6 +250,11 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
                 Activator.logError("Action " + actionId + " cannot be found."); //$NON-NLS-1$ //$NON-NLS-2$
                 return;
             }
+        }
+        
+        // Update the certainty status to certain if the transition is appropriate
+        if (out.isCertainState()) {
+        	fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
         }
 
         // Change the activeState

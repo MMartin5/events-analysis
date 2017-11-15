@@ -52,10 +52,10 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
+import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.ITmfXmlSchemaParser;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
-import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlUtils;
 import org.osgi.framework.Bundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -127,7 +127,7 @@ public class XmlUtils {
      * @return True if the XML validates
      */
     public static IStatus xmlValidate(File xmlFile) {
-        URL url = TmfXmlUtils.class.getResource(XSD);
+        URL url = TmfAnalysisModuleHelperXml.class.getResource(XSD); // just to get my own modified XML schema definitions
         List<@NonNull URL> xsdFiles = getExtraXsdFiles();
         Validator validator = null;
         Schema schema = null;

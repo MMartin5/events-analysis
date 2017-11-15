@@ -23,6 +23,7 @@ import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfAttributePool;
 
 import com.google.common.collect.BiMap;
@@ -45,6 +46,11 @@ public class TmfXmlScenarioHistoryBuilder {
     private static final String ERROR_MESSAGE = "The state system is null"; //$NON-NLS-1$
 
     private final Map<String, TmfAttributePool> fFsmPools = new HashMap<>();
+   
+    public static final String CERTAINTY_STATUS = "certainty";
+    
+    public static final String CERTAIN = "certain";
+    public static final String UNCERTAIN = "uncertain";
 
     /**
      * All possible types of status for a scenario
@@ -433,5 +439,19 @@ public class TmfXmlScenarioHistoryBuilder {
         long ts = getTimestamp(event, ss);
         TmfAttributePool pool = getPoolFor(container, info.getFsmId());
         pool.recycle(info.getQuark(), ts);
+    }
+    
+    public void updateCertaintyStatus(final IXmlStateSystemContainer container, final TmfXmlScenarioInfo info, final ITmfEvent event) {
+    	ITmfStateSystemBuilder ss = (ITmfStateSystemBuilder) container.getStateSystem();
+    	int attributeQuark = ss.getQuarkRelativeAndAdd(info.getQuark(), CERTAINTY_STATUS);
+    	/* This scenario state status becomes uncertain when a lost event is encountered */
+    	if (event instanceof ITmfLostEvent) {
+    		ss.modifyAttribute(event.getTimestamp().getValue(), UNCERTAIN, attributeQuark);
+    		return;
+    	}
+    	/* Otherwise, we called this method because an appropriate transition was triggered
+    	 * so this scenario state status becomes certain  
+    	 */
+    	ss.modifyAttribute(event.getTimestamp().getValue(), CERTAIN, attributeQuark);
     }
 }
