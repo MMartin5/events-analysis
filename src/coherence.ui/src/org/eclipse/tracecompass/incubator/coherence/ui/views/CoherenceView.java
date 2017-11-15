@@ -405,7 +405,7 @@ public class CoherenceView extends ControlFlowView {
 		                    		continue;
 		                    	}
 		                    	ControlFlowEntry threadEntry = this.findEntry(getTrace(), tid, intervalStartTime);
-		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, CERTAINTY, CERTAINTY_COLOR, CERTAINTY_LABEL, true);
+		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, CERTAINTY, CERTAINTY_COLOR, null, true);
 		                        if (!fMarkers.contains(uncertainZone)) {
 		                        	fMarkers.add(uncertainZone);
 		                        }
