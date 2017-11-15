@@ -209,7 +209,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         	
         	if (!fPatternHandler.startChecking()) {    	
 	        	// We start checking the coherence of events when we receive the first 'Lost event'
-	        	fPatternHandler.setStartChecking(true, event);
+	        	fPatternHandler.setStartChecking(true);
         	}
         }
 
