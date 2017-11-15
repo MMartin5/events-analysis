@@ -340,9 +340,13 @@ public class CoherenceView extends ControlFlowView {
         
         ITmfStateSystem ss = fModule.getStateSystem(); // get the state system of this analysis
         
+        if (ss == null) {
+        	return fMarkers;
+        }
+        
         int startingNodeQuark;
         try {
-        	startingNodeQuark = ss.getQuarkAbsolute("scenarios", "process_fsm"); // FIXME : should work for every FSM 
+        	startingNodeQuark = ss.getQuarkAbsolute("scenarios"); 
         } catch (AttributeNotFoundException e) {
         	startingNodeQuark = -1;
         }
@@ -350,64 +354,69 @@ public class CoherenceView extends ControlFlowView {
 	    	return fMarkers;
 	    }
 	    
-        List<Integer> quarks = ss.getQuarks(startingNodeQuark, "*"); // get every scenario quark
-
-    	for (Integer scenarioQuark : quarks) {
-    		int quark;
-			try {
-				quark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS); // get the certainty attribute quark
-			} catch (AttributeNotFoundException e1) {
-				quark = -1;
-			}
-			if (quark == -1) {
-		    	continue;
-		    }
-			
-    		int attributeQuark;
-			try {
-				attributeQuark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenario.ATTRIBUTE_PATH); // get the "scenario attribute" attribute quark
-			} catch (AttributeNotFoundException e1) {
-				attributeQuark = -1;
-			}
-			if (attributeQuark == -1) {
-		    	continue;
-		    }
-	    
-		    try {
-	            long start = Math.max(startTime, ss.getStartTime());
-	            long end = Math.min(endTime, ss.getCurrentEndTime());
-	            if (start <= end) {
-	                /* Update start to ensure that the previous marker is included. */
-	                start = Math.max(start - 1, ss.getStartTime());
-	                /* Update end to ensure that the next marker is included. */
-	                long nextStartTime = ss.querySingleState(end, quark).getEndTime() + 1;
-	                end = Math.min(nextStartTime, ss.getCurrentEndTime());
-	                List<ITmfStateInterval> intervals = StateSystemUtils.queryHistoryRange(ss, quark, start, end, resolution, monitor);
-	                for (ITmfStateInterval interval : intervals) { 
-	                    if (interval.getStateValue().isNull()) {
-	                        continue;
-	                    }
-	                    
-	                    long intervalStartTime = interval.getStartTime();
-	                    long duration = interval.getEndTime() - intervalStartTime;
-	                    // Display a marker only if the certainty status is uncertain
-	                    if (interval.getStateValue().unboxStr().equals(TmfXmlScenarioHistoryBuilder.UNCERTAIN)) {
-	                    	int tid = ss.querySingleState(start, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
-	                    	if (tid == -1) {
-	                    		continue;
-	                    	}
-	                    	ControlFlowEntry threadEntry = this.findEntry(getTrace(), tid, intervalStartTime);
-	                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, CERTAINTY, CERTAINTY_COLOR, CERTAINTY_LABEL, true);
-	                        if (!fMarkers.contains(uncertainZone)) {
-	                        	fMarkers.add(uncertainZone);
-	                        }
-	                    }
-	                }
-	            }
-	        } catch (AttributeNotFoundException | StateSystemDisposedException e) {
-	            /* ignored */
-	        }
-    	}
+	    List<Integer> fsmQuarks = ss.getQuarks(startingNodeQuark, "*"); // get every FSM quark
+	    for (Integer fsmQuark : fsmQuarks) {
+				if (!ss.getAttributeName(fsmQuark).equals("process_fsm")) { // FIXME: allow temporarily only for process_fsm
+					continue;
+				}
+	        List<Integer> quarks = ss.getQuarks(fsmQuark, "*"); // get every scenario quark
+	    	for (Integer scenarioQuark : quarks) {
+	    		int quark;
+				try {
+					quark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS); // get the certainty attribute quark
+				} catch (AttributeNotFoundException e1) {
+					quark = -1;
+				}
+				if (quark == -1) {
+			    	continue;
+			    }
+				
+	    		int attributeQuark;
+				try {
+					attributeQuark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenario.ATTRIBUTE_PATH); // get the "scenario attribute" attribute quark
+				} catch (AttributeNotFoundException e1) {
+					attributeQuark = -1;
+				}
+				if (attributeQuark == -1) {
+			    	continue;
+			    }
+		    
+			    try {
+		            long start = Math.max(startTime, ss.getStartTime());
+		            long end = Math.min(endTime, ss.getCurrentEndTime());
+		            if (start <= end) {
+		                /* Update start to ensure that the previous marker is included. */
+		                start = Math.max(start - 1, ss.getStartTime());
+		                /* Update end to ensure that the next marker is included. */
+		                long nextStartTime = ss.querySingleState(end, quark).getEndTime() + 1;
+		                end = Math.min(nextStartTime, ss.getCurrentEndTime());
+		                List<ITmfStateInterval> intervals = StateSystemUtils.queryHistoryRange(ss, quark, start, end, resolution, monitor);
+		                for (ITmfStateInterval interval : intervals) { 
+		                    if (interval.getStateValue().isNull()) {
+		                        continue;
+		                    }
+		                    
+		                    long intervalStartTime = interval.getStartTime();
+		                    long duration = interval.getEndTime() - intervalStartTime;
+		                    // Display a marker only if the certainty status is uncertain
+		                    if (interval.getStateValue().unboxStr().equals(TmfXmlScenarioHistoryBuilder.UNCERTAIN)) {
+		                    	int tid = ss.querySingleState(start, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
+		                    	if (tid == -1) {
+		                    		continue;
+		                    	}
+		                    	ControlFlowEntry threadEntry = this.findEntry(getTrace(), tid, intervalStartTime);
+		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, CERTAINTY, CERTAINTY_COLOR, CERTAINTY_LABEL, true);
+		                        if (!fMarkers.contains(uncertainZone)) {
+		                        	fMarkers.add(uncertainZone);
+		                        }
+		                    }
+		                }
+		            }
+		        } catch (AttributeNotFoundException | StateSystemDisposedException e) {
+		            /* ignored */
+		        }
+	    	}
+	    }
 
 	    return fMarkers;
 	}
