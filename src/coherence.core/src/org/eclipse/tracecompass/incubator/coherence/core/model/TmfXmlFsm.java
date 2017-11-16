@@ -30,6 +30,8 @@ import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
+import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.Lttng28EventLayout;
+import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
@@ -648,7 +650,7 @@ public class TmfXmlFsm {
     	
     	return attributes;
     }
-
+    
     /**
      * Handle the current event
      *
@@ -683,13 +685,16 @@ public class TmfXmlFsm {
         	}
         	
         	if (scenario != null) {
+        		// FIXME use this ?
 //	        	scenario.handleEvent(event, isEventCoherent());
 //	        	System.out.println("HANDLE SCENARIO");
         	}
         }
         
-        boolean isValidInput = handleActiveScenarios(event, testMap, transitionTotal);
-        handlePendingScenario(event, isValidInput, transitionTotal);
+        
+        
+        boolean isValidInput = handleActiveScenarios(event, testMap, transitionTotal, layout);
+        handlePendingScenario(event, isValidInput, transitionTotal, layout);
         /* An event is incoherent if we have not found all of the expected transitions and we have found at least one possible transition
          * that could have been taken (because not founding all the transitions without another possible transition just means that
          * no transition existed for this event in this FSM) 
@@ -707,9 +712,10 @@ public class TmfXmlFsm {
      *            The ongoing event
      * @param testMap
      *            The map of transition
+     * @param layout 
      * @return True if the ongoing event validates the preconditions, false otherwise
      */
-    protected boolean handleActiveScenarios(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, int transitionTotal) {
+    protected boolean handleActiveScenarios(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, int transitionTotal, IKernelAnalysisEventLayout layout) {
         if (!validatePreconditions(event, testMap)) {
             return false;
         }
@@ -721,7 +727,7 @@ public class TmfXmlFsm {
             if (!scenario.isActive()) {
                 currentItr.remove();
             } else {
-            	handleScenario(scenario, event, isCoherenceCheckingNeeded(), transitionTotal);
+            	handleScenario(scenario, event, isCoherenceCheckingNeeded(), transitionTotal, layout);
                 if (fConsuming && isEventConsumed()) {
                     return true;
                 }
@@ -738,15 +744,16 @@ public class TmfXmlFsm {
      *            The ongoing event
      * @param isInputValid
      *            Either the ongoing event validated the preconditions or not
+     * @param layout 
      */
-    private void handlePendingScenario(ITmfEvent event, boolean isInputValid, int transitionTotal) {
+    private void handlePendingScenario(ITmfEvent event, boolean isInputValid, int transitionTotal, IKernelAnalysisEventLayout layout) {
         if (fConsuming && isEventConsumed()) {
             return;
         }
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
-            handleScenario(scenario, event, fHasIncoherence, transitionTotal); // TODO: check this isEventCoherent() parameter...
+            handleScenario(scenario, event, fHasIncoherence, transitionTotal, layout); // TODO: check this isEventCoherent() parameter...
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
                 fPendingScenario = null;
@@ -765,9 +772,9 @@ public class TmfXmlFsm {
         }
     }
 
-    protected static void handleScenario(TmfXmlScenario scenario, ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal) {
+    protected static void handleScenario(TmfXmlScenario scenario, ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal, IKernelAnalysisEventLayout layout) {
         if (scenario.isActive() || scenario.isPending()) {
-        	scenario.handleEvent(event, isCoherenceCheckingNeeded, transitionTotal);
+        	scenario.handleEvent(event, isCoherenceCheckingNeeded, transitionTotal, layout);
         }
     }
 

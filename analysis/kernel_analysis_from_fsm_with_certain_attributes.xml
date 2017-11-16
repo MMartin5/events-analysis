@@ -754,130 +754,130 @@
                 <!-- initial state with initialization action -->
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_exec_name_null:thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name" cond="initial_test:status_5:thread_status_null:thread_exec_name_null"  />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_ppid_null"  />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked" cond="initial_test:status_5:thread_status_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_exec_name_null:thread_ppid_null" certain="true" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name" cond="initial_test:status_5:thread_status_null:thread_exec_name_null"  certain="true" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_ppid_null"  certain="true" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked" cond="initial_test:status_5:thread_status_null" certain="true" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_exec_name_null:thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name" cond="initial_test:status_2:thread_status_null:thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:status_2:thread_status_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_exec_name_null:thread_ppid_null" certain="true" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name" cond="initial_test:status_2:thread_status_null:thread_exec_name_null" certain="true" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_ppid_null" certain="true" />
+                    <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:status_2:thread_status_null" certain="true" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" cond="initial_test" />
+                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" cond="initial_test" certain="true" />
 
-                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="initial_test:child_thread_system_call_null" />
-                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="initial_test" />
+                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="initial_test:child_thread_system_call_null" certain="true" />
+                    <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="initial_test" certain="true" />
 
                     <!-- Test prev_tid -->
-                    <transition event="sched_switch" target="syscall" action="init_scenario_prev:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="init_scenario_prev:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="init_scenario_prev:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="init_scenario_prev:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="init_scenario_prev:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_not_null" certain="true" />
+                    <transition event="sched_switch" target="usermode" action="init_scenario_prev:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_null" certain="true" />
+                    <transition event="sched_switch" target="wait_cpu" action="init_scenario_prev:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_0" certain="true" />
+                    <transition event="sched_switch" target="wait_blocked" action="init_scenario_prev:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_not_0" certain="true" />
                     <!-- Test next_tid -->
-                    <transition event="sched_switch" target="syscall" action="init_scenario_next:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="init_scenario_next:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="init_scenario_next:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="init_scenario_next:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="init_scenario_next:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_not_null" certain="true" />
+                    <transition event="sched_switch" target="usermode" action="init_scenario_next:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_null" certain="true" />
+                    <transition event="sched_switch" target="wait_cpu" action="init_scenario_next:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_0" certain="true" />
+                    <transition event="sched_switch" target="wait_blocked" action="init_scenario_next:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_not_0" certain="true" />
 
-                    <transition event="sched_wakeup*" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:test_for_sched_wakeup" certain="true" />
                 </initialState>
                 <state id="unknown">
-                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
                     <!-- should match IPI entry events -->
-                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" certain="true" />
 
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" certain="true" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" certain="true" />
+                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" certain="true" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" certain="true" />
 
-                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" certain="true" />
                 </state>
                 <state id="wait_blocked">
-                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
                     <!-- should match IPI entry events -->
-                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" certain="true" />
 
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" certain="true" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" certain="true" />
 
-                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" certain="true" />
                 </state>
                 <state id="usermode">
-                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
                     <!-- should match IPI entry events -->
-                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" certain="true" />
+                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" certain="true" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" certain="true" />
 
-                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="compat_syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="compat_syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" certain="true" />
                 </state>
                 <state id="syscall">
                     <!-- TODO vérifier si irq possibles quand syscall en cours -->
-                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
                     <!-- should match IPI entry events -->
-                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="exit_syscall" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="compat_syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="exit_syscall" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="compat_syscall_exit_*" target="usermode" action="update_process_to_usermode:set_current_thread_system_call_null" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" certain="true" />
+                    <transition event="sched_switch" target="wait_cpu" action="update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_0" certain="true" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" certain="true" />
 
-                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" certain="true" />
                 </state>
                 <state id="interrupted">
-                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" />
+                    <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" certain="true" />
 
-                    <transition event="softirq_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
-                    <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" />
-                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
-                    <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" />
-                    <transition event="x86_irq_vectors_*_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
-                    <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" />
+                    <transition event="softirq_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" certain="true" />
+                    <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" certain="true" />
+                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" certain="true" />
+                    <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" certain="true" />
+                    <transition event="x86_irq_vectors_*_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" certain="true" />
+                    <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" certain="true" />
 
-                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" certain="true" />
                 </state>
                 <state id="wait_cpu">
-                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
                     <!-- should match IPI entry events -->
-                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="x86_irq_vectors_*_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
-                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" />
+                    <transition event="sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
+                    <transition event="compat_sys_*" target="syscall" action="update_process_to_syscall:set_current_thread_system_call_eventname" cond="cpu_current_thread_is_current_scenario_thread" certain="true" />
 
-                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" certain="true" />
+                    <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" certain="true" />
 
-                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
+                    <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" certain="true" />
                 </state>
                 <final id="final_state" />
             </fsm>

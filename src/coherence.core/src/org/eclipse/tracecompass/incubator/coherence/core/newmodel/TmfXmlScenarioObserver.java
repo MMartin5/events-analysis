@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlAction;
 import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlModelFactory;
@@ -21,6 +22,8 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlTransitionValidator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
+import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.Lttng28EventLayout;
+import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 
@@ -197,9 +200,41 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
         return isCoherent;
     }
+    
+    private boolean triggersCertainState(ITmfEvent event, TmfXmlStateTransition transition, IKernelAnalysisEventLayout layout) {
+    	// Scheduling events trigger a coherent state for certain
+    	if (event.getName().equals(layout.eventSchedProcessExec()) ||
+			event.getName().equals(layout.eventSchedProcessExit()) ||
+			event.getName().equals(layout.eventSchedProcessFork()) ||
+			event.getName().equals(layout.eventSchedProcessFree()) ||
+			event.getName().equals(layout.eventSchedSwitch()) || 
+			event.getName().equals(layout.eventSchedProcessWakeup()) ||
+			event.getName().equals(layout.eventSchedProcessWakeupNew()) ||
+			event.getName().equals(layout.eventSchedProcessWaking())) {
+    		
+    		return true;
+    	}
+    	
+    	// State dump events
+    	if (event.getName().equals(layout.eventStatedumpProcessState()) || event.getName().equals(layout.eventStatedumpBlockDevice())) {
+    		return true;
+    	}
+    	
+    	// If we need specific events for latest layouts
+//    	if (layout instanceof LttngEventLayout) {
+//    		LttngEventLayout lttngLayout = (LttngEventLayout) layout;
+//    		 
+//        } 
+//        if (layout instanceof Lttng28EventLayout) {
+//            Lttng28EventLayout layout28 = (Lttng28EventLayout) layout;
+//
+//        }
+    	
+    	return false; // default case
+    }
 
     @Override
-    public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal) {
+    public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal, IKernelAnalysisEventLayout layout) {
     	// Clear current possible transitions set as we receive a new event
     	currentPossibleTransitions.clear();
 
@@ -253,7 +288,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         }
         
         // Update the certainty status to certain if the transition is appropriate
-        if (out.isCertainState()) {
+//        if (out.isCertainState()) {
+        if (triggersCertainState(event, out, layout)) {
         	fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
         }
 

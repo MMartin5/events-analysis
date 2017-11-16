@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder.ScenarioStatusType;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
@@ -114,8 +115,9 @@ public class TmfXmlScenario {
      *            The ongoing event
      * @param isEventCoherent
      *            Value used only in TmfXmlScenarioObserver
+     * @param layout 
      */
-    public void handleEvent(ITmfEvent event, boolean isEventCoherent, int transitionTotal) {
+    public void handleEvent(ITmfEvent event, boolean isEventCoherent, int transitionTotal, IKernelAnalysisEventLayout layout) {
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) {
