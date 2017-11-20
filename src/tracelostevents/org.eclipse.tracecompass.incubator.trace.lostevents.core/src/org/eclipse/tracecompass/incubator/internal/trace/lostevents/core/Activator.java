@@ -10,6 +10,9 @@
 package org.eclipse.tracecompass.incubator.internal.trace.lostevents.core;
 
 import org.eclipse.tracecompass.common.core.TraceCompassActivator;
+import org.eclipse.tracecompass.incubator.trace.lostevents.core.trace.LostEventsTrace;
+import org.eclipse.tracecompass.incubator.trace.lostevents.ui.markers.UncertaintyMarkerEventSourceFactory;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceAdapterManager;
 
 /**
  * Activator
@@ -18,6 +21,8 @@ public class Activator extends TraceCompassActivator {
 
     /** The plug-in ID */
     public static final String PLUGIN_ID = "org.eclipse.tracecompass.incubator.trace.lostevents.core"; //$NON-NLS-1$
+
+    private UncertaintyMarkerEventSourceFactory fUncertaintyMarkerEventSourceFactory;
 
     /**
      * The constructor
@@ -37,10 +42,14 @@ public class Activator extends TraceCompassActivator {
 
     @Override
     protected void startActions() {
+        fUncertaintyMarkerEventSourceFactory = new UncertaintyMarkerEventSourceFactory();
+        TmfTraceAdapterManager.registerFactory(fUncertaintyMarkerEventSourceFactory, LostEventsTrace.ID);
     }
 
     @Override
     protected void stopActions() {
+        TmfTraceAdapterManager.unregisterFactory(fUncertaintyMarkerEventSourceFactory);
+        fUncertaintyMarkerEventSourceFactory.dispose();
     }
 
 }

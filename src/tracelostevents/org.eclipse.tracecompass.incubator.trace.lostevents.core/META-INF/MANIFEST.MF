@@ -15,8 +15,17 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.tracecompass.tmf.ctf.core;bundle-version="3.0.1",
  org.eclipse.tracecompass.lttng2.common.core;bundle-version="1.1.0",
  org.eclipse.tracecompass.analysis.os.linux.core;bundle-version="2.4.0",
- org.eclipse.tracecompass.ctf.core
+ org.eclipse.tracecompass.ctf.core,
+ org.eclipse.tracecompass.tmf.ui;bundle-version="3.2.0",
+ org.eclipse.ui;bundle-version="3.109.0"
 Export-Package: org.eclipse.tracecompass.incubator.internal.trace.lostevents.core;x-friends:="org.eclipse.tracecompass.incubator.trace.lostevents.core.tests",
  org.eclipse.tracecompass.incubator.trace.lostevents.core.trace
-Import-Package: org.eclipse.tracecompass.internal.ctf.core.trace,
- org.eclipse.tracecompass.lttng2.kernel.core.trace
+Import-Package: org.eclipse.jface.window,
+ org.eclipse.swt.graphics,
+ org.eclipse.tracecompass.incubator.coherence.core.model,
+ org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider,
+ org.eclipse.tracecompass.incubator.coherence.ui.views,
+ org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow,
+ org.eclipse.tracecompass.internal.ctf.core.trace,
+ org.eclipse.tracecompass.lttng2.kernel.core.trace,
+ org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model

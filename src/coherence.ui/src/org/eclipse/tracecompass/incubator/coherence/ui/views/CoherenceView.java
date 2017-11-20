@@ -19,15 +19,10 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.IStatusLineManager;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGBA;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
-import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
-import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
@@ -37,10 +32,6 @@ import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipH
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.views.CoherencePresentationProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
@@ -51,7 +42,6 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
-import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
@@ -61,8 +51,6 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.TimeGraphControl;
 import com.google.common.collect.Multimap;
 import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 
@@ -74,10 +62,9 @@ public class CoherenceView extends ControlFlowView {
 
 	public String COHERENCE_LABEL = "Incoherent";
 	public String COHERENCE = "Coherence warning";
-	public String CERTAINTY_LABEL = "Uncertain";
-	public String CERTAINTY = "Uncertain state";
 	private static final RGBA COHERENCE_COLOR = new RGBA(255, 0, 0, 50);
-	private static final RGBA CERTAINTY_COLOR = new RGBA(0, 0, 0, 50); 
+	
+	public static String ID = "org.eclipse.tracecompass.incubator.coherence.ui.view"; 
 
 	private String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
 	
@@ -99,6 +86,15 @@ public class CoherenceView extends ControlFlowView {
 	    super();
 	    
 	    fNewPresentation = new CoherencePresentationProvider();
+	}
+	
+	@Override
+	public ControlFlowEntry findEntry(@NonNull ITmfTrace trace, int tid, long time) {
+		return super.findEntry(trace, tid, time);
+	}
+
+	public XmlPatternStateSystemModule getModule() {
+		return fModule;
 	}
 	
 	/**
@@ -307,7 +303,7 @@ public class CoherenceView extends ControlFlowView {
 
 	@Override
 	protected @NonNull List<String> getViewMarkerCategories() {
-	    return Arrays.asList(COHERENCE, CERTAINTY);
+	    return Arrays.asList(COHERENCE);
 
 	}
 
@@ -335,90 +331,7 @@ public class CoherenceView extends ControlFlowView {
             	}
             }
         }
-	    
-	    /* Certainty markers */
-        
-        ITmfStateSystem ss = fModule.getStateSystem(); // get the state system of this analysis
-        
-        if (ss == null) {
-        	return fMarkers;
-        }
-        
-        int startingNodeQuark;
-        try {
-        	startingNodeQuark = ss.getQuarkAbsolute("scenarios"); 
-        } catch (AttributeNotFoundException e) {
-        	startingNodeQuark = -1;
-        }
-	    if (startingNodeQuark == -1) {
-	    	return fMarkers;
-	    }
-	    
-	    List<Integer> fsmQuarks = ss.getQuarks(startingNodeQuark, "*"); // get every FSM quark
-	    for (Integer fsmQuark : fsmQuarks) {
-				if (!ss.getAttributeName(fsmQuark).equals("process_fsm")) { // FIXME: allow temporarily only for process_fsm
-					continue;
-				}
-	        List<Integer> quarks = ss.getQuarks(fsmQuark, "*"); // get every scenario quark
-	    	for (Integer scenarioQuark : quarks) {
-	    		int quark;
-				try {
-					quark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS); // get the certainty attribute quark
-				} catch (AttributeNotFoundException e1) {
-					quark = -1;
-				}
-				if (quark == -1) {
-			    	continue;
-			    }
-				
-	    		int attributeQuark;
-				try {
-					attributeQuark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenario.ATTRIBUTE_PATH); // get the "scenario attribute" attribute quark
-				} catch (AttributeNotFoundException e1) {
-					attributeQuark = -1;
-				}
-				if (attributeQuark == -1) {
-			    	continue;
-			    }
-		    
-			    try {
-		            long start = Math.max(startTime, ss.getStartTime());
-		            long end = Math.min(endTime, ss.getCurrentEndTime());
-		            if (start <= end) {
-		                /* Update start to ensure that the previous marker is included. */
-		                start = Math.max(start - 1, ss.getStartTime());
-		                /* Update end to ensure that the next marker is included. */
-		                long nextStartTime = ss.querySingleState(end, quark).getEndTime() + 1;
-		                end = Math.min(nextStartTime, ss.getCurrentEndTime());
-		                List<ITmfStateInterval> intervals = StateSystemUtils.queryHistoryRange(ss, quark, start, end, resolution, monitor);
-		                for (ITmfStateInterval interval : intervals) { 
-		                    if (interval.getStateValue().isNull()) {
-		                        continue;
-		                    }
-		                    
-		                    long intervalStartTime = interval.getStartTime();
-		                    long duration = interval.getEndTime() - intervalStartTime;
-		                    // Display a marker only if the certainty status is uncertain
-		                    if (interval.getStateValue().unboxStr().equals(TmfXmlScenarioHistoryBuilder.UNCERTAIN)) {
-		                    	int tid = ss.querySingleState(start, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
-		                    	if (tid == -1) {
-		                    		continue;
-		                    	}
-		                    	ControlFlowEntry threadEntry = this.findEntry(getTrace(), tid, intervalStartTime);
-		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, CERTAINTY, CERTAINTY_COLOR, null, true);
-		                        if (!fMarkers.contains(uncertainZone)) {
-		                        	fMarkers.add(uncertainZone);
-		                        }
-		                    }
-		                }
-		            }
-		        } catch (AttributeNotFoundException | StateSystemDisposedException e) {
-		            /* ignored */
-		        }
-	    	}
-	    }
-
-	    return fMarkers;
+        return fMarkers;
 	}
 	
 	/**
