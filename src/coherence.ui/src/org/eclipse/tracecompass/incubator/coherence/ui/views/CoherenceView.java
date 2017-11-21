@@ -23,6 +23,7 @@ import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
@@ -32,6 +33,9 @@ import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipH
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.views.CoherencePresentationProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
+import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
+import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
@@ -52,6 +56,8 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
+
 import com.google.common.collect.Multimap;
 import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 
@@ -67,7 +73,7 @@ public class CoherenceView extends ControlFlowView {
 	
 	public static String ID = "org.eclipse.tracecompass.incubator.coherence.ui.view"; 
 
-	private String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
+	public static String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
 	
 	// TODO: should be removed when incubator analysis xml and tmf ones are merged
 	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
@@ -82,6 +88,8 @@ public class CoherenceView extends ControlFlowView {
 	private Job fJob;
 	
 	XmlPatternStateSystemModule fModule;
+	
+	private Map<ITmfStateInterval, TmfXmlFsmTransition> transitionsMap = new HashMap<>(); // needed to set the transition of IncoherentEvent
 
 	public CoherenceView() {
 	    super();
@@ -136,6 +144,7 @@ public class CoherenceView extends ControlFlowView {
 						fMarkers.clear();
 						pEventsWithTransitions.clear();
 						pEntries.clear();
+						transitionsMap.clear();
 						return requestData(monitor);
 					} finally {
 						fJob = null;
@@ -166,6 +175,7 @@ public class CoherenceView extends ControlFlowView {
 					fMarkers.clear();
 					pEventsWithTransitions.clear();
 					pEntries.clear();
+					transitionsMap.clear();
 					return requestData(monitor);
 				} finally {
 					fJob = null;
@@ -186,6 +196,7 @@ public class CoherenceView extends ControlFlowView {
         super.traceClosed(signal);
         fEvents.clear();
         fMarkers.clear();
+        transitionsMap.clear();
     }
 	
     /**
@@ -358,6 +369,30 @@ public class CoherenceView extends ControlFlowView {
 	}
 	
 	/**
+	 * 
+	 * @param ts
+	 * @param ss
+	 * @param certaintyStatusQuark
+	 * @return
+	 * 			True by default (when the value is not in the state system), the state value otherwise
+	 */
+	private boolean isCertainState(long ts, ITmfStateSystem ss, int certaintyStatusQuark) {
+		if (certaintyStatusQuark == -1) {
+			return true;
+		}
+		else {
+			String certaintyValue;
+			try {
+				certaintyValue = ss.querySingleState(ts, certaintyStatusQuark).getStateValue().unboxStr();
+			} catch (StateSystemDisposedException e) {
+				return true;
+			}
+			
+			return certaintyValue.equals(TmfXmlScenarioHistoryBuilder.CERTAIN);
+		}
+	}
+	
+	/**
 	 * Create the list of time events for this entry
 	 * Add the incoherent events if necessary
 	 * 
@@ -374,15 +409,35 @@ public class CoherenceView extends ControlFlowView {
 			return Collections.emptyList();
 		}
 		
+		// Get the quark for the certainty status of this entry in the state system
+		ITmfStateSystem ss = fModule.getStateSystem();
+		int certaintyStatusQuark;
+		try {
+			certaintyStatusQuark = ss.getQuarkAbsolute("scenarios", "process_fsm", String.valueOf(controlFlowEntry.getThreadId()), TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS); //FIXME : more general than just process_fsm
+		} catch (AttributeNotFoundException e) {
+			certaintyStatusQuark = -1;
+		}
+		
 		// Get iterator on incoherent events
 		Set<ITmfEvent> eventSet = pEntries.get(String.valueOf(controlFlowEntry.getThreadId()));
 		if (eventSet != null) {
 			Iterator<ITmfEvent> incoherentEventsIt = eventSet.iterator(); // select events for this entry
 	        ITmfEvent incoherentEvent = null;
 	        long incoherentEventTs = 0;
+	        TmfXmlFsmTransition transition = null;
 	        if (incoherentEventsIt.hasNext()) {
 	        	incoherentEvent = incoherentEventsIt.next();
 	        	incoherentEventTs = incoherentEvent.getTimestamp().getValue();
+	        	for(Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(incoherentEvent)) {
+					if (p.getFirst().equals(String.valueOf(controlFlowEntry.getThreadId()))) {
+						transition = p.getSecond();
+						break;
+					}
+				}
+						
+				if (transition == null) {
+					Activator.logError("Problem finding the transition associated to this event.");
+				}
 	        }
 		
 			// Add incoherent state intervals to the given list of intervals
@@ -400,6 +455,7 @@ public class CoherenceView extends ControlFlowView {
 								lastInterval.getEndTime(), 
 								lastInterval.getAttribute(), 
 								IncoherentEvent.INCOHERENT_VALUE);
+						transitionsMap.put(newInterval, transition);
 						newValue.remove(lastInterval);
 					}
 					else {
@@ -408,7 +464,14 @@ public class CoherenceView extends ControlFlowView {
 								interval.getStartTime() - 1, 
 								interval.getAttribute(), 
 								IncoherentEvent.INCOHERENT_VALUE);
+						transitionsMap.put(newInterval, transition);
 					}
+				
+					if (!isCertainState(newInterval.getStartTime(), ss, certaintyStatusQuark)) {
+						// TODO select another prev state because this one is not certain
+						Activator.getDefault().logWarning("Previous event coherence is uncertain");
+					}
+					
 					newValue.add(newInterval);
 					newValue.add(interval);
 					lastInterval = interval;
@@ -416,6 +479,12 @@ public class CoherenceView extends ControlFlowView {
 	        		if (incoherentEventsIt.hasNext()) {
 	        			incoherentEvent = incoherentEventsIt.next();
 	        			incoherentEventTs = incoherentEvent.getTimestamp().getValue();
+	        			for(Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(incoherentEvent)) {
+	    					if (p.getFirst().equals(String.valueOf(controlFlowEntry.getThreadId()))) {
+	    						transition = p.getSecond();
+	    						break;
+	    					}
+	    				}
 	        		}
 	        		else {
 	        			incoherentEvent = null;
@@ -432,11 +501,18 @@ public class CoherenceView extends ControlFlowView {
 							incoherentEventTs - 1, 
 							interval.getAttribute(), 
 							IncoherentEvent.INCOHERENT_VALUE);
+					transitionsMap.put(newInterval1, transition);
 					ITmfStateInterval newInterval2 = new TmfStateInterval(
 							incoherentEventTs, 
 							interval.getEndTime(), 
 							interval.getAttribute(), 
 							interval.getValue());
+					
+					if (!isCertainState(newInterval1.getStartTime(), ss, certaintyStatusQuark)) {
+						// TODO select another prev state because this one is not certain
+						Activator.getDefault().logWarning("Previous event coherence is uncertain");
+					}
+					
 					newValue.add(newInterval1);
 					newValue.add(newInterval2);
 					lastInterval = newInterval2;
@@ -444,10 +520,17 @@ public class CoherenceView extends ControlFlowView {
 	        		if (incoherentEventsIt.hasNext()) {
 	        			incoherentEvent = incoherentEventsIt.next();
 	        			incoherentEventTs = incoherentEvent.getTimestamp().getValue();
+	        			for(Pair<String, TmfXmlFsmTransition> p : pEventsWithTransitions.get(incoherentEvent)) {
+	    					if (p.getFirst().equals(String.valueOf(controlFlowEntry.getThreadId()))) {
+	    						transition = p.getSecond();
+	    						break;
+	    					}
+	    				}
 	        		}
 	        		else {
 	        			incoherentEvent = null;
 	        			incoherentEventTs = 0;
+	        			transition = null;
 	        		}
 				}
 				// Default case
@@ -457,13 +540,70 @@ public class CoherenceView extends ControlFlowView {
 				}
 			}
 			
-			// Create the time events from the new list of intervals
-			return super.createTimeEvents(controlFlowEntry, newValue);
+			/* Create the time events from the new list of intervals
+			 * 
+			 * This is a copy of @see ControlFlowView.createTimeEvents
+			 * but with createTimeEventCustom used (which cannot be overriden because static)
+			 * It could be replaced by a simple call to the parent method once the ControlFlowView method is rewritten
+			 * to support the new mechanism of creating IncoherentEvent 
+			 */
+			List<ITimeEvent> events = new ArrayList<>(newValue.size());
+	        ITimeEvent prev = null;
+	        for (ITmfStateInterval interval : newValue) {
+	            ITimeEvent event = createTimeEventCustom(interval, controlFlowEntry);
+	            if (prev != null) {
+	                long prevEnd = prev.getTime() + prev.getDuration();
+	                if (prevEnd < event.getTime()) {
+	                    // fill in the gap.
+	                    events.add(new TimeEvent(controlFlowEntry, prevEnd, event.getTime() - prevEnd));
+	                }
+	            }
+	            prev = event;
+	            events.add(event);
+	        }
+	        return events;
 		}
 		else {
 			return super.createTimeEvents(controlFlowEntry, value);
 		}
     }
+	
+	protected TimeEvent createTimeEventCustom(ITmfStateInterval interval, ControlFlowEntry controlFlowEntry) {
+        long startTime = interval.getStartTime();
+        long duration = interval.getEndTime() - startTime + 1;
+        Object status = interval.getValue();
+        if (status instanceof Integer) {
+        	if (((int) status) == IncoherentEvent.INCOHERENT_VALUE) {
+        		// Find the transition
+        		TmfXmlFsmTransition transition = transitionsMap.get(interval);
+        		return new IncoherentEvent(controlFlowEntry, startTime, duration, transition);
+        	}
+            return new TimeEvent(controlFlowEntry, startTime, duration, (int) status);
+        }
+        return new NullTimeEvent(controlFlowEntry, startTime, duration);
+    }
+	
+	
+	private void constructEventsList() {
+		ITmfTrace trace = getTrace();
+		if (trace == null) {
+			return;
+		}
+		
+		List<TimeGraphEntry> entries = getEntryList(trace);
+		for (TimeGraphEntry entry : entries) {
+			Iterator<ITimeEvent> it = entry.getTimeEventsIterator();
+			while (it.hasNext()) {
+				ITimeEvent event = it.next();
+				if (event instanceof IncoherentEvent) {
+					
+				}
+			}
+		}
+	}
+	
+	
+	
 	
 	@Override
     public void createPartControl(Composite parent) {
