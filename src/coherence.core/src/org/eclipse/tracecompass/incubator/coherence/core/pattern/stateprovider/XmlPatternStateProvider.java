@@ -239,7 +239,12 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
         fHandler.handleEvent(event, fWithObservers);
     }
 
-    /**
+    @Override
+	public void done() {
+		fHandler.computeInferences();
+	}
+
+	/**
      * Get the listerner for segments creation
      *
      * @return The segment listener

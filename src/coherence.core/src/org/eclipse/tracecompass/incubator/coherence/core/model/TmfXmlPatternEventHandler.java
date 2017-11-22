@@ -219,4 +219,10 @@ public class TmfXmlPatternEventHandler {
     public Map<String, TmfXmlFsm> getFsmMap() {
         return fFsmMap;
     }
+    
+    public void computeInferences() {
+    	for (TmfXmlFsm fsm : fActiveFsmList) {
+    		fsm.setTransitions();
+    	}
+    }
 }

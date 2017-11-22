@@ -283,10 +283,6 @@ public class CoherenceView extends ControlFlowView {
             List<ITmfEvent> events = fsm.getProblematicEvents();
             fEvents.addAll(events);
             
-            IStatus ret = fsm.setTransitions(monitor);
-            if (ret != Status.OK_STATUS) {
-            	return ret;
-            }
             pEventsWithTransitions.putAll(fsm.getProblematicEventsWithTransitions());
         }
 
@@ -581,29 +577,7 @@ public class CoherenceView extends ControlFlowView {
             return new TimeEvent(controlFlowEntry, startTime, duration, (int) status);
         }
         return new NullTimeEvent(controlFlowEntry, startTime, duration);
-    }
-	
-	
-	private void constructEventsList() {
-		ITmfTrace trace = getTrace();
-		if (trace == null) {
-			return;
-		}
-		
-		List<TimeGraphEntry> entries = getEntryList(trace);
-		for (TimeGraphEntry entry : entries) {
-			Iterator<ITimeEvent> it = entry.getTimeEventsIterator();
-			while (it.hasNext()) {
-				ITimeEvent event = it.next();
-				if (event instanceof IncoherentEvent) {
-					
-				}
-			}
-		}
-	}
-	
-	
-	
+    }	
 	
 	@Override
     public void createPartControl(Composite parent) {

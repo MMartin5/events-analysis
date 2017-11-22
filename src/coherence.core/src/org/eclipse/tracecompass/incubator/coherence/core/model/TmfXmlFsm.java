@@ -28,6 +28,7 @@ import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEven
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.Lttng28EventLayout;
@@ -172,12 +173,9 @@ public class TmfXmlFsm {
 	 * @return 
 	 * 			The status of this operation
 	 */
-	public IStatus setTransitions(IProgressMonitor monitor) {
+	public void setTransitions() {
 		for (ITmfEvent event : fProblematicEventsMap.keySet() ) {
 			for (Pair<String, Set<TmfXmlFsmTransition>> p : fProblematicEventsMap.get(event)) {
-				if (monitor != null && monitor.isCanceled()) { // check that job has not been canceled
-					return Status.CANCEL_STATUS;
-				}
 				
 				String scenarioAttribute = p.getFirst();
 				
@@ -205,31 +203,17 @@ public class TmfXmlFsm {
 			    	}
 			    }
 			    
-			    List<TmfXmlFsmTransition> inferredTransitions = computeMissingTransitions(transition, target, 1);
-			    // FIXME remove this debug log
-			    if (!scenarioAttribute.equals("0")) {
-			    	System.out.println("# For event : " + event.toString());
-			    	for (TmfXmlFsmTransition infTransition : inferredTransitions) {
-			    		System.out.println(infTransition.toString());
-			    	}
-			    	System.out.println(transition.toString());
-			    }
-			    
 			    Pair<String, TmfXmlFsmTransition> p2 = new Pair<String, TmfXmlFsmTransition>(scenarioAttribute, transition);
 			    
-			    List<Pair<String, TmfXmlFsmTransition>> list;
-			    if (fNewProblematicEventsMap.containsKey(event)) {
-			    	list = fNewProblematicEventsMap.get(event);
-			    }
-			    else {
-			    	list = new ArrayList<>();
-			    }
+			    List<Pair<String, TmfXmlFsmTransition>> list = (fNewProblematicEventsMap.containsKey(event)) ? 
+			    		fNewProblematicEventsMap.get(event) : new ArrayList<>();
 		    	list.add(p2);
 		    	fNewProblematicEventsMap.put(event, list);
+		    	
+		    	
+		    	
 			}
 		}
-		
-		return Status.OK_STATUS;
 	}
 
     public int getTransitionCount() {
