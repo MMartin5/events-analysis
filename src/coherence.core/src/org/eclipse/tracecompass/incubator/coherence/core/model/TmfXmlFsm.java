@@ -18,9 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
@@ -28,15 +25,12 @@ import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEven
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
-import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfInferredEvent;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.Lttng28EventLayout;
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
-import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -69,22 +63,17 @@ public class TmfXmlFsm {
     protected boolean fHasIncoherence;              /* indicates if there is at least one possible transition that could have been taken */
     protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
     protected int transitionCount;					/* counter representing the number of transitions taken for the current event */
-
-	private final List<ITmfEvent> fProblematicEvents = new ArrayList<>();
     
     Map<String, Set<String>> fPrevStates;
 	Map<String, Set<String>> fNextStates;
 	Map<String, Set<TmfXmlFsmTransition>> fPrevStatesForState;
 	
-	/* associates an incoherent event to the attribute identifying the scenario where the incoherence was found and the list of possible transitions */
-	private Map<ITmfEvent, List<Pair<String, Set<TmfXmlFsmTransition>>>> fProblematicEventsMap = new HashMap<>();
-	private Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> fNewProblematicEventsMap = new HashMap<>();
-	
-	private Map<ITmfEvent, List<Pair<String, String>>> fProblematicEventsMapForTarget = new HashMap<>(); // pair(entry, previous state)
-	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	
 	private String fCoherenceAlgo;
+	
+	private List<FsmStateIncoherence> incoherences = new ArrayList<>();
+	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new HashMap<>(); // temporarily save the possible transitions for each incoherence, before processing 
 	
 	/**
 	 * Increase the counter of the given transition
@@ -100,49 +89,17 @@ public class TmfXmlFsm {
 		fTransitionsCounters.put(transition, new Long(1));
 	}
 	
-	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions, String currentState) {
-		List<Pair<String, Set<TmfXmlFsmTransition>>> list;
-		List<Pair<String, String>> list2;
-		if (fProblematicEventsMap.containsKey(event)) {	        
-	        list = fProblematicEventsMap.get(event);
-	        list2 = fProblematicEventsMapForTarget.get(event);
-		}
-		else {
-			list = new ArrayList<>();
-			list2 = new ArrayList<>();
-		}
-		
-        Set<TmfXmlFsmTransition> newSet = new HashSet<>(transitions);
-        Pair<String, Set<TmfXmlFsmTransition>> p = new Pair<String, Set<TmfXmlFsmTransition>>(scenarioAttribute, newSet);
-	    list.add(p);
-	    fProblematicEventsMap.put(event, list);
-	    
-	    Pair<String, String> p2 = new Pair<String, String>(scenarioAttribute, currentState);
-	    list2.add(p2);
-	    fProblematicEventsMapForTarget.put(event, list2);
+	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions, String currentState, ITmfEvent lastEvent) {
+	    FsmStateIncoherence incoherence = new FsmStateIncoherence(event, scenarioAttribute, lastEvent, currentState);
+	    if (!incoherences.contains(incoherence)) {
+	    	incoherences.add(incoherence);
+	    	Set<TmfXmlFsmTransition> possibleTransitions = new HashSet<>(); // copy transitions because it will be disposed by the scenario observer
+	    	possibleTransitions.addAll(transitions);
+	    	possibleTransitionsMap.put(incoherence, possibleTransitions);
+	    }
 	}
 	
-	private TmfXmlScenario getScenario(String attribute) {
-		for (TmfXmlScenario scenario : fActiveScenariosList) {
-			if (scenario.getAttribute().equals(attribute)) {
-				return scenario;
-			}
-		}
-		
-		return null;
-	}
-	
-	// FIXME delete counter when a better way to find best transition is found (ctr is to make sure that we don't get stuck in an infinite loop)
-	private List<TmfXmlFsmTransition> computeMissingTransitions(TmfXmlFsmTransition currentTransition, 
-			String target, 
-			int ctr) {
-		List<TmfXmlFsmTransition> transitions = new ArrayList<>();
-		
-		// Find possible transitions for the current event and state
-//		Set<TmfXmlFsmTransition> possibleTransitions = TmfXmlScenarioObserver.computePossibleTransitions(currentTransition.from(), this.getStatesMap());
-		Set<TmfXmlFsmTransition> possibleTransitions = fPrevStatesForState.get(currentTransition.from().getId());
-		
-		// Find best transition
+	private TmfXmlFsmTransition findBestTransition(Set<TmfXmlFsmTransition> possibleTransitions) {
 		TmfXmlFsmTransition bestTransition = null;
 		for (TmfXmlFsmTransition t : possibleTransitions) {
 	    	if ((fTransitionsCounters.containsKey(t)) && 
@@ -154,6 +111,20 @@ public class TmfXmlFsm {
 	    if (bestTransition == null) { // every possible transition has never been taken in this fsm
 	    	bestTransition = possibleTransitions.iterator().next(); // select first transition
 	    }
+	    return bestTransition;
+	}
+	
+	// FIXME delete counter when a better way to find best transition is found (ctr is to make sure that we don't get stuck in an infinite loop)
+	private List<TmfXmlFsmTransition> computeMissingTransitions(TmfXmlFsmTransition currentTransition, 
+			String target, 
+			int ctr) {
+		List<TmfXmlFsmTransition> transitions = new ArrayList<>();
+		
+		// Find possible transitions for the current event and state
+		Set<TmfXmlFsmTransition> possibleTransitions = fPrevStatesForState.get(currentTransition.from().getId());
+		
+		// Find best transition
+		TmfXmlFsmTransition bestTransition = findBestTransition(possibleTransitions);
 		
 	    // Test if we should keep on backwarding or stop
 		if (ctr > 20 || target.equals(bestTransition.from().getId())) { // stop
@@ -174,46 +145,28 @@ public class TmfXmlFsm {
 	 * 			The status of this operation
 	 */
 	public void setTransitions() {
-		for (ITmfEvent event : fProblematicEventsMap.keySet() ) {
-			for (Pair<String, Set<TmfXmlFsmTransition>> p : fProblematicEventsMap.get(event)) {
-				
-				String scenarioAttribute = p.getFirst();
-				
-				TmfXmlScenario scenario = getScenario(scenarioAttribute);
-				scenario.getScenarioInfos();
-				
-				
-				Set<TmfXmlFsmTransition> transitions = p.getSecond();
-				TmfXmlFsmTransition transition = null;
-			    for (TmfXmlFsmTransition t : transitions) {
-			    	if ((fTransitionsCounters.containsKey(t)) && 
-			    			((transition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(transition)))) {
-			    		transition = t;
-			    	}
-			    }
-			    
-			    if (transition == null) { // every possible transition has never been taken in this fsm
-			    	transition = transitions.iterator().next(); // select first transition
-			    }
-			    
-			    String target = "";
-			    for (Pair<String, String> p2: fProblematicEventsMapForTarget.get(event)) {
-			    	if (p2.getFirst() == scenarioAttribute) {
-			    		target = p2.getSecond();
-			    	}
-			    }
-			    
-			    Pair<String, TmfXmlFsmTransition> p2 = new Pair<String, TmfXmlFsmTransition>(scenarioAttribute, transition);
-			    
-			    List<Pair<String, TmfXmlFsmTransition>> list = (fNewProblematicEventsMap.containsKey(event)) ? 
-			    		fNewProblematicEventsMap.get(event) : new ArrayList<>();
-		    	list.add(p2);
-		    	fNewProblematicEventsMap.put(event, list);
-		    	
-		    	
-		    	
-			}
+		for (FsmStateIncoherence incoherence : incoherences) {
+			String targetState = incoherence.getLastCoherentStateName();
+			Set<TmfXmlFsmTransition> possibleTransitions = possibleTransitionsMap.get(incoherence);
+			// Infer transitions
+			TmfXmlFsmTransition lastTransition = findBestTransition(possibleTransitions);
+			List<TmfXmlFsmTransition> inferredTransitions = new ArrayList<>();
+	    	inferredTransitions.addAll(computeMissingTransitions(lastTransition, targetState, 1));
+			inferredTransitions.add(lastTransition);
+			incoherence.setInferredTransitions(inferredTransitions);
 		}
+	}
+	
+	public List<FsmStateIncoherence> getIncoherences() {
+		return incoherences;
+	}
+	
+	public List<ITmfEvent> getIncoherentEvents() {
+		List<ITmfEvent> incoherentEvents = new ArrayList<>();
+		for (FsmStateIncoherence incoherence : incoherences) {
+			incoherentEvents.add(incoherence.getIncoherentEvent());
+		}
+		return incoherentEvents;
 	}
 
     public int getTransitionCount() {
@@ -525,18 +478,6 @@ public class TmfXmlFsm {
     }
 
     /**
-     * Get the problematic events found while handling the events
-     * @return The list of problematic events
-     */
-    public List<ITmfEvent> getProblematicEvents() {
-        return fProblematicEvents;
-    }
-    
-    public Map<ITmfEvent, List<Pair<String, TmfXmlFsmTransition>>> getProblematicEventsWithTransitions() {
-        return fNewProblematicEventsMap;
-    }
-
-    /**
      * Select a new algorithm for the scenario observers instead of the default one
      * @param algoId
      * 			The id of the algorithm to use
@@ -685,7 +626,7 @@ public class TmfXmlFsm {
          * This applies only if we were indeed checking the coherence 
          */
         if (startChecking && (transitionCount != transitionTotal) && fHasIncoherence) {
-            fProblematicEvents.add(event);
+//            fProblematicEvents.add(event);
         }
     }
 

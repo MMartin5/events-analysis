@@ -22,8 +22,6 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlTransitionValidator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.Lttng28EventLayout;
-import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 
@@ -35,6 +33,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
  */
 public class TmfXmlScenarioObserver extends TmfXmlScenario {
 	
+	ITmfEvent lastEvent; // the last event having triggered a transition
 	Set<TmfXmlFsmTransition> currentPossibleTransitions = new HashSet<>();
 	Method checkMethod;
 	
@@ -63,6 +62,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 		} catch (SecurityException e) {
 			Activator.logError("SecurityException while trying to get the coherence algorithm", e);
 		}
+        
+        lastEvent = null;
     }
     
     /**
@@ -255,7 +256,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 				if (isCoherenceCheckingNeeded && !((boolean) checkMethod.invoke(this, event))) {
 				    fFsm.setIncoherence(); // indicates that there is at least one incoherence
 				    // Save incoherences
-				    fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fScenarioInfo.getActiveState()); // currentPossibleTransitions has been set in checkEvent
+				    fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fScenarioInfo.getActiveState(), lastEvent); // currentPossibleTransitions has been set in checkEvent
 				}
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				Activator.logError("Error while invoking the method to check event", e);
@@ -265,6 +266,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         
         // Increase transitions counter
         TmfXmlState currentState = fFsm.getStatesMap().get(fScenarioInfo.getActiveState());
+        lastEvent = event;
         TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(out, currentState, event.getName());
         fFsm.increaseTransitionCounter(fsmTransition);
         
