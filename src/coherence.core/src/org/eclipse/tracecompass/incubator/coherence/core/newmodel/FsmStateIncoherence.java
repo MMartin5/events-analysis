@@ -7,10 +7,15 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 
 public class FsmStateIncoherence {
 	
+	/* The incoherent event */
 	private final ITmfEvent fIncoherentEvent;
+	/* The attribute of the scenario on which the incoherent event was detected */
 	private final String fScenarioAttribute;
+	/* The last coherent event before the incoherent one */
 	private final ITmfEvent fPrevCoherentEvent;
+	/* The name of the state the scenario was in when the coherent event happened */
 	private final String fLastCoherentStateName;
+	/* The list of inferred transitions computed for this incoherence */
 	private List<TmfXmlFsmTransition> fInferredTransitions;
 
 	

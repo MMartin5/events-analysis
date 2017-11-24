@@ -14,6 +14,7 @@ public class TmfInferredEvent extends TmfEvent {
 	private final ITmfTimestamp fEnd;
 	/* Rank relative to the position of this event in the sequence of inferred events between last known coherent event and incoherent event */
 	private final long fLocalRank;
+	/* Transition labelled by this event */
 	private TmfXmlFsmTransition fTransition;
 	
 	public TmfInferredEvent(final ITmfTrace trace,
