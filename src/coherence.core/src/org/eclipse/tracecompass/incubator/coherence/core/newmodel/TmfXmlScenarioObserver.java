@@ -290,8 +290,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         }
         
         // Update the certainty status to certain if the transition is appropriate
-//        if (out.isCertainState()) {
-        if (triggersCertainState(event, out, layout)) {
+        if (fFsm.isCertain(event, out)) {
         	fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
         }
 

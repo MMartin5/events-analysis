@@ -31,6 +31,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenario
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
+import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -73,7 +74,9 @@ public class TmfXmlFsm {
 	private String fCoherenceAlgo;
 	
 	private List<FsmStateIncoherence> incoherences = new ArrayList<>();
-	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new HashMap<>(); // temporarily save the possible transitions for each incoherence, before processing 
+	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new HashMap<>(); // temporarily save the possible transitions for each incoherence, before processing
+	
+	private Map<Pair<String, String>, Set<String>> certaintyMap = new HashMap<>(); // map a pair of (event name, condition name) to a list of unique target state names
 	
 	/**
 	 * Increase the counter of the given transition
@@ -270,6 +273,7 @@ public class TmfXmlFsm {
         Map<String, Set<String>> prevStates = new HashMap<>();
         Map<String, Set<String>> nextStates = new HashMap<>();
         Map<String, Set<TmfXmlFsmTransition>> prevStatesForState = new HashMap<>();
+        Map<Pair<String, String>, Set<String>> certaintyInfo = new HashMap<>();
         
         // Create the maps of previous states and next states
         for (TmfXmlState state : statesMap.values()) {
@@ -303,17 +307,24 @@ public class TmfXmlFsm {
     				Set<TmfXmlFsmTransition> set = (prevStatesForState.containsKey(targetState)) ? prevStatesForState.get(targetState) : new HashSet<>();
     				set.add(fsmTransition);
     				prevStatesForState.put(targetState, set);
+    				
+    				// Add a certainty information
+    				Pair<String, String> p = new Pair<>(eventName, transition.getCondition());
+    				Set<String> targets = certaintyInfo.containsKey(p) ? certaintyInfo.get(p) : new HashSet<>();
+    				targets.add(targetState);
+    				certaintyInfo.put(p, targets);
 				}
 			}
         }
         
         return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, 
-        		abandonStateId, preconditions, statesMap, prevStates, nextStates, prevStatesForState);
+        		abandonStateId, preconditions, statesMap, prevStates, nextStates, prevStatesForState, certaintyInfo);
     }
 
     protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, IXmlStateSystemContainer container, String id, boolean consuming,
             boolean multiple, String initialState, String finalState, String abandonState, List<TmfXmlBasicTransition> preconditions,
-            Map<String, TmfXmlState> states, Map<String, Set<String>> prevStates, Map<String, Set<String>> nextStates, Map<String, Set<TmfXmlFsmTransition>> prevStatesForState) {
+            Map<String, TmfXmlState> states, Map<String, Set<String>> prevStates, Map<String, Set<String>> nextStates, 
+            Map<String, Set<TmfXmlFsmTransition>> prevStatesForState, Map<Pair<String, String>, Set<String>> certaintyInfo) {
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
         fContainer = container;
@@ -329,6 +340,7 @@ public class TmfXmlFsm {
         fPrevStates = prevStates;
         fNextStates = nextStates;
         fPrevStatesForState = prevStatesForState;
+        certaintyMap = certaintyInfo;
     }
     
     public Map<String, Set<String>> getPrevStates() {
@@ -746,5 +758,23 @@ public class TmfXmlFsm {
     public synchronized boolean isNewScenarioAllowed() {
         return fTotalScenarios > 0 && fInstanceMultipleEnabled
                 && fPendingScenario == null;
+    }
+
+    /**
+     * Determine if an event causes the state to be coherent with certainty
+     * A state A becomes certain when an event e is observed if e labels one or several transitions to A only  
+     * 
+     * @param event
+ * 				The event who labels the taken transition 
+     * @param transition
+ * 				The taken transition
+ * 
+     * @return
+     * 			The certainty value (true if certain, false if uncertain)		
+     */
+    public boolean isCertain(ITmfEvent event, TmfXmlStateTransition transition) {
+    	Pair<String, String> key = new Pair<String, String>(event.getName(), transition.getCondition());
+    	Set<String> targets = certaintyMap.get(key);
+    	return targets.size() == 1 ? true : false;
     }
 }

@@ -36,6 +36,18 @@ public class TmfXmlBasicTransition {
     public List<Pattern> getAcceptedEvents() {
 		return fAcceptedEvents;
 	}
+    
+    /**
+     * Concatenate every individual condition to form a single string
+     * @return
+     */
+    public String getCondition() {
+    	String cond = "";
+    	for (String str : fCond) {
+    		cond += str;
+    	}
+		return cond;
+	}
 
 	/**
      * Constructor
