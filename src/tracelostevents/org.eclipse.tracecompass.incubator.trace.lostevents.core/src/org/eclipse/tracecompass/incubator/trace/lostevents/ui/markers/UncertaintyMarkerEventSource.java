@@ -179,6 +179,11 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
             return null;
         }
 
+        if (module.getTrace() != this.fTrace) { // the view's trace has not been updated yet
+            return null;
+        }
+
+        module.waitForCompletion();
         return module.getStateSystem();
     }
 
