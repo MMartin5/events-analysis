@@ -217,14 +217,11 @@ public class CoherenceView extends ControlFlowView {
 	    		if (helper.appliesToTraceType(trace.getClass())) {
 	    			if (helperClass.isAssignableFrom(helper.getClass())) {
 	    				try {
-				    		IAnalysisModule module = helper.newModule(trace);
-					    	if (id.equals(module.getId())) {
+					    	if (id.equals(helper.getId())) {
+					    		IAnalysisModule module = helper.newModule(trace);
 					    		fModules.put(trace, module);
+					    		break;
 					    	}
-					    	else {
-					    		module.dispose();
-					    	}
-
 	    	            } catch (TmfAnalysisException e) {
 	    	                Activator.logWarning("Error creating analysis module", e);
 	    	            }
