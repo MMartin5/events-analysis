@@ -31,6 +31,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenario
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
+import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -612,25 +613,16 @@ public class TmfXmlFsm {
         
         // Handle only the scenarios related to this event, which are identified by the tid of the process it models
         List<String> eventAttributes = getAttributesForEvent(event, layout);
-        for (String attribute : eventAttributes) {
-        	TmfXmlScenario scenario = null;
-        	for(TmfXmlScenario s : fActiveScenariosList) {
-        		if (s.getAttribute().equals(attribute)) {
-        			scenario = s;
-        			break;
-        		}
+        for (TmfXmlScenario scenario : fActiveScenariosList) {
+        	if (event instanceof ITmfLostEvent) { // check certainty here
+            	scenario.updateCertainty(event);
         	}
-        	
-        	if (scenario != null) {
-        		// FIXME use this ?
-//	        	scenario.handleEvent(event, isEventCoherent());
-//	        	System.out.println("HANDLE SCENARIO");
+        	if (eventAttributes.contains(scenario.getAttribute())) {
+        		handleScenario(scenario, event, isCoherenceCheckingNeeded(), transitionTotal, layout);
         	}
         }
         
-        
-        
-        boolean isValidInput = handleActiveScenarios(event, testMap, transitionTotal, layout);
+        boolean isValidInput = validatePreconditions(event, testMap);
         handlePendingScenario(event, isValidInput, transitionTotal, layout);
         /* An event is incoherent if we have not found all of the expected transitions and we have found at least one possible transition
          * that could have been taken (because not founding all the transitions without another possible transition just means that

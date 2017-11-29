@@ -241,7 +241,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
         if (event instanceof ITmfLostEvent) {
         	// The entry state becomes uncertain
-        	fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
+        	updateCertainty(event);
         	
         	if (!fPatternHandler.startChecking()) {    	
 	        	// We start checking the coherence of events when we receive the first 'Lost event'
