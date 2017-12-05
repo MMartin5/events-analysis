@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,19 +21,15 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenario
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.tests.Activator;
 import org.eclipse.tracecompass.incubator.trace.lostevents.core.trace.LostEventsTrace;
-import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.model.TmfXmlScenario;
-import org.eclipse.tracecompass.lttng2.kernel.core.trace.LttngKernelTrace;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.tests.stateprovider.XmlModuleTestBase;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
-import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
 import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.tests.shared.TmfTestHelper;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
-import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEvent;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -72,7 +67,7 @@ public class CoherenceAnalysisBenchmark {
 
     private static final Set<String> fTraceSet = new HashSet<>(Arrays.asList(
     		"/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/",
-    		"/home/mmartin/Master/Traces/trace777/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/")); // FIXME
+    		"/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/")); // FIXME
     
     private static final String fXMLAnalysisFile = "testfiles/kernel_analysis_from_fsm.xml";
     
@@ -189,6 +184,5 @@ public class CoherenceAnalysisBenchmark {
             }
         }
         pm.commit();
-    }
-    
+    }    
 }
