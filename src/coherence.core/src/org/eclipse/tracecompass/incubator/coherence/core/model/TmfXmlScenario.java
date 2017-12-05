@@ -115,9 +115,8 @@ public class TmfXmlScenario {
      *            The ongoing event
      * @param isEventCoherent
      *            Value used only in TmfXmlScenarioObserver
-     * @param layout 
      */
-    public void handleEvent(ITmfEvent event, boolean isEventCoherent, int transitionTotal, IKernelAnalysisEventLayout layout) {
+    public void handleEvent(ITmfEvent event, boolean isEventCoherent, int transitionTotal) {
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) {

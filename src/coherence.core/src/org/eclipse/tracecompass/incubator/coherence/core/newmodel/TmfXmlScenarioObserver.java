@@ -201,41 +201,9 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
         return isCoherent;
     }
-    
-    private boolean triggersCertainState(ITmfEvent event, TmfXmlStateTransition transition, IKernelAnalysisEventLayout layout) {
-    	// Scheduling events trigger a coherent state for certain
-    	if (event.getName().equals(layout.eventSchedProcessExec()) ||
-			event.getName().equals(layout.eventSchedProcessExit()) ||
-			event.getName().equals(layout.eventSchedProcessFork()) ||
-			event.getName().equals(layout.eventSchedProcessFree()) ||
-			event.getName().equals(layout.eventSchedSwitch()) || 
-			event.getName().equals(layout.eventSchedProcessWakeup()) ||
-			event.getName().equals(layout.eventSchedProcessWakeupNew()) ||
-			event.getName().equals(layout.eventSchedProcessWaking())) {
-    		
-    		return true;
-    	}
-    	
-    	// State dump events
-    	if (event.getName().equals(layout.eventStatedumpProcessState()) || event.getName().equals(layout.eventStatedumpBlockDevice())) {
-    		return true;
-    	}
-    	
-    	// If we need specific events for latest layouts
-//    	if (layout instanceof LttngEventLayout) {
-//    		LttngEventLayout lttngLayout = (LttngEventLayout) layout;
-//    		 
-//        } 
-//        if (layout instanceof Lttng28EventLayout) {
-//            Lttng28EventLayout layout28 = (Lttng28EventLayout) layout;
-//
-//        }
-    	
-    	return false; // default case
-    }
 
     @Override
-    public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal, IKernelAnalysisEventLayout layout) {
+    public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal) {
     	// Clear current possible transitions set as we receive a new event
     	currentPossibleTransitions.clear();
 
@@ -254,7 +222,6 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
 			try {
 				if (isCoherenceCheckingNeeded && !((boolean) checkMethod.invoke(this, event))) {
-				    fFsm.setIncoherence(); // indicates that there is at least one incoherence
 				    // Save incoherences
 				    fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fScenarioInfo.getActiveState(), lastEvent); // currentPossibleTransitions has been set in checkEvent
 				}

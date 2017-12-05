@@ -453,16 +453,6 @@ public class TmfXmlFsm {
         return fEventConsumed;
     }
 
-
-    /**
-     * Get whether or not we need to keep on checking the coherence of the current event
-     *
-     * @return True if coherence has to be checked, false otherwise
-     */
-    public boolean isCoherenceCheckingNeeded() {
-        return fCoherenceCheckingNeeded;
-    }
-
     /**
      * Set whether the coherence needs to be checked
      *
@@ -471,23 +461,6 @@ public class TmfXmlFsm {
      */
     public void setCoherenceCheckingNeeded(boolean coherenceCheckingNeeded) {
         fCoherenceCheckingNeeded = coherenceCheckingNeeded;
-    }
-
-    /**
-     * Get whether or not the current event is coherent or not
-     * @return True if the event is coherent, false if incoherent or unknown
-     */
-    public boolean hasIncoherence() {
-        return fHasIncoherence;
-    }
-
-    /**
-     * Set the presence of incoherence to true
-     * @param value
-     *            The coherency of the event
-     */
-    public void setIncoherence() {
-    	fHasIncoherence = true;
     }
 
     /**
@@ -589,6 +562,10 @@ public class TmfXmlFsm {
     	return attributes;
     }
     
+    private int computeRequiredTransitions(ITmfEvent event, IKernelAnalysisEventLayout layout) {
+    	return event.getName().equals(layout.eventSchedSwitch()) ? 2 : 1;
+    }
+    
     /**
      * Handle the current event
      *
@@ -600,15 +577,10 @@ public class TmfXmlFsm {
     public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, boolean startChecking, 
     		IKernelAnalysisEventLayout layout) {
         setEventConsumed(false);
-        setCoherenceCheckingNeeded(false);
-        if (startChecking) {
-	        // We don't know yet if the event is coherent so we need to check the coherence and we assert it is for now
-        	fHasIncoherence = false;
-	        setCoherenceCheckingNeeded(true);
-        }
+        fCoherenceCheckingNeeded = startChecking;
         
         // Initialize the counters
-        int transitionTotal = (event.getName().equals(layout.eventSchedSwitch())) ? 2 : 1; // FIXME generalize
+        int transitionTotal = computeRequiredTransitions(event, layout);
         transitionCount = 0;
         
         // Handle only the scenarios related to this event, which are identified by the tid of the process it models
@@ -617,21 +589,13 @@ public class TmfXmlFsm {
         	if (event instanceof ITmfLostEvent) { // check certainty here
             	scenario.updateCertainty(event);
         	}
-        	if (eventAttributes.contains(scenario.getAttribute())) {
-        		handleScenario(scenario, event, isCoherenceCheckingNeeded(), transitionTotal, layout);
+        	if (!scenario.getAttribute().equals("0") && eventAttributes.contains(scenario.getAttribute())) {
+        		handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
         	}
         }
         
         boolean isValidInput = validatePreconditions(event, testMap);
-        handlePendingScenario(event, isValidInput, transitionTotal, layout);
-        /* An event is incoherent if we have not found all of the expected transitions and we have found at least one possible transition
-         * that could have been taken (because not founding all the transitions without another possible transition just means that
-         * no transition existed for this event in this FSM) 
-         * This applies only if we were indeed checking the coherence 
-         */
-        if (startChecking && (transitionCount != transitionTotal) && fHasIncoherence) {
-//            fProblematicEvents.add(event);
-        }
+        handlePendingScenario(event, isValidInput, transitionTotal);
     }
 
     /**
@@ -644,7 +608,8 @@ public class TmfXmlFsm {
      * @param layout 
      * @return True if the ongoing event validates the preconditions, false otherwise
      */
-    protected boolean handleActiveScenarios(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, int transitionTotal, IKernelAnalysisEventLayout layout) {
+    @Deprecated
+    protected boolean handleActiveScenarios(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, int transitionTotal) {
         if (!validatePreconditions(event, testMap)) {
             return false;
         }
@@ -656,7 +621,7 @@ public class TmfXmlFsm {
             if (!scenario.isActive()) {
                 currentItr.remove();
             } else {
-            	handleScenario(scenario, event, isCoherenceCheckingNeeded(), transitionTotal, layout);
+            	handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
                 if (fConsuming && isEventConsumed()) {
                     return true;
                 }
@@ -675,14 +640,14 @@ public class TmfXmlFsm {
      *            Either the ongoing event validated the preconditions or not
      * @param layout 
      */
-    private void handlePendingScenario(ITmfEvent event, boolean isInputValid, int transitionTotal, IKernelAnalysisEventLayout layout) {
+    private void handlePendingScenario(ITmfEvent event, boolean isInputValid, int transitionTotal) {
         if (fConsuming && isEventConsumed()) {
             return;
         }
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
-            handleScenario(scenario, event, fHasIncoherence, transitionTotal, layout); // TODO: check this isEventCoherent() parameter...
+            handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal); // TODO: check this isEventCoherent() parameter...
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
                 fPendingScenario = null;
@@ -701,9 +666,9 @@ public class TmfXmlFsm {
         }
     }
 
-    protected static void handleScenario(TmfXmlScenario scenario, ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal, IKernelAnalysisEventLayout layout) {
+    protected static void handleScenario(TmfXmlScenario scenario, ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal) {
         if (scenario.isActive() || scenario.isPending()) {
-        	scenario.handleEvent(event, isCoherenceCheckingNeeded, transitionTotal, layout);
+        	scenario.handleEvent(event, isCoherenceCheckingNeeded, transitionTotal);
         }
     }
 
