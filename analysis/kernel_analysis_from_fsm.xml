@@ -398,6 +398,22 @@
 		</stateChange>
 	    </action>
 
+	    <action id="init_irq">
+		<stateChange>
+		    <stateAttribute type="constant" value="#CurrentScenario" />
+		    <stateAttribute type="constant" value="attribute" />
+		    <stateValue type="eventField" value="irq" forcedType="int" />
+		</stateChange>
+	    </action>
+
+	    <action id="init_softirq">
+		<stateChange>
+		    <stateAttribute type="constant" value="#CurrentScenario" />
+		    <stateAttribute type="constant" value="attribute" />
+		    <stateValue type="eventField" value="cpu" forcedType="int" /> <!-- use the cpu id -->
+		</stateChange>
+	    </action>
+
             <!-- Conditions on thread id -->
 
             <test id="next_tid_is_current_scenario_thread">
@@ -884,7 +900,7 @@
 
             <fsm id="irq_fsm" initial="no_irq">
                 <state id="no_irq">
-                    <transition event="irq_handler_entry" target="irq" action="update_irq" />
+                    <transition event="irq_handler_entry" target="irq" action="update_irq:init_irq" />
                 </state>
                 <state id="irq">
                     <transition event="irq_handler_exit" target="no_irq" action="update_no_irq" />
@@ -893,8 +909,8 @@
 
             <fsm id="softirq_fsm" initial="no_softirq">
                 <state id="no_softirq">
-                    <transition event="softirq_entry" target="softirq" action="update_softirq" />
-                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised" />
+                    <transition event="softirq_entry" target="softirq" action="update_softirq:init_softirq" />
+                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" />
                 </state>
                 <state id="softirq">
                     <transition event="softirq_exit" target="no_softirq" action="update_no_softirq" />

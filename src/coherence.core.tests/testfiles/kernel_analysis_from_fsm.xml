@@ -398,6 +398,22 @@
 		</stateChange>
 	    </action>
 
+	    <action id="init_irq">
+		<stateChange>
+		    <stateAttribute type="constant" value="#CurrentScenario" />
+		    <stateAttribute type="constant" value="attribute" />
+		    <stateValue type="eventField" value="irq" forcedType="int" />
+		</stateChange>
+	    </action>
+
+	    <action id="init_softirq">
+		<stateChange>
+		    <stateAttribute type="constant" value="#CurrentScenario" />
+		    <stateAttribute type="constant" value="attribute" />
+		    <stateValue type="eventField" value="cpu" forcedType="int" /> <!-- use the cpu id -->
+		</stateChange>
+	    </action>
+
             <!-- Conditions on thread id -->
 
             <test id="next_tid_is_current_scenario_thread">
@@ -755,8 +771,8 @@
                     <!-- WARNING: transitions order is important -->
                         <!-- lttng_statedump_process_state transitions to wait_blocked -->
                     <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_exec_name_null:thread_ppid_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name" cond="initial_test:status_5:thread_status_null:thread_exec_name_null" />
-                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_ppid_null" />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_exec_name" cond="initial_test:status_5:thread_status_null:thread_exec_name_null"  />
+                    <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked:set_thread_ppid" cond="initial_test:status_5:thread_status_null:thread_ppid_null"  />
                     <transition event="lttng_statedump_process_state" target="wait_blocked" action="init_scenario:update_process_to_wait_blocked" cond="initial_test:status_5:thread_status_null" />
                         <!-- lttng_statedump_process_state transitions to wait_cpu -->
                     <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_exec_name:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_exec_name_null:thread_ppid_null" />
@@ -764,7 +780,7 @@
                     <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_thread_ppid" cond="initial_test:status_2:thread_status_null:thread_ppid_null" />
                     <transition event="lttng_statedump_process_state" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:status_2:thread_status_null" />
                         <!-- lttng_statedump_process_state transitions to unknown -->
-                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" cond="initial_test"/>
+                    <transition event="lttng_statedump_process_state" target="unknown" action="init_scenario:update_process_to_unknown" cond="initial_test" />
 
                     <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call:set_child_thread_system_call_sys_clone" cond="initial_test:child_thread_system_call_null" />
                     <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="initial_test" />
@@ -856,11 +872,11 @@
                     <transition event="sched_wakeup*" target="wait_cpu" action="update_process_to_wait_cpu" cond="tid_is_current_scenario_thread:test_for_sched_wakeup" />
 
                     <transition event="softirq_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
-                    <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null"/>
-                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null"/>
-                    <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null"/>
+                    <transition event="softirq_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" />
+                    <transition event="irq_handler_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
+                    <transition event="irq_handler_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" />
                     <transition event="x86_irq_vectors_*_exit" target="usermode" action="update_process_to_usermode" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_null" />
-                    <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null"/>
+                    <transition event="x86_irq_vectors_*_exit" target="syscall" action="update_process_to_syscall" cond="cpu_current_thread_is_current_scenario_thread:current_thread_system_call_not_null" />
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
@@ -884,7 +900,7 @@
 
             <fsm id="irq_fsm" initial="no_irq">
                 <state id="no_irq">
-                    <transition event="irq_handler_entry" target="irq" action="update_irq" />
+                    <transition event="irq_handler_entry" target="irq" action="update_irq:init_irq" />
                 </state>
                 <state id="irq">
                     <transition event="irq_handler_exit" target="no_irq" action="update_no_irq" />
@@ -893,8 +909,8 @@
 
             <fsm id="softirq_fsm" initial="no_softirq">
                 <state id="no_softirq">
-                    <transition event="softirq_entry" target="softirq" action="update_softirq" />
-                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised" />
+                    <transition event="softirq_entry" target="softirq" action="update_softirq:init_softirq" />
+                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" />
                 </state>
                 <state id="softirq">
                     <transition event="softirq_exit" target="no_softirq" action="update_no_softirq" />
