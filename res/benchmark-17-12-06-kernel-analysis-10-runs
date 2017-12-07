@@ -1,0 +1,28 @@
+Scenario 'org.eclipse.tracecompass#Kernel XML Benchmark#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Java analysis' (average over 10 samples):
+  System Time:            5.61s         (95% in [4.84s, 6.37s])        Measurable effect: 1.36s (1.3 SDs) (required sample size for an effect of 5% of mean: 235)
+  Used Java Heap:        41.12M         (95% in [-9.57M, 91.81M])      Measurable effect: 89.63M (1.3 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:           17.41M         (95% in [-1.47M, 36.28M])      Measurable effect: 33.38M (1.3 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        5.61s         (95% in [4.84s, 6.37s])        Measurable effect: 1.36s (1.3 SDs) (required sample size for an effect of 5% of mean: 235)
+  Kernel time:             444ms        (95% in [381ms, 506ms])        Measurable effect: 110ms (1.3 SDs) (required sample size for an effect of 5% of mean: 250)
+  CPU Time:              16.72s         (95% in [13.64s, 19.8s])       Measurable effect: 5.45s (1.3 SDs) (required sample size for an effect of 5% of mean: 425)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:       6.25K         (95% in [374, 12.12K])         Measurable effect: 10.39K (1.3 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:          19.42M         (95% in [4.77M, 34.07M])       Measurable effect: 25.91M (1.3 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+Scenario 'org.eclipse.tracecompass#Kernel XML Benchmark#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using XML analysis' (average over 10 samples):
+  System Time:           13.16m         (95% in [13.05m, 13.26m])      Measurable effect: 11.29s (1.3 SDs)
+  Used Java Heap:       109.23M         (95% in [28.84M, 189.61M])     Measurable effect: 142.14M (1.3 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:            5.57M         (95% in [-17.42M, 28.57M])     Measurable effect: 40.66M (1.3 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:       13.16m         (95% in [13.05m, 13.26m])      Measurable effect: 11.29s (1.3 SDs)
+  Kernel time:            2.34s         (95% in [2.22s, 2.47s])        Measurable effect: 223ms (1.3 SDs) (required sample size for an effect of 5% of mean: 37)
+  CPU Time:              13.37m         (95% in [13.24m, 13.5m])       Measurable effect: 14.08s (1.3 SDs)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:      16.92K         (95% in [9.64K, 24.19K])       Measurable effect: 12.86K (1.3 SDs) (required sample size for an effect of 5% of mean: 2313)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:          18.98M         (95% in [-9.02M, 46.97M])      Measurable effect: 49.5M (1.3 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+no new datapoints in DB
+disconnecting from DB
