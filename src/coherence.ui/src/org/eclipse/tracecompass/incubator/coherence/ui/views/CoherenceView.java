@@ -39,7 +39,6 @@ import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundExc
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
-import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
@@ -68,10 +67,7 @@ public class CoherenceView extends ControlFlowView {
 	public static String ID = "org.eclipse.tracecompass.incubator.coherence.ui.view"; 
 
 	public static String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
-	
-	// TODO: should be removed when incubator analysis xml and tmf ones are merged
-	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
-	
+		
 	private CoherenceTooltipHandler fCoherenceToolTipHandler;
 	private List<FsmStateIncoherence> fIncoherences = new ArrayList<>();
 	
@@ -114,9 +110,7 @@ public class CoherenceView extends ControlFlowView {
 			fJob.cancel();
 			fJob = null;
 		}
-	    for (IAnalysisModule module : fModules.values()) {
-	    	((XmlPatternAnalysis) module).dispose(); // this will dispose the sub-analyses
-		}
+		fModule.dispose();
 	    super.dispose();
 	}
 
@@ -297,28 +291,6 @@ public class CoherenceView extends ControlFlowView {
 	}
 	
 	/**
-	 * Create a "sub" time event, to complete the interval state in case of a time event ending in the middle of the interval range
-	 * @param interval
-	 * @param controlFlowEntry
-	 * @param start
-	 * @param duration
-	 * @return
-	 * 			The newly created time event
-	 */
-	private ITimeEvent createSubEvent(ITmfStateInterval interval, ControlFlowEntry controlFlowEntry, long start, long duration) {
-		Object status = interval.getValue();
-        if (status instanceof Integer) {
-        	int statusValue = (int) status;
-        	TimeEvent subEvent = new TimeEvent(controlFlowEntry, start, duration, statusValue);
-        	return subEvent;
-        }
-        else {
-        	NullTimeEvent subEvent = new NullTimeEvent(controlFlowEntry, start, duration);
-        	return subEvent;
-        }  
-	}
-	
-	/**
 	 * 
 	 * @param ts
 	 * @param ss
@@ -360,6 +332,9 @@ public class CoherenceView extends ControlFlowView {
 		}
 		
 		// Get the quark for the certainty status of this entry in the state system
+		if (fModule == null) {
+			return Collections.emptyList();
+		}
 		ITmfStateSystem ss = fModule.getStateSystem();
 		int certaintyStatusQuark;
 		try {

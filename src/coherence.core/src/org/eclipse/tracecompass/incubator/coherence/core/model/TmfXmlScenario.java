@@ -179,7 +179,7 @@ public class TmfXmlScenario {
 		try {
 			attributeQuark = ss.getQuarkRelative(startingNodeQuark, subPath);
 		} catch (AttributeNotFoundException e) {
-			System.out.println("Attribute not found.");
+			Activator.logWarning("Attribute not found.", e);
 			return value;
 		}
     	ITmfStateValue sValue = ss.queryOngoingState(attributeQuark);
