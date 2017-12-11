@@ -40,15 +40,13 @@ import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedE
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
-import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
-import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
@@ -56,8 +54,6 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
-import com.google.common.collect.Multimap;
-import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 
 
 public class CoherenceView extends ControlFlowView {
@@ -197,41 +193,6 @@ public class CoherenceView extends ControlFlowView {
         transitionsMap.clear();
     }
 	
-    /**
-     * Get the analysis module required for this view, or create it if it does not exist yet
-     * 
-     * Note: we need this method because TmfTrace.getAnalysisModulesOfClass(..) calls the method
-     * TmfAnalysisManager.getAnalysisModules which returns a map from the multimap of all modules
-     * and we have two analysis with the same id, one from tmf.analysis.xml.core, the other from
-     * incubator.analysis.core
-     * 
-     * @param trace
-     * @param helperClass
-     * @param id
-     * @return
-     */
-    public IAnalysisModule findModule(ITmfTrace trace, Class<? extends IAnalysisModuleHelper> helperClass, String id) {
-    	if (!fModules.containsKey(trace)) {
-	    	Multimap<String, IAnalysisModuleHelper> helpers = TmfAnalysisManager.getAnalysisModules();
-	    	for (IAnalysisModuleHelper helper : helpers.values()) {
-	    		if (helper.appliesToTraceType(trace.getClass())) {
-	    			if (helperClass.isAssignableFrom(helper.getClass())) {
-	    				try {
-					    	if (id.equals(helper.getId())) {
-					    		IAnalysisModule module = helper.newModule(trace);
-					    		fModules.put(trace, module);
-					    		break;
-					    	}
-	    	            } catch (TmfAnalysisException e) {
-	    	                Activator.logWarning("Error creating analysis module", e);
-	    	            }
-	    			}
-		    	}
-			}
-    	}
-    	return fModules.get(trace);
-    }
-
 	/**
 	 * Run the XML analysis and collect the state machines from the analysis
 	 * @return 
@@ -243,7 +204,7 @@ public class CoherenceView extends ControlFlowView {
     		return Status.CANCEL_STATUS;
     	}
 	    
-		IAnalysisModule moduleParent = findModule(trace, TmfAnalysisModuleHelperXml.class, FSM_ANALYSIS_ID);
+		XmlPatternAnalysis moduleParent = TmfTraceUtils.getAnalysisModuleOfClass(trace, XmlPatternAnalysis.class, FSM_ANALYSIS_ID);
 		if (moduleParent == null || monitor.isCanceled()) {
 			return Status.CANCEL_STATUS;
 		}
@@ -252,7 +213,7 @@ public class CoherenceView extends ControlFlowView {
 	    moduleParent.waitForCompletion(monitor);
 	    
 
-	    fModule = ((XmlPatternAnalysis) moduleParent).getStateSystemModule();
+	    fModule = moduleParent.getStateSystemModule();
 
         XmlPatternStateProvider provider = fModule.getStateProvider();
         if (provider == null || monitor.isCanceled()) {
