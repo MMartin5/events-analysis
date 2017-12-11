@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +49,7 @@ import com.google.common.collect.ImmutableMap;
 public class TmfXmlFsm {
 
     protected final Map<String, TmfXmlState> fStatesMap;
-    protected final List<TmfXmlScenario> fActiveScenariosList;
+    protected final Map<String, TmfXmlScenario> fActiveScenariosList;
     protected final List<TmfXmlBasicTransition> fPreconditions;
     protected final String fId;
     protected final ITmfXmlModelFactory fModelFactory;
@@ -337,7 +338,7 @@ public class TmfXmlFsm {
         fAbandonStateId = abandonState;
         fPreconditions = ImmutableList.copyOf(preconditions);
         fStatesMap = ImmutableMap.copyOf(states);
-        fActiveScenariosList = new ArrayList<>();
+        fActiveScenariosList = new LinkedHashMap<>();
         fPrevStates = prevStates;
         fNextStates = nextStates;
         fPrevStatesForState = prevStatesForState;
@@ -402,7 +403,7 @@ public class TmfXmlFsm {
      * Get the active scenarios of this fsm
      * @return The list of the active scenarios
      */
-    public List<TmfXmlScenario> getActiveScenariosList() {
+    public Map<String, TmfXmlScenario> getActiveScenariosList() {
         return fActiveScenariosList;
     }
 
@@ -585,50 +586,22 @@ public class TmfXmlFsm {
         
         // Handle only the scenarios related to this event, which are identified by the tid of the process it models
         List<String> eventAttributes = getAttributesForEvent(event, layout);
-        for (TmfXmlScenario scenario : fActiveScenariosList) {
-        	if (event instanceof ITmfLostEvent) { // check certainty here
-            	scenario.updateCertainty(event);
+        if (event instanceof ITmfLostEvent) { // check certainty here
+        	for (TmfXmlScenario scenario : fActiveScenariosList.values()) {
+        		scenario.updateCertainty(event);
         	}
-        	if (!scenario.getAttribute().equals("0") && eventAttributes.contains(scenario.getAttribute())) {
-        		handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
-        	}
+        }
+        else {
+	        for (String attr : eventAttributes) {
+	        	TmfXmlScenario scenario = fActiveScenariosList.get(attr);
+	        	if (scenario != null) {
+	        		handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
+	        	}
+	        }
         }
         
         boolean isValidInput = validatePreconditions(event, testMap);
         handlePendingScenario(event, isValidInput, transitionTotal);
-    }
-
-    /**
-     * Process the active scenario with the ongoing event
-     *
-     * @param event
-     *            The ongoing event
-     * @param testMap
-     *            The map of transition
-     * @param layout 
-     * @return True if the ongoing event validates the preconditions, false otherwise
-     */
-    @Deprecated
-    protected boolean handleActiveScenarios(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, int transitionTotal) {
-        if (!validatePreconditions(event, testMap)) {
-            return false;
-        }
-
-        // The event is valid, we can handle the active scenario
-        for (Iterator<TmfXmlScenario> currentItr = fActiveScenariosList.iterator(); currentItr.hasNext();) {
-            TmfXmlScenario scenario = currentItr.next();
-            // Remove inactive scenarios or handle the active ones.
-            if (!scenario.isActive()) {
-                currentItr.remove();
-            } else {
-            	handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
-                if (fConsuming && isEventConsumed()) {
-                    return true;
-                }
-            }
-        }
-        // The event is valid but hasn't been consumed. We return true.
-        return true;
     }
 
     /**
@@ -659,7 +632,7 @@ public class TmfXmlFsm {
      * Abandon all ongoing scenarios
      */
     public void dispose() {
-        for (TmfXmlScenario scenario : fActiveScenariosList) {
+        for (TmfXmlScenario scenario : fActiveScenariosList.values()) {
             if (scenario.isActive()) {
                 scenario.cancel();
             }
@@ -702,7 +675,7 @@ public class TmfXmlFsm {
      *            The scenario
      */
     private void addActiveScenario(TmfXmlScenario scenario) {
-        fActiveScenariosList.add(scenario);
+        fActiveScenariosList.put(scenario.getAttribute(), scenario);
     }
 
     /**
@@ -732,6 +705,6 @@ public class TmfXmlFsm {
     public boolean isCertain(ITmfEvent event, TmfXmlStateTransition transition) {
     	Pair<String, String> key = new Pair<String, String>(event.getName(), transition.getCondition());
     	Set<String> targets = certaintyMap.get(key);
-    	return targets.size() == 1 ? true : false;
+    	return targets != null && targets.size() == 1 ? true : false;
     }
 }
