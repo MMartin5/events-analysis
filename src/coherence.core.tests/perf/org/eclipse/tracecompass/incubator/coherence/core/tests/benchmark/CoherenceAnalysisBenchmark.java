@@ -67,7 +67,9 @@ public class CoherenceAnalysisBenchmark {
 
     private static final Set<String> fTraceSet = new HashSet<>(Arrays.asList(
     		"/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/",
-    		"/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/")); // FIXME
+    		"/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/",
+    		"/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/",
+    		"/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/")); // FIXME
     
     private static final String fXMLAnalysisFile = "testfiles/kernel_analysis_from_fsm.xml";
     
