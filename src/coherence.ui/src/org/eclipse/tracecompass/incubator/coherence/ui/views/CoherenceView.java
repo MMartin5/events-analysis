@@ -29,17 +29,22 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTrans
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
+import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
+import org.eclipse.tracecompass.incubator.coherence.ui.Activator;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipHandler;
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.views.CoherencePresentationProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
-import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
+import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
+import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
+import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
@@ -53,6 +58,8 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
+
+import com.google.common.collect.Multimap;
 
 
 public class CoherenceView extends ControlFlowView {
@@ -77,7 +84,9 @@ public class CoherenceView extends ControlFlowView {
 	
 	private Job fJob;
 	
-	XmlPatternStateSystemModule fModule;
+	// TODO: should be removed when incubator analysis xml and tmf ones are merged
+	Map<ITmfTrace, IAnalysisModule> fModules = new HashMap<>(); // pair of (trace, incubator analysis xml module)
+	XmlPatternStateSystemModule fModule = null;
 	
 	private Map<ITmfStateInterval, TmfXmlFsmTransition> transitionsMap = new HashMap<>(); // needed to set the transition of IncoherentEvent
 
@@ -110,7 +119,12 @@ public class CoherenceView extends ControlFlowView {
 			fJob.cancel();
 			fJob = null;
 		}
-		fModule.dispose();
+		if (fModule != null) {
+			fModule.dispose();
+		}
+		for (IAnalysisModule module : fModules.values()) {
+			((XmlPatternAnalysis) module).dispose(); // this will dispose the sub-analyses
+		}
 	    super.dispose();
 	}
 
@@ -199,7 +213,34 @@ public class CoherenceView extends ControlFlowView {
     	}
 	    
 		XmlPatternAnalysis moduleParent = TmfTraceUtils.getAnalysisModuleOfClass(trace, XmlPatternAnalysis.class, FSM_ANALYSIS_ID);
-		if (moduleParent == null || monitor.isCanceled()) {
+		if (moduleParent == null) {
+			if( monitor.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
+			moduleParent = (XmlPatternAnalysis) fModules.get(trace);
+			if (moduleParent == null) {
+				Multimap<String, IAnalysisModuleHelper> helpers = TmfAnalysisManager.getAnalysisModules();
+					for (IAnalysisModuleHelper helper : helpers.values()) {
+						if (helper.appliesToTraceType(trace.getClass())) {
+							if (TmfAnalysisModuleHelperXml.class.isAssignableFrom(helper.getClass())) {
+								try {
+									if (FSM_ANALYSIS_ID.equals(helper.getId())) {
+										IAnalysisModule module = helper.newModule(trace);
+										fModules.put(trace, module);
+										moduleParent = (XmlPatternAnalysis) module;
+										break;
+									}
+								} catch (TmfAnalysisException e) {
+									Activator.logWarning("Error creating analysis module", e);
+								}
+							}
+						}
+					}
+			}
+
+		}
+		
+		if (moduleParent == null) {
 			return Status.CANCEL_STATUS;
 		}
 
@@ -207,6 +248,9 @@ public class CoherenceView extends ControlFlowView {
 	    moduleParent.waitForCompletion(monitor);
 	    
 
+	    if (fModule != null) {
+	    	fModule.dispose();
+	    }
 	    fModule = moduleParent.getStateSystemModule();
 
         XmlPatternStateProvider provider = fModule.getStateProvider();
@@ -327,7 +371,8 @@ public class CoherenceView extends ControlFlowView {
 				fJob.join(); // wait for the end of requestData
 			}
 		} catch (InterruptedException e) {
-			Activator.getDefault().logError("The job was interrupted", e);
+			Activator.getDefault();
+			Activator.logError("The job was interrupted", e);
 			return Collections.emptyList();
 		}
 		
@@ -373,7 +418,7 @@ public class CoherenceView extends ControlFlowView {
 				
 					if (!isCertainState(newInterval.getStartTime(), ss, certaintyStatusQuark)) {
 						// TODO select another prev state because this one is not certain
-						Activator.getDefault().logWarning("Previous event coherence is uncertain");
+						Activator.logWarning("Previous event coherence is uncertain");
 					}
 					
 					newValue.add(newInterval);
@@ -406,8 +451,9 @@ public class CoherenceView extends ControlFlowView {
 							interval.getValue());
 					
 					if (!isCertainState(newInterval1.getStartTime(), ss, certaintyStatusQuark)) {
+						Activator.getDefault();
 						// TODO select another prev state because this one is not certain
-						Activator.getDefault().logWarning("Previous event coherence is uncertain");
+						Activator.logWarning("Previous event coherence is uncertain");
 					}
 					
 					newValue.add(newInterval1);

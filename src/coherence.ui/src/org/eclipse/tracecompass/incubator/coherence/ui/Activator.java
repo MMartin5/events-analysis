@@ -1,5 +1,7 @@
 package org.eclipse.tracecompass.incubator.coherence.ui;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -46,5 +48,61 @@ public class Activator extends AbstractUIPlugin {
 	public static Activator getDefault() {
 		return plugin;
 	}
+	
+	// ------------------------------------------------------------------------
+    // Log WARNING
+    // ------------------------------------------------------------------------
+
+    /**
+     * Logs a message and exception with severity WARNING in the runtime log of
+     * the plug-in.
+     *
+     * @param message
+     *            A message to log
+     */
+    public static void logWarning(String message) {
+        plugin.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
+    }
+
+    /**
+     * Logs a message and exception with severity WARNING in the runtime log of
+     * the plug-in.
+     *
+     * @param message
+     *            A message to log
+     * @param exception
+     *            The corresponding exception
+     */
+    public static void logWarning(String message, Throwable exception) {
+        plugin.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message, exception));
+    }
+
+    // ------------------------------------------------------------------------
+    // Log ERROR
+    // ------------------------------------------------------------------------
+
+    /**
+     * Logs a message and exception with severity ERROR in the runtime log of
+     * the plug-in.
+     *
+     * @param message
+     *            A message to log
+     */
+    public static void logError(String message) {
+        plugin.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message));
+    }
+
+    /**
+     * Logs a message and exception with severity ERROR in the runtime log of
+     * the plug-in.
+     *
+     * @param message
+     *            A message to log
+     * @param exception
+     *            The corresponding exception
+     */
+    public static void logError(String message, Throwable exception) {
+        plugin.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message, exception));
+    }
 
 }

@@ -26,7 +26,7 @@ public class TmfXmlFsmTransition {
 	public boolean equals(Object obj) {
 		if (obj instanceof TmfXmlFsmTransition) {
 			TmfXmlFsmTransition other = (TmfXmlFsmTransition) obj;
-			if ((other.toString().equals(this.toString())) && (other.fEvent.equals(this.fEvent))) {
+			if ((other.fTransitionTo == this.fTransitionTo) && (other.fFromState == this.fFromState) && (Objects.equals(other.fEvent, this.fEvent))) {
 				return true;
 			}
 		}
