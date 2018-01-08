@@ -115,45 +115,54 @@ public class TmfXmlFsm {
 	    return bestTransition;
 	}
 	
-	private List<TmfXmlFsmTransition> computeMissingTransitions(TmfXmlFsmTransition currentTransition, 
-			String target) {
-		Float INFINITY = Float.POSITIVE_INFINITY;
+	/**
+	 * Compute the shortest path from the most recent known state (starting node)
+	 * to the last known current state (target node), using Dijkstra's algorithm
+	 * @param start
+	 * 			The starting state
+	 * @param target
+	 * 			The targeted state
+	 * @return
+	 * 			The list of inferred transitions, which is the list of each edge on the shortest path
+	 */
+	private List<TmfXmlFsmTransition> computeMissingTransitions(String start, String target) {
+		Float INFINITY = Float.POSITIVE_INFINITY; // biggest possible distance
 		TmfXmlFsmTransition UNDEFINED = new TmfXmlFsmTransition(null, null, null);
-		String current = currentTransition.from().getId(); // current node
-		Set<String> unvisited = new HashSet<>(); // set of unvisited nodes
-		Map<String, Float> distances = new HashMap<>(); // (state, tentative distance)
-		Map<String, TmfXmlFsmTransition> prev = new HashMap<>(); // (node, previous optimal node with transition)
+		/* Initialization */
+		String current = start;							 			// current node
+		Set<String> unvisited = new HashSet<>(); 					// set of unvisited nodes
+		Map<String, Float> distances = new HashMap<>(); 			// associates a node (state) to its tentative distance to the start
+		Map<String, TmfXmlFsmTransition> prev = new HashMap<>(); 	// associates a node to the previous optimal node (with the related transition)
 		for (TmfXmlState state : fStatesMap.values()) {
-			distances.put(state.getId(), INFINITY); // set to infinity
+			distances.put(state.getId(), INFINITY); // set to infinity because the distance is unknown
 			unvisited.add(state.getId());
 			prev.put(state.getId(), UNDEFINED);
 		}
-		distances.put(current, 0f);
+		distances.put(current, 0f); // the current node is the start ; distance to itself is 0
 		
-		while (unvisited.contains(target) /*&& distances.get(current) != INFINITY*/) {
+		while (unvisited.contains(target)) {
 			float currentDist = distances.get(current);
 			Set<TmfXmlFsmTransition> neighbors = fPrevStatesForState.get(current);
-			 // Check the neighbors of the current node
+			 /* Check the neighbors of the current node */
 			for (TmfXmlFsmTransition neighborTransition : neighbors) {
 				String neighbor = neighborTransition.from().getId();
-				/* Evaluate path to target
+				/* Evaluate path to target using the statistics on transitions from the reading of the trace
+				 * 
 				 * 'INFINITY - 1' means there is a path, but which has never been taken before 
 				 * so it's only slightly better than no path at all
 				 */
-//				long newDist = fTransitionsCounters.containsKey(neighborTransition) ? 
-//						currentDist + fTransitionsCounters.get(neighborTransition) : INFINITY - 1;
 				long weight = fTransitionsCounters.containsKey(neighborTransition) ? fTransitionsCounters.get(neighborTransition) : 1;
-				float newDist = currentDist + (1f / (float) weight);
+				float newDist = currentDist + (1f / (float) weight); 
 				if (distances.get(neighbor) > newDist) {	// this is a shorter path to target
 					distances.put(neighbor, newDist);
 					prev.put(neighbor, neighborTransition);
 				}
 			}
 			
-			// Current node has been visited
+			/* Remove current node from the list of unvisited nodes */
 			unvisited.remove(current);
-									
-			// TODO: surely it can be improved
+			/* Look for the next node, which is the unvisited node with minimum distance to start 
+				TODO: surely this portion of code can be improved (maybe keep the list ordered) */
 			if (!unvisited.isEmpty()) {
 				current = unvisited.iterator().next();
 				for (String remainingNode : unvisited) {
@@ -162,11 +171,15 @@ public class TmfXmlFsm {
 					}
 				}
 			}
-		}
+		}		
+		/* The target node has been reached */
 		
+		/* Compute the path, given the results obtained at previous steps,
+		 * by following the nodes in the 'prev' map from target to start
+		 */
 		Stack<TmfXmlFsmTransition> transitions = new Stack<>();
 		String node = target;
-		while (!prev.get(node).equals(UNDEFINED)) {
+		while (!prev.get(node).equals(UNDEFINED)) { // we should reach an UNDEFINED value when reaching the starting node
 			TmfXmlFsmTransition transition = prev.get(node);
 			transitions.push(transition);
 			node = transition.to().getTarget();
@@ -187,7 +200,7 @@ public class TmfXmlFsm {
 			// Infer transitions
 			TmfXmlFsmTransition lastTransition = findBestTransition(possibleTransitions);
 			List<TmfXmlFsmTransition> inferredTransitions = new ArrayList<>();
-	    	inferredTransitions.addAll(computeMissingTransitions(lastTransition, targetState));
+	    	inferredTransitions.addAll(computeMissingTransitions(lastTransition.from().getId(), targetState));
 			inferredTransitions.add(lastTransition);
 			incoherence.setInferredTransitions(inferredTransitions);
 		}
