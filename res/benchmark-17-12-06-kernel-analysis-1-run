@@ -1,28 +1,32 @@
+kernel: 4.13.16-100.fc25.x86_64 or <
+
+#############################################
+
 Scenario 'org.eclipse.tracecompass#Kernel XML Benchmark#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Java analysis' (average over 1 samples):
-  System Time:             7.6s (no confidence)                       
-  Used Java Heap:       109.38M (no confidence)                       
-  Working Set:           77.14M (no confidence)                       
-  Elapsed Process:         7.6s (no confidence)                       
-  Kernel time:             600ms (no confidence)                      
-  CPU Time:              24.89s (no confidence)                       
-  Hard Page Faults:          0 (no confidence)                        
-  Soft Page Faults:       23.7K (no confidence)                       
-  Text Size:                 0 (no confidence)                        
-  Data Size:                 0 (no confidence)                        
-  Library Size:          80.31M (no confidence)                       
+  System Time:             7.6s (no confidence)
+  Used Java Heap:       109.38M (no confidence)
+  Working Set:           77.14M (no confidence)
+  Elapsed Process:         7.6s (no confidence)
+  Kernel time:             600ms (no confidence)
+  CPU Time:              24.89s (no confidence)
+  Hard Page Faults:          0 (no confidence)
+  Soft Page Faults:       23.7K (no confidence)
+  Text Size:                 0 (no confidence)
+  Data Size:                 0 (no confidence)
+  Library Size:          80.31M (no confidence)
 
 Scenario 'org.eclipse.tracecompass#Kernel XML Benchmark#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using XML analysis' (average over 1 samples):
-  System Time:           13.37m (no confidence)                       
-  Used Java Heap:       141.95M (no confidence)                       
-  Working Set:          178.34M (no confidence)                       
-  Elapsed Process:       13.37m (no confidence)                       
-  Kernel time:            2.55s (no confidence)                       
-  CPU Time:              13.79m (no confidence)                       
-  Hard Page Faults:          0 (no confidence)                        
-  Soft Page Faults:      59.59K (no confidence)                       
-  Text Size:                 0 (no confidence)                        
-  Data Size:                 0 (no confidence)                        
-  Library Size:         216.96M (no confidence)                       
+  System Time:           13.37m (no confidence)
+  Used Java Heap:       141.95M (no confidence)
+  Working Set:          178.34M (no confidence)
+  Elapsed Process:       13.37m (no confidence)
+  Kernel time:            2.55s (no confidence)
+  CPU Time:              13.79m (no confidence)
+  Hard Page Faults:          0 (no confidence)
+  Soft Page Faults:      59.59K (no confidence)
+  Text Size:                 0 (no confidence)
+  Data Size:                 0 (no confidence)
+  Library Size:         216.96M (no confidence)
 
 no new datapoints in DB
 disconnecting from DB

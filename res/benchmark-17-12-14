@@ -1,3 +1,7 @@
+kernel: 4.13.16-100.fc25.x86_64
+
+#############################################
+
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/) Using Algorithm no checking' (average over 25 samples):
   System Time:            4.75s         (95% in [4.56s, 4.95s])        Measurable effect: 374ms (0.8 SDs) (required sample size for an effect of 5% of mean: 62)
   Used Java Heap:         6.94M         (95% in [-36.08M, 49.95M])     Measurable effect: 83.36M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
@@ -5,10 +9,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:        4.75s         (95% in [4.56s, 4.95s])        Measurable effect: 374ms (0.8 SDs) (required sample size for an effect of 5% of mean: 62)
   Kernel time:             197ms        (95% in [182ms, 212ms])        Measurable effect: 28ms (0.8 SDs) (required sample size for an effect of 5% of mean: 207)
   CPU Time:                6.1s         (95% in [5.08s, 7.11s])        Measurable effect: 1.97s (0.8 SDs) (required sample size for an effect of 5% of mean: 1039)
-  Hard Page Faults:        315          (95% in [315, 315])           
+  Hard Page Faults:        315          (95% in [315, 315])
   Soft Page Faults:       8.57K         (95% in [6.21K, 10.94K])       Measurable effect: 4.58K (0.8 SDs) (required sample size for an effect of 5% of mean: 2859)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:           8.78M         (95% in [624.49K, 16.95M])     Measurable effect: 15.83M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/) Using Algorithm no checking' (average over 25 samples):
@@ -18,10 +22,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        4.56s         (95% in [4.52s, 4.61s])        Measurable effect: 89ms (0.8 SDs)
   Kernel time:             177ms        (95% in [173ms, 181ms])        Measurable effect: 8ms (0.8 SDs)
   CPU Time:               5.41s         (95% in [5.34s, 5.49s])        Measurable effect: 145ms (0.8 SDs)
-  Hard Page Faults:        315          (95% in [315, 315])           
+  Hard Page Faults:        315          (95% in [315, 315])
   Soft Page Faults:       5.71K         (95% in [5.52K, 5.89K])        Measurable effect: 353 (0.8 SDs) (required sample size for an effect of 5% of mean: 39)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:          -2.46M         (95% in [-3.36M, -1.56M])      Measurable effect: 1.75M (0.8 SDs) (required sample size for an effect of 5% of mean: 5051)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -31,10 +35,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:        4.88s         (95% in [4.82s, 4.94s])        Measurable effect: 119ms (0.8 SDs)
   Kernel time:             196ms        (95% in [188ms, 203ms])        Measurable effect: 14ms (0.8 SDs) (required sample size for an effect of 5% of mean: 55)
   CPU Time:               5.77s         (95% in [5.56s, 5.97s])        Measurable effect: 393ms (0.8 SDs) (required sample size for an effect of 5% of mean: 47)
-  Hard Page Faults:        315          (95% in [315, 315])           
+  Hard Page Faults:        315          (95% in [315, 315])
   Soft Page Faults:       7.21K         (95% in [6.47K, 7.95K])        Measurable effect: 1.43K (0.8 SDs) (required sample size for an effect of 5% of mean: 394)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:           2.51M         (95% in [-783.12K, 5.78M])     Measurable effect: 6.34M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -44,10 +48,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        4.82s         (95% in [4.77s, 4.86s])        Measurable effect: 82ms (0.8 SDs)
   Kernel time:             188ms        (95% in [183ms, 192ms])        Measurable effect: 9ms (0.8 SDs) (required sample size for an effect of 5% of mean: 26)
   CPU Time:               5.89s         (95% in [5.83s, 5.94s])        Measurable effect: 104ms (0.8 SDs)
-  Hard Page Faults:        315          (95% in [315, 315])           
+  Hard Page Faults:        315          (95% in [315, 315])
   Soft Page Faults:       5.95K         (95% in [5.77K, 6.13K])        Measurable effect: 351 (0.8 SDs) (required sample size for an effect of 5% of mean: 35)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:        -917.92K         (95% in [-1.4M, -406.87K])     Measurable effect: 990.46K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/) Using Algorithm checkEvent' (average over 25 samples):
@@ -57,10 +61,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:        5.96s         (95% in [5.89s, 6.03s])        Measurable effect: 133ms (0.8 SDs)
   Kernel time:             228ms        (95% in [222ms, 235ms])        Measurable effect: 12ms (0.8 SDs) (required sample size for an effect of 5% of mean: 28)
   CPU Time:               7.06s         (95% in [6.84s, 7.29s])        Measurable effect: 435ms (0.8 SDs) (required sample size for an effect of 5% of mean: 39)
-  Hard Page Faults:        314          (95% in [314, 314])           
+  Hard Page Faults:        314          (95% in [314, 314])
   Soft Page Faults:       6.44K         (95% in [6.22K, 6.65K])        Measurable effect: 420 (0.8 SDs) (required sample size for an effect of 5% of mean: 43)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:           1.25M         (95% in [526.51K, 1.98M])      Measurable effect: 1.42M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/) Using Algorithm checkEvent' (average over 25 samples):
@@ -70,10 +74,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        6.03s         (95% in [5.96s, 6.09s])        Measurable effect: 128ms (0.8 SDs)
   Kernel time:             225ms        (95% in [218ms, 232ms])        Measurable effect: 13ms (0.8 SDs) (required sample size for an effect of 5% of mean: 34)
   CPU Time:               7.84s         (95% in [7.71s, 7.97s])        Measurable effect: 245ms (0.8 SDs)
-  Hard Page Faults:        314          (95% in [314, 314])           
+  Hard Page Faults:        314          (95% in [314, 314])
   Soft Page Faults:       6.57K         (95% in [6.01K, 7.13K])        Measurable effect: 1.09K (0.8 SDs) (required sample size for an effect of 5% of mean: 275)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:           1.96M         (95% in [692.58K, 3.25M])      Measurable effect: 2.49M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm no checking' (average over 25 samples):
@@ -83,10 +87,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:         2.3s         (95% in [2.28s, 2.32s])        Measurable effect: 40ms (0.8 SDs)
   Kernel time:              26ms        (95% in [24ms, 29ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 277)
   CPU Time:                383ms        (95% in [337ms, 430ms])        Measurable effect: 90ms (0.8 SDs) (required sample size for an effect of 5% of mean: 554)
-  Hard Page Faults:         19          (95% in [19, 19])             
+  Hard Page Faults:         19          (95% in [19, 19])
   Soft Page Faults:        463          (95% in [367, 560])            Measurable effect: 186 (0.8 SDs) (required sample size for an effect of 5% of mean: 1624)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         -30.56K         (95% in [-304.88K, 243.76K])   Measurable effect: 531.66K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm no checking' (average over 25 samples):
@@ -96,10 +100,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:         2.3s         (95% in [2.28s, 2.32s])        Measurable effect: 39ms (0.8 SDs)
   Kernel time:              30ms        (95% in [28ms, 32ms])          Measurable effect: 3ms (0.8 SDs) (required sample size for an effect of 5% of mean: 144)
   CPU Time:                732ms        (95% in [713ms, 752ms])        Measurable effect: 37ms (0.8 SDs) (required sample size for an effect of 5% of mean: 27)
-  Hard Page Faults:         19          (95% in [19, 19])             
+  Hard Page Faults:         19          (95% in [19, 19])
   Soft Page Faults:        427          (95% in [414, 441])            Measurable effect: 25 (0.8 SDs) (required sample size for an effect of 5% of mean: 37)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:          288.8K         (95% in [35.76K, 541.84K])     Measurable effect: 490.42K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -109,10 +113,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:        2.36s         (95% in [2.34s, 2.38s])        Measurable effect: 42ms (0.8 SDs)
   Kernel time:              32ms        (95% in [29ms, 34ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 209)
   CPU Time:                390ms        (95% in [376ms, 403ms])        Measurable effect: 27ms (0.8 SDs) (required sample size for an effect of 5% of mean: 49)
-  Hard Page Faults:         19          (95% in [19, 19])             
+  Hard Page Faults:         19          (95% in [19, 19])
   Soft Page Faults:        450          (95% in [420, 480])            Measurable effect: 57 (0.8 SDs) (required sample size for an effect of 5% of mean: 166)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         245.76K         (95% in [-13.94K, 505.46K])    Measurable effect: 503.32K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -122,10 +126,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        2.38s         (95% in [2.35s, 2.4s])         Measurable effect: 51ms (0.8 SDs)
   Kernel time:              30ms        (95% in [27ms, 32ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 238)
   CPU Time:                732ms        (95% in [721ms, 743ms])        Measurable effect: 21ms (0.8 SDs)
-  Hard Page Faults:         19          (95% in [19, 19])             
+  Hard Page Faults:         19          (95% in [19, 19])
   Soft Page Faults:        422          (95% in [410, 433])            Measurable effect: 22 (0.8 SDs) (required sample size for an effect of 5% of mean: 28)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         268.32K         (95% in [-3.64K, 540.28K])     Measurable effect: 527.08K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm checkEvent' (average over 25 samples):
@@ -135,10 +139,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:         2.4s         (95% in [2.39s, 2.4s])         Measurable effect: 17ms (0.8 SDs)
   Kernel time:              30ms        (95% in [27ms, 32ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 238)
   CPU Time:                439ms        (95% in [422ms, 456ms])        Measurable effect: 32ms (0.8 SDs) (required sample size for an effect of 5% of mean: 56)
-  Hard Page Faults:         19          (95% in [19, 19])             
+  Hard Page Faults:         19          (95% in [19, 19])
   Soft Page Faults:        416          (95% in [411, 421])            Measurable effect: 9 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         335.84K         (95% in [27.1K, 644.58K])      Measurable effect: 598.37K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm checkEvent' (average over 25 samples):
@@ -148,10 +152,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        2.44s         (95% in [2.42s, 2.46s])        Measurable effect: 41ms (0.8 SDs)
   Kernel time:              32ms        (95% in [29ms, 34ms])          Measurable effect: 5ms (0.8 SDs) (required sample size for an effect of 5% of mean: 261)
   CPU Time:                820ms        (95% in [804ms, 835ms])        Measurable effect: 30ms (0.8 SDs)
-  Hard Page Faults:         19          (95% in [19, 19])             
+  Hard Page Faults:         19          (95% in [19, 19])
   Soft Page Faults:        409          (95% in [409, 410])            Measurable effect: 0 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:              1,023.52K  (95% in [779.48K, 1.24M])      Measurable effect: 472.97K (0.8 SDs) (required sample size for an effect of 5% of mean: 2136)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/) Using Algorithm no checking' (average over 25 samples):
@@ -161,10 +165,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:        7.55s         (95% in [7.32s, 7.79s])        Measurable effect: 452ms (0.8 SDs) (required sample size for an effect of 5% of mean: 36)
   Kernel time:             530ms        (95% in [517ms, 543ms])        Measurable effect: 25ms (0.8 SDs)
   CPU Time:              12.54s         (95% in [11.56s, 13.53s])      Measurable effect: 1.91s (0.8 SDs) (required sample size for an effect of 5% of mean: 233)
-  Hard Page Faults:        728          (95% in [728, 728])           
+  Hard Page Faults:        728          (95% in [728, 728])
   Soft Page Faults:      13.75K         (95% in [13.47K, 14.03K])      Measurable effect: 535 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         908.96K         (95% in [-191.51K, 1.96M])     Measurable effect: 2.08M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/) Using Algorithm no checking' (average over 25 samples):
@@ -174,10 +178,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        7.53s         (95% in [7.46s, 7.6s])         Measurable effect: 131ms (0.8 SDs)
   Kernel time:             514ms        (95% in [506ms, 523ms])        Measurable effect: 16ms (0.8 SDs)
   CPU Time:              12.51s         (95% in [12.41s, 12.6s])       Measurable effect: 178ms (0.8 SDs)
-  Hard Page Faults:        728          (95% in [728, 728])           
+  Hard Page Faults:        728          (95% in [728, 728])
   Soft Page Faults:      14.22K         (95% in [14.12K, 14.31K])      Measurable effect: 183 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         -20.48K         (95% in [-62.75K, 21.79K])     Measurable effect: 81.92K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -187,10 +191,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:        7.67s         (95% in [7.47s, 7.86s])        Measurable effect: 375ms (0.8 SDs)
   Kernel time:             534ms        (95% in [520ms, 547ms])        Measurable effect: 26ms (0.8 SDs)
   CPU Time:              11.94s         (95% in [11.73s, 12.15s])      Measurable effect: 410ms (0.8 SDs)
-  Hard Page Faults:        728          (95% in [728, 728])           
+  Hard Page Faults:        728          (95% in [728, 728])
   Soft Page Faults:      13.81K         (95% in [13.6K, 14.01K])       Measurable effect: 398 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:           1.02M         (95% in [-279.3K, 2.32M])      Measurable effect: 2.51M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -200,10 +204,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        7.59s         (95% in [7.46s, 7.72s])        Measurable effect: 254ms (0.8 SDs)
   Kernel time:             506ms        (95% in [496ms, 515ms])        Measurable effect: 17ms (0.8 SDs)
   CPU Time:              12.43s         (95% in [12.34s, 12.52s])      Measurable effect: 173ms (0.8 SDs)
-  Hard Page Faults:        728          (95% in [728, 728])           
+  Hard Page Faults:        728          (95% in [728, 728])
   Soft Page Faults:      14.12K         (95% in [14.01K, 14.23K])      Measurable effect: 212 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         -61.44K         (95% in [-131.53K, 8.65K])     Measurable effect: 135.85K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/) Using Algorithm checkEvent' (average over 25 samples):
@@ -213,10 +217,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:         7.4s         (95% in [7.34s, 7.46s])        Measurable effect: 112ms (0.8 SDs)
   Kernel time:             505ms        (95% in [495ms, 515ms])        Measurable effect: 19ms (0.8 SDs)
   CPU Time:              11.83s         (95% in [11.63s, 12.02s])      Measurable effect: 375ms (0.8 SDs)
-  Hard Page Faults:        728          (95% in [728, 728])           
+  Hard Page Faults:        728          (95% in [728, 728])
   Soft Page Faults:      13.74K         (95% in [13.57K, 13.91K])      Measurable effect: 331 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         822.24K         (95% in [-342.52K, 1.94M])     Measurable effect: 2.2M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/) Using Algorithm checkEvent' (average over 25 samples):
@@ -226,10 +230,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:        7.43s         (95% in [7.38s, 7.49s])        Measurable effect: 109ms (0.8 SDs)
   Kernel time:             511ms        (95% in [503ms, 519ms])        Measurable effect: 15ms (0.8 SDs)
   CPU Time:              12.39s         (95% in [12.31s, 12.47s])      Measurable effect: 154ms (0.8 SDs)
-  Hard Page Faults:        728          (95% in [728, 728])           
+  Hard Page Faults:        728          (95% in [728, 728])
   Soft Page Faults:      14.11K         (95% in [13.99K, 14.24K])      Measurable effect: 240 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         -61.44K         (95% in [-131.53K, 8.65K])     Measurable effect: 135.85K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Algorithm no checking' (average over 25 samples):
@@ -239,10 +243,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:       13.24s         (95% in [13.07s, 13.41s])      Measurable effect: 336ms (0.8 SDs)
   Kernel time:            1.36s         (95% in [1.34s, 1.38s])        Measurable effect: 34ms (0.8 SDs)
   CPU Time:              25.34s         (95% in [24.86s, 25.83s])      Measurable effect: 932ms (0.8 SDs)
-  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])       
+  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])
   Soft Page Faults:      27.05K         (95% in [26.92K, 27.18K])      Measurable effect: 247 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         -90.72K         (95% in [-733.04K, 551.6K])    Measurable effect: 1.22M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Algorithm no checking' (average over 25 samples):
@@ -252,10 +256,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:       13.62s         (95% in [13.54s, 13.69s])      Measurable effect: 150ms (0.8 SDs)
   Kernel time:            1.37s         (95% in [1.35s, 1.39s])        Measurable effect: 33ms (0.8 SDs)
   CPU Time:              27.01s         (95% in [26.84s, 27.18s])      Measurable effect: 325ms (0.8 SDs)
-  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])       
+  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])
   Soft Page Faults:      27.07K         (95% in [26.93K, 27.2K])       Measurable effect: 262 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         803.68K         (95% in [347.99K, 1.23M])      Measurable effect: 883.16K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -265,10 +269,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:       13.16s         (95% in [13.01s, 13.31s])      Measurable effect: 290ms (0.8 SDs)
   Kernel time:            1.37s         (95% in [1.35s, 1.39s])        Measurable effect: 35ms (0.8 SDs)
   CPU Time:              25.14s         (95% in [24.73s, 25.55s])      Measurable effect: 797ms (0.8 SDs)
-  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])       
+  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])
   Soft Page Faults:      26.82K         (95% in [26.72K, 26.91K])      Measurable effect: 192 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:        -276.96K         (95% in [-706.63K, 152.71K])   Measurable effect: 832.74K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Algorithm checkEvent2' (average over 25 samples):
@@ -278,10 +282,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:       13.57s         (95% in [13.52s, 13.62s])      Measurable effect: 99ms (0.8 SDs)
   Kernel time:            1.36s         (95% in [1.34s, 1.38s])        Measurable effect: 34ms (0.8 SDs)
   CPU Time:              26.93s         (95% in [26.77s, 27.09s])      Measurable effect: 315ms (0.8 SDs)
-  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])       
+  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])
   Soft Page Faults:      27.02K         (95% in [26.87K, 27.17K])      Measurable effect: 290 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         779.04K         (95% in [342.29K, 1.19M])      Measurable effect: 846.46K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Algorithm checkEvent' (average over 25 samples):
@@ -291,10 +295,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis
   Elapsed Process:       13.16s         (95% in [13s, 13.31s])         Measurable effect: 301ms (0.8 SDs)
   Kernel time:            1.35s         (95% in [1.34s, 1.37s])        Measurable effect: 29ms (0.8 SDs)
   CPU Time:                 25s         (95% in [24.52s, 25.47s])      Measurable effect: 918ms (0.8 SDs)
-  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])       
+  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])
   Soft Page Faults:      26.86K         (95% in [26.74K, 26.98K])      Measurable effect: 232 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         -512.8K         (95% in [-1.04M, 40.3K])       Measurable effect: 1.05M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
 
 Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/) Using Algorithm checkEvent' (average over 25 samples):
@@ -304,10 +308,10 @@ Scenario 'org.eclipse.tracecompass#Coherence checking#Memory Usage (/home/mmarti
   Elapsed Process:       13.49s         (95% in [13.43s, 13.55s])      Measurable effect: 121ms (0.8 SDs)
   Kernel time:            1.35s         (95% in [1.34s, 1.36s])        Measurable effect: 23ms (0.8 SDs)
   CPU Time:              26.62s         (95% in [26.48s, 26.77s])      Measurable effect: 279ms (0.8 SDs)
-  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])       
+  Hard Page Faults:       1.56K         (95% in [1.56K, 1.56K])
   Soft Page Faults:         27K         (95% in [26.85K, 27.15K])      Measurable effect: 284 (0.8 SDs)
-  Text Size:                 0          (95% in [0, 0])               
-  Data Size:                 0          (95% in [0, 0])               
+  Text Size:                 0          (95% in [0, 0])
+  Data Size:                 0          (95% in [0, 0])
   Library Size:         535.84K         (95% in [199.51K, 872.17K])    Measurable effect: 651.83K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
 
 no new datapoints in DB
