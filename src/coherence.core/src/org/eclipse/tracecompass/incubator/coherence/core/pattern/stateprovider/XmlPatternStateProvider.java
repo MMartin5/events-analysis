@@ -276,7 +276,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 				}
 			}
 		}
-		// Sort the list of infered events before saving it
+		// Sort the list of inferred events before saving it
 		eventsList.sort(new Comparator<TmfInferredEvent>() {
 			@Override
 			public int compare(TmfInferredEvent event1, TmfInferredEvent event2) {
