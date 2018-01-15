@@ -3,6 +3,7 @@ package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 import java.util.List;
 import java.util.Objects;
 
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 
 public class FsmStateIncoherence {
@@ -17,6 +18,8 @@ public class FsmStateIncoherence {
 	private final String fLastCoherentStateName;
 	/* The list of inferred transitions computed for this incoherence */
 	private List<TmfXmlFsmTransition> fInferredTransitions;
+	/* The list of inferred events computed for this incoherence */
+	private List<TmfInferredEvent> fInferredEvents;
 
 	
 	public FsmStateIncoherence(ITmfEvent incoherentEvent, String scenarioAttribute, ITmfEvent prevCoherentEvent, String currentStateName) {
@@ -51,6 +54,13 @@ public class FsmStateIncoherence {
 		fInferredTransitions = inferredTransitions;
 	}
 
+	public List<TmfInferredEvent> getInferredEvents() {
+		return fInferredEvents;
+	}
+	
+	public void setInferredEvents(List<TmfInferredEvent> localEventsList) {
+		fInferredEvents = localEventsList;		
+	}
 
 	/**
 	 * Two FsmStateIncoherence are equal if the incoherent event is the same and it happened on the same scenario
@@ -75,5 +85,5 @@ public class FsmStateIncoherence {
 	public int hashCode() {
 		return Objects.hash(fIncoherentEvent, fScenarioAttribute);
 	}
-	
+
 }

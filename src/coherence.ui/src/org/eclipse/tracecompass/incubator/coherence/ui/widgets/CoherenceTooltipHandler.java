@@ -200,7 +200,7 @@ public class CoherenceTooltipHandler {
                     if (state != null) {
                         if (currEvent instanceof IncoherentEvent) {
                         	// Add an item to the tooltip to display the incoherence
-                        	String incoherence = ((IncoherentEvent) currEvent).getIncoherence();
+                        	String incoherence = ((IncoherentEvent) currEvent).getIncoherenceMessage();
                         	// Change the status to display the incoherence
                         	fStatusLineManager.setMessage("Incoherence: " + incoherence);
                         }

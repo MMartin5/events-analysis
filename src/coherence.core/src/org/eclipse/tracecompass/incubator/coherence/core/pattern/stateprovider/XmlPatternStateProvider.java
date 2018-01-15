@@ -23,15 +23,17 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.ctf.core.CTFStrings;
+import org.eclipse.tracecompass.ctf.core.event.IEventDefinition;
 import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlModelFactory;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlLocation;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlMapEntry;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlTransitionValidator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
-import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.readwrite.TmfXmlReadWriteModelFactory;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
@@ -39,11 +41,13 @@ import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlUtils;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventType;
+import org.eclipse.tracecompass.tmf.core.event.aspect.TmfCpuAspect;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statistics.ITmfStatistics;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsModule;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.w3c.dom.Element;
@@ -251,29 +255,33 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 		fHandler.computeInferences();
 		ITmfTrace trace = getTrace();
 		List<TmfInferredEvent> eventsList = new ArrayList<>();
+		Map<String, TmfXmlTransitionValidator> testMap = fHandler.getTestMap();
 		for (TmfXmlFsm fsm : fHandler.getFsmMap().values()) {
 			List<FsmStateIncoherence> incoherences = fsm.getIncoherences();			
 			
 			
 			for (FsmStateIncoherence incoherence : incoherences) {				
 				long index = 0;
+				List<TmfInferredEvent> localEventsList = new ArrayList<>();
 				
-				ITmfTimestamp tsMin = incoherence.getPrevCoherentEvent().getTimestamp();
-				ITmfTimestamp tsMax = incoherence.getIncoherentEvent().getTimestamp();
-				
-				List<TmfXmlFsmTransition> transitions = incoherence.getInferredTransitions(); 
+				List<TmfXmlFsmTransition> transitions = incoherence.getInferredTransitions();
 				Iterator<TmfXmlFsmTransition> it = transitions.iterator();
 				while (it.hasNext()) {
 					TmfXmlFsmTransition inferredTransition = it.next();
 					
 					if (it.hasNext()) { // it means this is not the last transition, whose label is the incoherent event
-						TmfEventType evttype = new TmfEventType(inferredTransition.getEvent(), null);
-						TmfInferredEvent inferredEvent = new TmfInferredEvent(trace, -1, index, tsMin, tsMax, evttype, null, inferredTransition);
+						TmfInferredEvent inferredEvent = TmfInferredEvent.create(trace, 
+								incoherence, 
+								inferredTransition, 
+								index,
+								testMap);
 						eventsList.add(inferredEvent);
-						
+						localEventsList.add(inferredEvent);
 						index++;
 					}
 				}
+				
+				incoherence.setInferredEvents(localEventsList);
 			}
 		}
 		// Sort the list of inferred events before saving it
@@ -287,6 +295,34 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 			}
 		});
 		fInferredEvents = eventsList;
+		
+//		if (trace instanceof LostEventsTrace) {
+//			((LostEventsTrace) trace).addEvents(fInferredEvents);
+//		}
+		
+		// print the list of events, interleaved with the inferred events
+		// FIXME remove later
+		if (!fInferredEvents.isEmpty()) {
+			ITmfContext ctx = trace.seekEvent(0);
+			int idx = 0;
+			TmfInferredEvent inferredEvent = fInferredEvents.get(idx++);
+			while (true) {
+				ITmfEvent event = trace.getNext(ctx);
+				if (event == null) {
+					while (idx < fInferredEvents.size()) {
+						System.out.println(inferredEvent.toString());
+						inferredEvent = fInferredEvents.get(idx++);
+					}
+					break;
+				}
+				while ((inferredEvent != null) && 
+						(event.getTimestamp().getValue() > inferredEvent.getTimestamp().getValue())) {
+					System.out.println(inferredEvent.toString());
+					inferredEvent = (idx < fInferredEvents.size()) ? fInferredEvents.get(idx++) : null;
+				}
+				System.out.println(event.toString());
+			}
+		}
 	}
 
 	/**
