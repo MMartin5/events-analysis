@@ -18,9 +18,18 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.events.MenuDetectEvent;
+import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
@@ -33,6 +42,7 @@ import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelp
 import org.eclipse.tracecompass.incubator.coherence.ui.Activator;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipHandler;
+import org.eclipse.tracecompass.incubator.internal.coherence.ui.actions.DisplayInferenceAction;
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.views.CoherencePresentationProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
@@ -58,6 +68,8 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.TimeGraphControl;
+import org.eclipse.ui.IWorkbenchActionConstants;
 
 import com.google.common.collect.Multimap;
 
@@ -89,6 +101,8 @@ public class CoherenceView extends ControlFlowView {
 	XmlPatternStateSystemModule fModule = null;
 	
 	private Map<ITmfStateInterval, TmfXmlFsmTransition> transitionsMap = new HashMap<>(); // needed to set the transition of IncoherentEvent
+	
+	private final @NonNull MenuManager fEventMenuManager = new MenuManager();
 
 	public CoherenceView() {
 	    super();
@@ -519,6 +533,64 @@ public class CoherenceView extends ControlFlowView {
         return new NullTimeEvent(controlFlowEntry, startTime, duration);
     }	
 	
+	/**
+	 * @see FlameGraphView.createTimeEventContextMenu
+	 */
+	private void createIncoherentEventContextMenu() {
+        fEventMenuManager.setRemoveAllWhenShown(true);
+        TimeGraphControl timeGraphControl = getTimeGraphViewer().getTimeGraphControl();
+        final Menu timeEventMenu = fEventMenuManager.createContextMenu(timeGraphControl);
+
+        timeGraphControl.addTimeGraphEntryMenuListener(new MenuDetectListener() {
+            @Override
+            public void menuDetected(MenuDetectEvent event) {
+                /*
+                 * The TimeGraphControl will call the TimeGraphEntryMenuListener
+                 * before the TimeEventMenuListener. We need to clear the menu
+                 * for the case the selection was done on the namespace where
+                 * the time event listener below won't be called afterwards.
+                 */
+                timeGraphControl.setMenu(null);
+                event.doit = false;
+            }
+        });
+        timeGraphControl.addTimeEventMenuListener(new MenuDetectListener() {
+            @Override
+            public void menuDetected(MenuDetectEvent event) {
+                Menu menu = timeEventMenu;
+                // Create a context menu for IncoherentEvent only
+                if (event.data instanceof IncoherentEvent) {
+                    timeGraphControl.setMenu(menu);
+                    return;
+                }
+                timeGraphControl.setMenu(null);
+                event.doit = false;
+            }
+        });
+
+        fEventMenuManager.addMenuListener(new IMenuListener() {
+            @Override
+            public void menuAboutToShow(IMenuManager manager) {
+                fillIncoherentEventContextMenu(fEventMenuManager);
+                fEventMenuManager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+            }
+        });
+        getSite().registerContextMenu(fEventMenuManager, getTimeGraphViewer().getSelectionProvider());
+    }
+	
+	private void fillIncoherentEventContextMenu(@NonNull IMenuManager menuManager) {
+        ISelection selection = getSite().getSelectionProvider().getSelection();
+        if (selection instanceof IStructuredSelection) {
+            for (Object object : ((IStructuredSelection) selection).toList()) {
+                if (object instanceof IncoherentEvent) {
+                	IncoherentEvent event = (IncoherentEvent) object;
+                	ControlFlowEntry entry = (ControlFlowEntry) event.getEntry();
+                    menuManager.add(new DisplayInferenceAction(CoherenceView.this, entry.getName(), entry.getThreadId(), entry.getTrace()));
+                }
+            }
+        }
+    }
+	
 	@Override
     public void createPartControl(Composite parent) {
         super.createPartControl(parent);
@@ -536,5 +608,8 @@ public class CoherenceView extends ControlFlowView {
         		getTimeGraphViewer().getTimeGraphScale().getTimeProvider(), 
         		statusManager); // FIXME we should not access the statusLineManager this way, but through Control
 		fCoherenceToolTipHandler.activateHoverHelp(getTimeGraphViewer().getTimeGraphControl());
+		
+		// Create context menu for IncoherentEvent
+		createIncoherentEventContextMenu();
 	}
 }
