@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
@@ -102,6 +103,8 @@ public class CoherenceView extends ControlFlowView {
 	private Map<ITmfStateInterval, FsmStateIncoherence> incoherencesMap = new HashMap<>(); // used to instantiate IncoherentEvent
 	
 	private final @NonNull MenuManager fEventMenuManager = new MenuManager();
+	
+	private Map<String, TmfXmlScenario> scenarios = new HashMap<>();
 
 	public CoherenceView() {
 	    super();
@@ -160,6 +163,7 @@ public class CoherenceView extends ControlFlowView {
 						fIncoherences.clear();
 						pEntries.clear();
 						incoherencesMap.clear();
+						scenarios.clear();
 						return requestData(monitor);
 					} finally {
 						fJob = null;
@@ -191,6 +195,7 @@ public class CoherenceView extends ControlFlowView {
 					fIncoherences.clear();
 					pEntries.clear();
 					incoherencesMap.clear();
+					scenarios.clear();
 					return requestData(monitor);
 				} finally {
 					fJob = null;
@@ -212,6 +217,7 @@ public class CoherenceView extends ControlFlowView {
         fEvents.clear();
         fMarkers.clear();
         incoherencesMap.clear();
+        scenarios.clear();
     }
 	
 	/**
@@ -291,6 +297,8 @@ public class CoherenceView extends ControlFlowView {
             fEvents.addAll(events);
             
             fIncoherences.addAll(fsm.getIncoherences());
+            
+            scenarios.putAll(fsm.getActiveScenariosList());
         }
 
         for (FsmStateIncoherence incoherence : fIncoherences) {
@@ -396,7 +404,8 @@ public class CoherenceView extends ControlFlowView {
 		ITmfStateSystem ss = fModule.getStateSystem();
 		int certaintyStatusQuark;
 		try {
-			certaintyStatusQuark = ss.getQuarkAbsolute("scenarios", "process_fsm", String.valueOf(controlFlowEntry.getThreadId()), TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS); //FIXME : more general than just process_fsm
+			int scenarioQuark = scenarios.get(String.valueOf(controlFlowEntry.getThreadId())).getScenarioInfos().getQuark();
+			certaintyStatusQuark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS);
 		} catch (AttributeNotFoundException e) {
 			certaintyStatusQuark = -1;
 		}
