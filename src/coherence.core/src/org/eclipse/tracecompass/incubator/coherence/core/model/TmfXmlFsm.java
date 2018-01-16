@@ -146,11 +146,7 @@ public class TmfXmlFsm {
 			 /* Check the neighbors of the current node */
 			for (TmfXmlFsmTransition neighborTransition : neighbors) {
 				String neighbor = neighborTransition.from().getId();
-				/* Evaluate path to target using the statistics on transitions from the reading of the trace
-				 * 
-				 * 'INFINITY - 1' means there is a path, but which has never been taken before 
-				 * so it's only slightly better than no path at all
-				 */
+				/* Evaluate path to target using the statistics on transitions from the reading of the trace */
 				long weight = fTransitionsCounters.containsKey(neighborTransition) ? fTransitionsCounters.get(neighborTransition) : 1;
 				float newDist = currentDist + (1f / (float) weight); 
 				if (distances.get(neighbor) > newDist) {	// this is a shorter path to target
