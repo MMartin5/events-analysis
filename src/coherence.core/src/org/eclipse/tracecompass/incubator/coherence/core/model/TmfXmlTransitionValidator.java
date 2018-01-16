@@ -66,4 +66,8 @@ public class TmfXmlTransitionValidator implements ITmfXmlCondition {
     public boolean test(ITmfEvent event, @Nullable TmfXmlScenarioInfo scenarioInfo) {
         return fCondition.test(event, scenarioInfo);
     }
+    
+    public ITmfXmlCondition getCondition() {
+    	return fCondition;
+    }
 }

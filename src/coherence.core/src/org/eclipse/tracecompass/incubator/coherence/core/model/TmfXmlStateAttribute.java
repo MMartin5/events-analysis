@@ -53,7 +53,7 @@ import org.w3c.dom.Element;
  */
 public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
 
-    private enum StateAttributeType {
+    protected enum StateAttributeType {
         NONE,
         CONSTANT,
         EVENTFIELD,
@@ -352,6 +352,14 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
     @Override
     public String toString() {
         return "TmfXmlStateAttribute " + fType + ": " + fName; //$NON-NLS-1$ //$NON-NLS-2$
+    }
+    
+    public StateAttributeType getType() {
+    	return fType;
+    }
+    
+    public String getName() {
+    	return fName;
     }
 
 }

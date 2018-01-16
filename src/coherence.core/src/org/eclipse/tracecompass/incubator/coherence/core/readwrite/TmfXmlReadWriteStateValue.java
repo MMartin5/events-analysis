@@ -360,7 +360,7 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
     }
 
     /* The state value uses the value of an event field */
-    private class TmfXmlStateValueEventField extends TmfXmlStateValueTypeReadWrite {
+    public class TmfXmlStateValueEventField extends TmfXmlStateValueTypeReadWrite {
 
         private final String fFieldName;
 
@@ -395,6 +395,10 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
         @Override
         public String toString() {
             return "Event Field=" + fFieldName; //$NON-NLS-1$
+        }
+        
+        public String getFieldName() {
+        	return fFieldName;
         }
     }
 
