@@ -544,19 +544,6 @@ public class CoherenceView extends ControlFlowView {
         TimeGraphControl timeGraphControl = getTimeGraphViewer().getTimeGraphControl();
         final Menu timeEventMenu = fEventMenuManager.createContextMenu(timeGraphControl);
 
-        timeGraphControl.addTimeGraphEntryMenuListener(new MenuDetectListener() {
-            @Override
-            public void menuDetected(MenuDetectEvent event) {
-                /*
-                 * The TimeGraphControl will call the TimeGraphEntryMenuListener
-                 * before the TimeEventMenuListener. We need to clear the menu
-                 * for the case the selection was done on the namespace where
-                 * the time event listener below won't be called afterwards.
-                 */
-                timeGraphControl.setMenu(null);
-                event.doit = false;
-            }
-        });
         timeGraphControl.addTimeEventMenuListener(new MenuDetectListener() {
             @Override
             public void menuDetected(MenuDetectEvent event) {
