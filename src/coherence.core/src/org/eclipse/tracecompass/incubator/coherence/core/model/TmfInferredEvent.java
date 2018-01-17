@@ -35,12 +35,14 @@ public class TmfInferredEvent extends TmfEvent {
 			FsmStateIncoherence incoherence, 
 			TmfXmlFsmTransition inferredTransition, 
 			long localRank, 
+			int nbInferred, 
 			Map<String, TmfXmlTransitionValidator> testMap) {
 		ITmfTimestamp tsStart = incoherence.getPrevCoherentEvent().getTimestamp();
 		ITmfTimestamp tsEnd = incoherence.getIncoherentEvent().getTimestamp();
-		// set the timestamp to be in the middle of the possible interval
+		// set the timestamp to be in the middle of the possible interval + some factor given the local rank
 		ITmfTimestamp ts = TmfTimestamp.create(
-				tsStart.getValue() + (tsEnd.getValue() - tsStart.getValue())/2, tsStart.getScale());
+				tsStart.getValue() + ((tsEnd.getValue() - tsStart.getValue()) / (nbInferred + 1)) * localRank, 
+				tsStart.getScale());
 		Integer cpu = TmfTraceUtils.resolveIntEventAspectOfClassForEvent(incoherence.getIncoherentEvent().getTrace(),
                 TmfCpuAspect.class, incoherence.getIncoherentEvent());
         if (cpu == null) {
