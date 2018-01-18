@@ -261,7 +261,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 			
 			
 			for (FsmStateIncoherence incoherence : incoherences) {				
-				long index = 0;
+				long index = 1;
 				Map<TmfXmlFsmTransition, TmfInferredEvent> localEventsMap = new HashMap<>();
 				
 				List<TmfXmlFsmTransition> transitions = incoherence.getInferredTransitions();
