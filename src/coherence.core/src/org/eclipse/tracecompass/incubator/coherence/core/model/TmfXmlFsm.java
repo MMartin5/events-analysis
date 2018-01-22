@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.annotation.NonNull;
@@ -86,12 +86,8 @@ public class TmfXmlFsm {
 	 * 				A triggered transition
 	 */
 	public void increaseTransitionCounter(TmfXmlFsmTransition transition) {
-		if (fTransitionsCounters.containsKey(transition)) {
-			Long value = fTransitionsCounters.get(transition);
-			fTransitionsCounters.replace(transition, value+1);
-			return;
-		}
-		fTransitionsCounters.put(transition, new Long(1));
+		Long value = (fTransitionsCounters.containsKey(transition)) ? fTransitionsCounters.get(transition) + 1 : 1;
+		fTransitionsCounters.put(transition, value);
 	}
 	
 	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions, String currentState, ITmfEvent lastEvent) {
@@ -119,28 +115,72 @@ public class TmfXmlFsm {
 	    return bestTransition;
 	}
 	
-	// FIXME delete counter when a better way to find best transition is found (ctr is to make sure that we don't get stuck in an infinite loop)
-	private List<TmfXmlFsmTransition> computeMissingTransitions(TmfXmlFsmTransition currentTransition, 
-			String target, 
-			int ctr) {
-		List<TmfXmlFsmTransition> transitions = new ArrayList<>();
-		
-		// Find possible transitions for the current event and state
-		Set<TmfXmlFsmTransition> possibleTransitions = fPrevStatesForState.get(currentTransition.from().getId());
-		
-		// Find best transition
-		TmfXmlFsmTransition bestTransition = findBestTransition(possibleTransitions);
-		
-	    // Test if we should keep on backwarding or stop
-		if (ctr > 20 || target.equals(bestTransition.from().getId())) { // stop
-			List<TmfXmlFsmTransition> newList = new ArrayList<>();
-			newList.add(bestTransition);
-			return newList;
+	/**
+	 * Compute the shortest path from the most recent known state (starting node)
+	 * to the last known current state (target node), using Dijkstra's algorithm
+	 * @param start
+	 * 			The starting state
+	 * @param target
+	 * 			The targeted state
+	 * @return
+	 * 			The list of inferred transitions, which is the list of each edge on the shortest path
+	 */
+	private List<TmfXmlFsmTransition> computeMissingTransitions(String start, String target) {
+		Float INFINITY = Float.POSITIVE_INFINITY; // biggest possible distance
+		TmfXmlFsmTransition UNDEFINED = new TmfXmlFsmTransition(null, null, null);
+		/* Initialization */
+		String current = start;							 			// current node
+		Set<String> unvisited = new HashSet<>(); 					// set of unvisited nodes
+		Map<String, Float> distances = new HashMap<>(); 			// associates a node (state) to its tentative distance to the start
+		Map<String, TmfXmlFsmTransition> prev = new HashMap<>(); 	// associates a node to the previous optimal node (with the related transition)
+		for (TmfXmlState state : fStatesMap.values()) {
+			distances.put(state.getId(), INFINITY); // set to infinity because the distance is unknown
+			unvisited.add(state.getId());
+			prev.put(state.getId(), UNDEFINED);
 		}
-		else { // continue
-			transitions.addAll(computeMissingTransitions(bestTransition, target, ++ctr));
-			return transitions;
+		distances.put(current, 0f); // the current node is the start ; distance to itself is 0
+		
+		while (unvisited.contains(target)) {
+			float currentDist = distances.get(current);
+			Set<TmfXmlFsmTransition> neighbors = fPrevStatesForState.get(current);
+			 /* Check the neighbors of the current node */
+			for (TmfXmlFsmTransition neighborTransition : neighbors) {
+				String neighbor = neighborTransition.from().getId();
+				/* Evaluate path to target using the statistics on transitions from the reading of the trace */
+				long weight = fTransitionsCounters.containsKey(neighborTransition) ? fTransitionsCounters.get(neighborTransition) : 1;
+				float newDist = currentDist + (1f / (float) weight); 
+				if (distances.get(neighbor) > newDist) {	// this is a shorter path to target
+					distances.put(neighbor, newDist);
+					prev.put(neighbor, neighborTransition);
+				}
+			}
+			
+			/* Remove current node from the list of unvisited nodes */
+			unvisited.remove(current);
+			/* Look for the next node, which is the unvisited node with minimum distance to start 
+				TODO: surely this portion of code can be improved (maybe keep the list ordered) */
+			if (!unvisited.isEmpty()) {
+				current = unvisited.iterator().next();
+				for (String remainingNode : unvisited) {
+					if (distances.get(remainingNode) < distances.get(current)) { 
+						current = remainingNode;
+					}
+				}
+			}
+		}		
+		/* The target node has been reached */
+		
+		/* Compute the path, given the results obtained at previous steps,
+		 * by following the nodes in the 'prev' map from target to start
+		 */
+		Stack<TmfXmlFsmTransition> transitions = new Stack<>();
+		String node = target;
+		while (!prev.get(node).equals(UNDEFINED)) { // we should reach an UNDEFINED value when reaching the starting node
+			TmfXmlFsmTransition transition = prev.get(node);
+			transitions.push(transition);
+			node = transition.to().getTarget();
 		}
+		return transitions;
 	}
 	
 	/**
@@ -156,7 +196,7 @@ public class TmfXmlFsm {
 			// Infer transitions
 			TmfXmlFsmTransition lastTransition = findBestTransition(possibleTransitions);
 			List<TmfXmlFsmTransition> inferredTransitions = new ArrayList<>();
-	    	inferredTransitions.addAll(computeMissingTransitions(lastTransition, targetState, 1));
+	    	inferredTransitions.addAll(computeMissingTransitions(lastTransition.from().getId(), targetState));
 			inferredTransitions.add(lastTransition);
 			incoherence.setInferredTransitions(inferredTransitions);
 		}
@@ -279,6 +319,9 @@ public class TmfXmlFsm {
         
         // Create the maps of previous states and next states
         for (TmfXmlState state : statesMap.values()) {
+        	if (!prevStatesForState.containsKey(state.getId())) {
+        		prevStatesForState.put(state.getId(), new HashSet<>()); // every state will have at least an empty set of previous states
+        	}
 	        for (TmfXmlStateTransition transition : state.getTransitionList()) {
 	        	for (Pattern pattern : transition.getAcceptedEvents()) {
 	        		String eventName = pattern.toString();

@@ -9,6 +9,13 @@
             name="Coherence View"
             restorable="true">
       </view>
+      <view
+            allowMultiple="true"
+            class="org.eclipse.tracecompass.incubator.coherence.ui.views.InferenceView"
+            id="org.eclipse.tracecompass.incubator.coherence.ui.views.inference"
+            name="Inference View"
+            restorable="false">
+      </view>
    </extension>
 
 </plugin>

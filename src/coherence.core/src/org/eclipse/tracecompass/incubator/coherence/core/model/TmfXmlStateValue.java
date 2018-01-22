@@ -486,5 +486,13 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
             return "NULL"; //$NON-NLS-1$
         }
     }
+    
+    public String getEventField() {
+    	return fEventField;
+    }
+    
+    public TmfXmlStateValueBase getBaseStateValue() {
+    	return fStateValue;
+    }
 
 }

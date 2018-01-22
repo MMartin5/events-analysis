@@ -3,6 +3,7 @@ package org.eclipse.tracecompass.incubator.coherence.ui.model;
 import java.util.Set;
 
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransition;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
@@ -23,7 +24,9 @@ public class IncoherentEvent extends TimeEvent {
     
     public static String INCOHERENT_MSG = "Incoherent";
     
-    private String fIncoherence = "not set";
+    private String fIncoherenceMsg = "not set";
+    
+    private FsmStateIncoherence fIncoherence;
 
     /**
      * Constructor
@@ -35,13 +38,18 @@ public class IncoherentEvent extends TimeEvent {
      * @param duration
      *              The duration of the event
      */
-    public IncoherentEvent(ITimeGraphEntry entry, long time, long duration, TmfXmlFsmTransition transition) {
+    public IncoherentEvent(ITimeGraphEntry entry, long time, long duration, FsmStateIncoherence incoherence) {
         super(entry, time, duration, INCOHERENT_VALUE);
-    	fIncoherence = "should have taken a " + transition.toString();
+        fIncoherence = incoherence;
+    	fIncoherenceMsg = "should have taken a " + incoherence.getInferredTransitions().get(incoherence.getInferredTransitions().size() - 1).toString();  // get last transition
     }
     
-    public String getIncoherence() {
-    	return fIncoherence;
+    public String getIncoherenceMessage() {
+    	return fIncoherenceMsg;
     }
+    
+    public FsmStateIncoherence getIncoherence() {
+		return fIncoherence;
+	}
 
 }

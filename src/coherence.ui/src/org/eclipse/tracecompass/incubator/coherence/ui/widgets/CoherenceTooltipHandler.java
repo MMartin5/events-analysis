@@ -137,21 +137,7 @@ public class CoherenceTooltipHandler {
                     }
                 }
             }
-
-            private void addItem(String name, String value) {
-                Label nameLabel = new Label(fTipComposite, SWT.NO_FOCUS);
-                nameLabel.setText(name);
-                setupControl(nameLabel);
-                Label separator = new Label(fTipComposite, SWT.NO_FOCUS | SWT.SEPARATOR | SWT.VERTICAL);
-                GridData gd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-                gd.heightHint = nameLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-                separator.setLayoutData(gd);
-                setupControl(separator);
-                Label valueLabel = new Label(fTipComposite, SWT.NO_FOCUS);
-                valueLabel.setText(value);
-                setupControl(valueLabel);
-            }
-
+            
             private void fillValues(Point pt, TimeGraphControl timeGraphControl, ITimeGraphEntry entry) {
                 if (entry == null) {
                     return;
@@ -205,152 +191,19 @@ public class CoherenceTooltipHandler {
                         }
                     }
 
-                    // state name
-                    String stateTypeName = fTimeGraphProvider.getStateTypeName(entry);
-                    String entryName = entry.getName();
-                    if (stateTypeName == null) {
-                        stateTypeName = fTimeGraphProvider.getStateTypeName();
-                    }
-
-                    if (!entryName.isEmpty()) {
-                        addItem(stateTypeName, entry.getName());
-                    }
-
                     if (currEvent == null || currEvent instanceof NullTimeEvent) {
                         return;
                     }
 
                     // state
                     String state = fTimeGraphProvider.getEventName(currEvent);
-                    if (state != null) {                        
-                        addItem(Messages.TmfTimeTipHandler_TRACE_STATE, state);
+                    if (state != null) {
                         if (currEvent instanceof IncoherentEvent) {
                         	// Add an item to the tooltip to display the incoherence
-                        	String incoherence = ((IncoherentEvent) currEvent).getIncoherence();
-                        	addItem("Incoherence", incoherence);
+                        	String incoherence = ((IncoherentEvent) currEvent).getIncoherenceMessage();
                         	// Change the status to display the incoherence
                         	fStatusLineManager.setMessage("Incoherence: " + incoherence);
                         }
-                    }
-
-                    // This block receives a list of <String, String> values to
-                    // be added to the tip table
-                    Map<String, String> eventAddOns = fTimeGraphProvider.getEventHoverToolTipInfo(currEvent, currPixelTime);
-                    if (eventAddOns != null) {
-                        for (Entry<String, String> eventAddOn : eventAddOns.entrySet()) {
-                            addItem(eventAddOn.getKey(), eventAddOn.getValue());
-                        }
-                    }
-                    if (fTimeGraphProvider.displayTimesInTooltip()) {
-                        long eventStartTime = -1;
-                        long eventDuration = -1;
-                        long eventEndTime = -1;
-
-                        eventStartTime = currEvent.getTime();
-                        eventDuration = currEvent.getDuration();
-                        if (eventDuration < 0 && nextEvent != null) {
-                            eventEndTime = nextEvent.getTime();
-                            eventDuration = eventEndTime - eventStartTime;
-                        } else {
-                            eventEndTime = eventStartTime + eventDuration;
-                        }
-
-                        Resolution res = Resolution.NANOSEC;
-                        TimeFormat tf = fTimeDataProvider.getTimeFormat();
-                        String startTime = "?"; //$NON-NLS-1$
-                        String duration = "?"; //$NON-NLS-1$
-                        String endTime = "?"; //$NON-NLS-1$
-                        if (fTimeDataProvider instanceof ITimeDataProviderConverter) {
-                            ITimeDataProviderConverter tdp = (ITimeDataProviderConverter) fTimeDataProvider;
-                            if (eventStartTime > -1) {
-                                eventStartTime = tdp.convertTime(eventStartTime);
-                                startTime = Utils.formatTime(eventStartTime, tf, res);
-                            }
-                            if (eventEndTime > -1) {
-                                eventEndTime = tdp.convertTime(eventEndTime);
-                                endTime = Utils.formatTime(eventEndTime, tf, res);
-                            }
-                            if (eventDuration > -1) {
-                                duration = Utils.formatDelta(eventEndTime - eventStartTime, tf, res);
-                            }
-                        } else {
-                            if (eventStartTime > -1) {
-                                startTime = Utils.formatTime(eventStartTime, tf, res);
-                            }
-                            if (eventEndTime > -1) {
-                                endTime = Utils.formatTime(eventEndTime, tf, res);
-                            }
-                            if (eventDuration > -1) {
-                                duration = Utils.formatDelta(eventDuration, tf, res);
-                            }
-                        }
-                        if (tf == TimeFormat.CALENDAR) {
-                            addItem(Messages.TmfTimeTipHandler_TRACE_DATE,
-                                    eventStartTime > -1 ? Utils.formatDate(eventStartTime) : "?"); //$NON-NLS-1$
-                        }
-                        if (eventDuration > 0) {
-                            addItem(Messages.TmfTimeTipHandler_TRACE_START_TIME, startTime);
-                            addItem(Messages.TmfTimeTipHandler_TRACE_STOP_TIME, endTime);
-                        } else {
-                            addItem(Messages.TmfTimeTipHandler_TRACE_EVENT_TIME, startTime);
-                        }
-
-                        if (eventDuration > 0) {
-                            addItem(Messages.TmfTimeTipHandler_DURATION, duration);
-                            long begin = fTimeDataProvider.getSelectionBegin();
-                            long end = fTimeDataProvider.getSelectionEnd();
-                            final long delta = Math.abs(end - begin);
-                            final double durationRatio = (double) eventDuration / (double) delta;
-                            if (delta > 0) {
-                                String percentage;
-                                if (durationRatio > MAX_RATIO) {
-                                    percentage = MAX_STRING;
-                                } else if (durationRatio < MIN_RATIO) {
-                                    percentage = MIN_STRING;
-                                } else {
-                                    percentage = String.format("%,.2f%%", durationRatio * 100.0); //$NON-NLS-1$
-                                }
-
-                                addItem(Messages.TmfTimeTipHandler_PERCENT_OF_SELECTION, percentage);
-                            }
-                        }
-                    }
-                }
-            }
-
-            private void fillValues(ILinkEvent linkEvent) {
-                addItem(Messages.TmfTimeTipHandler_LINK_SOURCE, linkEvent.getEntry().getName());
-                addItem(Messages.TmfTimeTipHandler_LINK_TARGET, linkEvent.getDestinationEntry().getName());
-
-                // This block receives a list of <String, String> values to be
-                // added to the tip table
-                Map<String, String> eventAddOns = fTimeGraphProvider.getEventHoverToolTipInfo(linkEvent);
-                if (eventAddOns != null) {
-                    for (Entry<String, String> eventAddOn : eventAddOns.entrySet()) {
-                        addItem(eventAddOn.getKey(), eventAddOn.getValue());
-                    }
-                }
-                if (fTimeGraphProvider.displayTimesInTooltip()) {
-                    long sourceTime = linkEvent.getTime();
-                    long duration = linkEvent.getDuration();
-                    long targetTime = sourceTime + duration;
-                    if (fTimeDataProvider instanceof ITimeDataProviderConverter) {
-                        ITimeDataProviderConverter tdp = (ITimeDataProviderConverter) fTimeDataProvider;
-                        sourceTime = tdp.convertTime(sourceTime);
-                        targetTime = tdp.convertTime(targetTime);
-                        duration = targetTime - sourceTime;
-                    }
-                    Resolution res = Resolution.NANOSEC;
-                    TimeFormat tf = fTimeDataProvider.getTimeFormat();
-                    if (tf == TimeFormat.CALENDAR) {
-                        addItem(Messages.TmfTimeTipHandler_TRACE_DATE, Utils.formatDate(sourceTime));
-                    }
-                    if (duration > 0) {
-                        addItem(Messages.TmfTimeTipHandler_LINK_SOURCE_TIME, Utils.formatTime(sourceTime, tf, res));
-                        addItem(Messages.TmfTimeTipHandler_LINK_TARGET_TIME, Utils.formatTime(targetTime, tf, res));
-                        addItem(Messages.TmfTimeTipHandler_DURATION, Utils.formatDelta(duration, tf, res));
-                    } else {
-                        addItem(Messages.TmfTimeTipHandler_LINK_TIME, Utils.formatTime(sourceTime, tf, res));
                     }
                 }
             }

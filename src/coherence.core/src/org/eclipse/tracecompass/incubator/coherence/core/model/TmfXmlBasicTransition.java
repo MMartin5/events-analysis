@@ -10,6 +10,7 @@ package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -43,8 +44,14 @@ public class TmfXmlBasicTransition {
      */
     public String getCondition() {
     	String cond = "";
-    	for (String str : fCond) {
+    	Iterator<String> it = fCond.iterator();
+    	while (it.hasNext()) {
+    		String str = it.next();
     		cond += str;
+    		if (it.hasNext()) {
+    			cond += ":";
+    		}
+    		
     	}
 		return cond;
 	}

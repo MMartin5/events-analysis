@@ -350,4 +350,8 @@ public class TmfXmlCondition implements ITmfXmlCondition {
             throw new IllegalArgumentException("TmfXmlCondition: invalid comparison operator."); //$NON-NLS-1$
         }
     }
+    
+    public List<ITmfXmlStateValue> getStateValues() {
+    	return fStateValues;
+    }
 }
