@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.kernel.StateValues;
@@ -16,7 +15,6 @@ import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 
 public class InferenceView extends CoherenceView {
 
