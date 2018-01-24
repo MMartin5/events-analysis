@@ -1,9 +1,11 @@
 package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.ctf.core.event.IEventDefinition;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateValue.TmfXmlStateValueBase;
@@ -164,23 +166,12 @@ public class TmfInferredEvent extends TmfEvent {
     			}        				
     			if (fieldName == null) {													// Case 3: condition is a state attribute sequence with a type eventField
     				List<ITmfXmlStateAttribute> attributes = stateValue.getAttributes();
-    				String[] pattern = new String[attributes.size()];
-    				int fieldIndex = 0;
-    				/* Create a state system path from attribute's names, with unknown event field values replaced by wildcard '*' */
-    				for (ITmfXmlStateAttribute stateAttribute : attributes) {
-    					TmfXmlStateAttribute attr = (TmfXmlStateAttribute) stateAttribute;
-    					// FIXME we need to deal with type location, where the event field could be inside of the location definition
-	    				if (attr.getType() == TmfXmlStateAttribute.StateAttributeType.EVENTFIELD) { // handle event field
-	    					// FIXME could be several event field (possibly one per attribute)
-	    					fieldName = attr.getName();
-	    					fieldIndex = attributes.indexOf(attr); 
-	    					pattern[fieldIndex] = "*";
-	    				}
-	    				else {
-	    					pattern[attributes.indexOf(attr)] = attr.getName();
-	    				}
-    				}
-			 
+    				Pair<List<String>, Pair<String, Integer>> res = getPathFromAttributes(attributes);
+    				List<String> path = res.getFirst();
+    				fieldName = res.getSecond().getFirst();
+    				int fieldIndex = res.getSecond().getSecond();
+    				String[] pattern = path.toArray(new String[path.size()]);
+    		
     				if (fieldName == null) {												// Case 4 (default): condition is not about an event field
     					continue;
     				}
@@ -190,7 +181,7 @@ public class TmfInferredEvent extends TmfEvent {
     					/* Get the following state value for comparison */
     					ITmfStateValue compValue = null;
 						try {
-							compValue = stateValues.get(stateValues.indexOf(value) + 1).getValue(event, scenarioInfo);
+							compValue = stateValue.getValue(event, scenarioInfo);
 						} catch (AttributeNotFoundException e) {
 							Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
 			                continue;
@@ -200,7 +191,7 @@ public class TmfInferredEvent extends TmfEvent {
     						ITmfStateValue currentValue = stateSystem.queryOngoingState(quark);
     						if (currentValue == compValue) { // we found a match for the desired value
     							/* Find the missing field value in the matching path */
-    							fieldValue = stateSystem.getFullAttributePathArray(quark)[fieldIndex];
+    							fieldValue = stateSystem.getFullAttributePathArray(quark)[fieldIndex]; // FIXME several quarks could match => which one should we choose? (for now, we choose the first one) 
     							break;
     						}
     					}
@@ -235,6 +226,39 @@ public class TmfInferredEvent extends TmfEvent {
 			fields.add(new Pair<String, Object>(fieldName, fieldValue));
 		}
 		return fields;
+	}
+	
+	/**
+	 *  Create a state system path from attribute's names, with unknown event field values replaced by wildcard '*' 
+	 */
+	private static Pair<List<String>, Pair<String, Integer>> getPathFromAttributes(List<ITmfXmlStateAttribute> attributes) {
+		List<String> path = new ArrayList<>();
+		Pair<String, Integer> field = null;
+		for (ITmfXmlStateAttribute attribute : attributes) {
+			TmfXmlStateAttribute stateAttribute = (TmfXmlStateAttribute) attribute;
+			// FIXME we need to deal with type location, where the event field could be inside of the location definition
+			if (stateAttribute.getType() == TmfXmlStateAttribute.StateAttributeType.EVENTFIELD) { // handle event field
+				// FIXME could be several event field (possibly one per attribute)
+				field = new Pair<String, Integer>(stateAttribute.getName(), attributes.indexOf(stateAttribute)); 
+				path.add("*");
+			}
+			else if (stateAttribute.getType() == TmfXmlStateAttribute.StateAttributeType.LOCATION) {
+				for (TmfXmlLocation location : stateAttribute.getContainer().getLocations()) {
+					if (location.getId().equals(stateAttribute.getName())) { // look for the location object
+						List<ITmfXmlStateAttribute> locationAttributes = location.getPath();
+						Pair<List<String>, Pair<String, Integer>> locationMap = getPathFromAttributes(locationAttributes);
+						path.addAll(locationMap.getFirst());
+						if (locationMap.getSecond() != null) {
+							field = locationMap.getSecond(); 
+						}
+					}
+				}
+			}
+			else {
+				path.add(stateAttribute.getName());
+			}
+		}
+		return new Pair<List<String>, Pair<String, Integer>>(path, field);
 	}
 	
 	private TmfInferredEvent(final ITmfTrace trace,

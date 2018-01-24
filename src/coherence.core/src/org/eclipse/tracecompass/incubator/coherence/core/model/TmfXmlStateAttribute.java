@@ -362,4 +362,8 @@ public abstract class TmfXmlStateAttribute implements ITmfXmlStateAttribute {
     	return fName;
     }
 
+    public IXmlStateSystemContainer getContainer() {
+        return fContainer;
+    }
+
 }

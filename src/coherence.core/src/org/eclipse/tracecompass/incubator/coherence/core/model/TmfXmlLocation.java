@@ -133,5 +133,9 @@ public class TmfXmlLocation {
     public String toString() {
         return "TmfXmlLocation " + fId + ": " + fPath; //$NON-NLS-1$ //$NON-NLS-2$
     }
+    
+    public List<ITmfXmlStateAttribute> getPath() {
+    	return fPath;
+    }
 
 }
