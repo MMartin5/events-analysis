@@ -1,0 +1,37 @@
+<trace>
+	<event timestamp="1" name="entry">
+		<field name="cpu" type="int" value="0" />
+	</event>
+	<event timestamp="3" name="entry">
+		<field name="cpu" type="int" value="1" />
+	</event>
+	<event timestamp="5" name="do">
+		<field name="cpu" type="int" value="0" />
+		<field name="action" type="int" value="1" />
+	</event>
+	<event timestamp="7" name="exit">
+		<field name="cpu" type="int" value="0" />
+	</event>
+	<event timestamp="9" name="exit">
+		<field name="cpu" type="int" value="1" />
+	</event>
+	<event timestamp="11" name="entry">
+		<field name="cpu" type="int" value="2" />
+	</event>
+	<event timestamp="13" name="do">
+		<field name="cpu" type="int" value="2" />
+		<field name="action" type="int" value="2" />
+	</event>
+	<event timestamp="17" name="entry">
+		<field name="cpu" type="int" value="0" />
+	</event>
+	<event timestamp="19" name="entry">
+		<field name="cpu" type="int" value="2" />
+	</event>
+</trace>
+
+
+<!-- LOST 
+<event timestamp="15" name="exit">
+	<field name="cpu" type="int" value="2" />
+</event> -->

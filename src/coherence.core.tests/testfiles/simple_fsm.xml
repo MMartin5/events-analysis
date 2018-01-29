@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
+
+    <!-- Pattern definition -->
+    <pattern id="kernel.linux.pattern.from.fsm" version="1">
+        <head>
+            <traceType id="org.eclipse.linuxtools.lttng2.kernel.tracetype" />
+            <label value="Xml Kernel State System Pattern from FSM" />
+        </head>
+        
+        <definedValue name="CPU_STATUS_OUT" value="0" />
+        <definedValue name="CPU_STATUS_IN" value="1" />
+        <definedValue name="CPU_STATUS_RUN_1" value="2" />
+        <definedValue name="CPU_STATUS_RUN_2" value="3" />
+        
+        <!-- Shortcut Variables -->
+        <location id="CurrentScenarioCPU">
+            <stateAttribute type="constant" value="CPUs" />
+            <stateAttribute type="query">
+                <stateAttribute type="constant" value="#CurrentScenario" />
+                <stateAttribute type="constant" value="attribute" />
+            </stateAttribute>
+        </location>
+        <location id="CurrentCPU">
+            <stateAttribute type="constant" value="CPUs" />
+            <stateAttribute type="eventField" value="cpu" />
+        </location>
+        
+        <patternHandler>
+
+            <!-- Actions -->
+
+            <action id="update_to_out">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentCPU" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$CPU_STATUS_OUT" />
+                </stateChange>
+            </action>
+
+            <action id="update_to_in">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentCPU" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$CPU_STATUS_IN" />
+                </stateChange>
+            </action>
+
+            <action id="update_to_run_1">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentCPU" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$CPU_STATUS_RUN_1" />
+                </stateChange>
+            </action>
+
+            <action id="update_to_run_2">
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentCPU" />
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="$CPU_STATUS_RUN_2" />
+                </stateChange>
+            </action>
+            
+
+            <!-- Other actions used when a transition occurs -->
+
+            <action id="init_scenario">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="attribute" />
+                    <stateValue type="eventField" value="cpu" forcedType="int" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="location" value="CurrentScenarioCPU" />
+                    <stateAttribute type="constant" value="hasScenario" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+            </action>
+
+            <!-- Conditions on cpu id -->
+            
+            <test id="initial_test">
+                <if>
+                  <and>
+                      <!-- this condition is used only in the initial state
+                          to make sure no scenario has already been
+                          instantiated for this process -->
+                      <condition>
+                          <stateAttribute type="constant" value="CPUs" />
+                          <stateAttribute type="eventField" value="cpu" />
+                          <stateAttribute type="constant" value="hasScenario" />
+                          <stateValue type="null" />
+                      </condition>
+                      <condition>
+                          <stateAttribute type="constant" value="#CurrentScenario" />
+                          <stateAttribute type="constant" value="attribute" />
+                          <stateValue type="null" />
+                      </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="cpu_id_is_current_scenario_cpu">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="constant" value="attribute" />
+                        <stateValue type="eventField" value="cpu" />
+                    </condition>
+                </if>
+            </test>
+
+            <!-- Other conditions -->
+
+            <test id="action_is_1">
+                <if>
+	                <condition>
+	                    <field name="action" />
+	                    <stateValue type="int" value="1" />
+	                </condition>
+                </if>
+            </test>
+            
+            <test id="action_is_2">
+                <if>
+	                <condition>
+	                    <field name="action" />
+	                    <stateValue type="int" value="2" />
+	                </condition>
+                </if>
+            </test>
+
+            <!-- State machines -->
+            
+            <fsm id="process_fsm" consuming="false">
+                <initialState>
+                <!-- initial state with initialization action -->
+					<transition event="entry" target="in" action="update_to_in:init_scenario" cond="initial_test" />
+					<transition event="do" target="run_1" action="update_to_run_1:init_scenario" cond="action_is_1:initial_test" />
+                    <transition event="do" target="run_2" action="update_to_run_2:init_scenario" cond="action_is_2:initial_test" />
+                    <transition event="exit" target="out" action="update_to_out:init_scenario" cond="initial_test" />
+                </initialState>
+                <state id="out">
+                    <transition event="entry" target="in" action="update_to_in" cond="cpu_id_is_current_scenario_cpu" />
+                </state>
+                <state id="in">
+                    <transition event="do" target="run_1" action="update_to_run_1" cond="action_is_1:cpu_id_is_current_scenario_cpu" />
+                    <transition event="do" target="run_2" action="update_to_run_2" cond="action_is_2:cpu_id_is_current_scenario_cpu" />
+                    <transition event="exit" target="out" action="update_to_out" cond="cpu_id_is_current_scenario_cpu" />
+                </state>
+                <state id="run_1">
+                    <transition event="exit" target="out" action="update_to_out" cond="cpu_id_is_current_scenario_cpu" />
+                </state>
+                <state id="run_2">
+                	<transition event="exit" target="out" action="update_to_out" cond="cpu_id_is_current_scenario_cpu" />
+                </state>
+            </fsm>
+
+        </patternHandler>
+    </pattern>
+</tmfxml>

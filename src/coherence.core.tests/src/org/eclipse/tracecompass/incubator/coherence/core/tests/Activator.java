@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.annotation.NonNull;
 import org.osgi.framework.BundleContext;
 
 /**
@@ -91,6 +92,31 @@ public class Activator extends Plugin {
             return new Path(FileLocator.toFileURL(location).getPath());
         } catch (IOException e) {
             throw new IllegalStateException();
+        }
+    }
+    
+    /**
+     * Gets the absolute path from a path relative to this plugin's root
+     *
+     * @param relativePath
+     *            The path relative to this plugin
+     * @return The absolute path corresponding to this relative path
+     */
+    public static @NonNull IPath getAbsolutePath(Path relativePath) {
+        Activator plugin2 = getDefault();
+        if (plugin2 == null) {
+            /*
+             * Shouldn't happen but at least throw something to get the test to
+             * fail early
+             */
+            throw new IllegalStateException();
+        }
+        URL location = FileLocator.find(plugin2.getBundle(), relativePath, null);
+        try {
+            IPath path = new Path(FileLocator.toFileURL(location).getPath());
+            return path;
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
         }
     }
     
