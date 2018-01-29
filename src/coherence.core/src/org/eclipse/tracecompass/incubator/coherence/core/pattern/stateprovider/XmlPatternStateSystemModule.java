@@ -33,24 +33,27 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
     private @Nullable XmlPatternStateProvider fStateProvider;
     
     private String fAlgoId;
+    private final boolean fForceObservation;
 
     /**
      * Constructor
      *
      * @param listener
      *            Listener for segments that will be created
+     * @param forceObservation 
      */
-    public XmlPatternStateSystemModule(ISegmentListener listener) {
+    public XmlPatternStateSystemModule(ISegmentListener listener, boolean forceObservation) {
         super();
         fListener = listener;
         fStateProvider = null;
         fAlgoId = TmfXmlScenarioObserver.ALGO1; // by default, use this coherence algorithm
+        fForceObservation = forceObservation;
     }
 
     @Override
     protected @NonNull ITmfStateProvider createStateProvider() {
         String id = getId();
-        fStateProvider = new XmlPatternStateProvider(checkNotNull(getTrace()), id, fXmlFile, fListener);
+        fStateProvider = new XmlPatternStateProvider(checkNotNull(getTrace()), id, fXmlFile, fListener, fForceObservation);
         if (fAlgoId == null) {
         	fStateProvider.setNoObservers();
         }

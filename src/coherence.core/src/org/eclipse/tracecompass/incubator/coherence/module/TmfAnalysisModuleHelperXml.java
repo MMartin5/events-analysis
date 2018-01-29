@@ -211,7 +211,7 @@ public class TmfAnalysisModuleHelperXml implements IAnalysisModuleHelper, ITmfPr
 
             break;
         case PATTERN:
-            module = new XmlPatternAnalysis();
+            module = new XmlPatternAnalysis(false);
             module.setName(getName());
             module.setId(analysisid);
             XmlPatternAnalysis paModule = (XmlPatternAnalysis) module;

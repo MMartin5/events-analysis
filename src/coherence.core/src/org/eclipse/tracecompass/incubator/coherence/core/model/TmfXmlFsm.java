@@ -603,6 +603,11 @@ public class TmfXmlFsm {
     		attributes.add(tid.getValue().toString());
     	}
     	
+    	ITmfEventField cpuId = content.getField("cpu");
+    	if (cpuId != null) {
+    		attributes.add(cpuId.getValue().toString());
+    	}
+    	
     	return attributes;
     }
     

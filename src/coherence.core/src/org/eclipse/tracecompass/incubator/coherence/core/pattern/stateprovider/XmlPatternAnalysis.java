@@ -66,10 +66,10 @@ public class XmlPatternAnalysis extends TmfAbstractAnalysisModule implements ITm
     /**
      * Constructor
      */
-    public XmlPatternAnalysis() {
+    public XmlPatternAnalysis(boolean forceObservation) {
         super();
         fSegmentStoreModule = new XmlPatternSegmentStoreModule(this);
-        fStateSystemModule = new XmlPatternStateSystemModule(fSegmentStoreModule);
+        fStateSystemModule = new XmlPatternStateSystemModule(fSegmentStoreModule, forceObservation);
     }
 
     @Override

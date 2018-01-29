@@ -85,6 +85,13 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
     private boolean fWithObservers;
     List<TmfInferredEvent> fInferredEvents; // the list of inferred events for this XML analysis
 
+	private boolean fForceObservation;
+    
+    // FIXME for testing purpose
+    public List<TmfInferredEvent> getInferredEvents() {
+    	return fInferredEvents;
+    }
+
     /**
      * @param trace
      *            The active trace
@@ -95,12 +102,14 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
      *            The XML file
      * @param listener
      *            Listener for segment creation
+     * @param forceObservation 
      */
-    public XmlPatternStateProvider(@NonNull ITmfTrace trace, @NonNull String stateid, @Nullable Path file, ISegmentListener listener) {
+    public XmlPatternStateProvider(@NonNull ITmfTrace trace, @NonNull String stateid, @Nullable Path file, ISegmentListener listener, boolean forceObservation) {
         super(trace, stateid);
         fStateId = stateid;
         fFilePath = file;
         fListener = listener;
+        fForceObservation = forceObservation;
         fHistoryBuilder = new TmfXmlScenarioHistoryBuilder();
         final String pathString = fFilePath.toAbsolutePath().toString();
         Element doc = TmfXmlUtils.getElementInFile(pathString, TmfXmlStrings.PATTERN, fStateId);
@@ -165,21 +174,28 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
         /* parser for the event handlers */
         NodeList nodes = doc.getElementsByTagName(TmfXmlStrings.PATTERN_HANDLER);
         fHandler = modelFactory.createPatternEventHandler(NonNullUtils.checkNotNull((Element) nodes.item(0)), this);
-       
-        TmfStatisticsModule module = (TmfStatisticsModule) TmfTraceUtils.getAnalysisModuleOfClass(trace, TmfStatisticsModule.class, TmfStatisticsModule.ID);
-        if (module == null) {
-        	fWithObservers = false;
-        	return;
-        }
-        module.schedule();
-		module.waitForCompletion();
-        ITmfStatistics statistics = module.getStatistics();
-        if (statistics != null) {
-	        Map<String, Long> eventTypesStat = statistics.getEventTypesTotal();
-	        fWithObservers = eventTypesStat.containsKey(CTFStrings.LOST_EVENT_NAME); // use scenario observers only if we have some lost events
+	 
+        if (fForceObservation) {
+        	/* Force the coherence checking of every event */
+        	fWithObservers = true;
+        	fHandler.setStartChecking(true);
         }
         else {
-        	fWithObservers = false;
+	        TmfStatisticsModule module = (TmfStatisticsModule) TmfTraceUtils.getAnalysisModuleOfClass(trace, TmfStatisticsModule.class, TmfStatisticsModule.ID);
+	        if (module == null) {
+	        	fWithObservers = false;
+	        	return;
+	        }
+	        module.schedule();
+			module.waitForCompletion();
+	        ITmfStatistics statistics = module.getStatistics();
+	        if (statistics != null) {
+		        Map<String, Long> eventTypesStat = statistics.getEventTypesTotal();
+		        fWithObservers = eventTypesStat.containsKey(CTFStrings.LOST_EVENT_NAME); // use scenario observers only if we have some lost events
+	        }
+	        else {
+	        	fWithObservers = false;
+	        }
         }
     }
     
@@ -224,7 +240,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 
     @Override
     public @NonNull ITmfStateProvider getNewInstance() {
-        return new XmlPatternStateProvider(getTrace(), getStateId(), fFilePath, fListener);
+        return new XmlPatternStateProvider(getTrace(), getStateId(), fFilePath, fListener, fForceObservation);
     }
 
     /**

@@ -143,7 +143,7 @@ public class CoherenceAnalysisBenchmark {
                 assertNotNull(node);
                                
             	// Create module
-            	module = new XmlPatternAnalysis();
+            	module = new XmlPatternAnalysis(false);
                 module.setXmlFile(path.toFile().toPath());
                 module.setName(XmlModuleTestBase.getName(node));
                 

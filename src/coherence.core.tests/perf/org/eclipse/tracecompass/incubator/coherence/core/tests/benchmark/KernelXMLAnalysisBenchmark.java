@@ -79,7 +79,7 @@ public class KernelXMLAnalysisBenchmark {
             	kernelModule.setId("test");
                 return kernelModule;
             case XML_ANALYSIS:
-                XmlPatternAnalysis module = new XmlPatternAnalysis();
+                XmlPatternAnalysis module = new XmlPatternAnalysis(false);
                 IPath path = Activator.getAbsoluteFilePath(fXMLAnalysisFile);
             	
             	// Get XML document
