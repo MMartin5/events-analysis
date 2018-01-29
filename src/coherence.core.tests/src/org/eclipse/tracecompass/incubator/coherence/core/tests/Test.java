@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -21,7 +22,9 @@ import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.X
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.tests.stateprovider.XmlModuleTestBase;
+import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
@@ -59,7 +62,11 @@ public class Test {
     	
     	ITmfTimestamp start = TmfTimestamp.create(13, ITmfTimestamp.NANOSECOND_SCALE);
         ITmfTimestamp end = TmfTimestamp.create(19, ITmfTimestamp.NANOSECOND_SCALE);
-        TmfInferredEventTest expected = new TmfInferredEventTest("exit", start, end, 1);
+        List<TmfEventField> fields = Arrays.asList(new TmfEventField("cpu", 2, null));
+        ITmfEventField content = new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, 
+        		fields.toArray(new TmfEventField[fields.size()]));
+        
+        TmfInferredEventTest expected = new TmfInferredEventTest("exit", start, end, 1, content);
         expectedValues.add(expected);
         
         return expectedValues;
@@ -165,6 +172,10 @@ public class Test {
         	if (!expectedEvent.equals(event)) {
             	fail("Expected event does not match inferred event.");
             }
+        	
+        	if (!expectedEvent.getContent().equals(event.getContent())) {
+        		fail("Expected event content does not match inferred event content.");
+        	}
         }
     }
 
