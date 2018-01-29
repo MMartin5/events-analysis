@@ -5,6 +5,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -17,14 +19,14 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.module.XmlUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.trace.layout.LttngEventLayout;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.tests.stateprovider.XmlModuleTestBase;
 import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
+import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
@@ -43,6 +45,25 @@ public class Test {
 
     ITmfTrace fTrace;
     XmlPatternAnalysis fModule;
+    
+    private final List<TmfInferredEventTest> expectedValues = initExpectedValues();
+    
+    /**
+     * Initializes the expected values for inferred events
+     * 
+     * @return
+     * 			The list of expected events
+     */
+    private static List<TmfInferredEventTest> initExpectedValues() {
+    	List<TmfInferredEventTest> expectedValues = new ArrayList<>();
+    	
+    	ITmfTimestamp start = TmfTimestamp.create(13, ITmfTimestamp.NANOSECOND_SCALE);
+        ITmfTimestamp end = TmfTimestamp.create(19, ITmfTimestamp.NANOSECOND_SCALE);
+        TmfInferredEventTest expected = new TmfInferredEventTest("exit", start, end, 1);
+        expectedValues.add(expected);
+        
+        return expectedValues;
+    }
 
     /**
      * Initializes the trace and the module for the tests
@@ -129,8 +150,21 @@ public class Test {
         
         List<TmfInferredEvent> inferredEvents = module.getStateSystemModule().getStateProvider().getInferredEvents();
         
-        for (TmfInferredEvent event : inferredEvents) {
+        if (inferredEvents.size() != expectedValues.size()) {
+        	fail("Some missing events have not been inferred.");
+        }
+        
+        Iterator<TmfInferredEvent> inferredIt = inferredEvents.iterator();
+        Iterator<TmfInferredEventTest> expectedIt = expectedValues.iterator();
+        while (inferredIt.hasNext()) {
+        	TmfInferredEvent event = inferredIt.next();
         	System.out.println(event.toString());
+        	
+        	TmfInferredEventTest expectedEvent = expectedIt.next();
+        	
+        	if (!expectedEvent.equals(event)) {
+            	fail("Expected event does not match inferred event.");
+            }
         }
     }
 

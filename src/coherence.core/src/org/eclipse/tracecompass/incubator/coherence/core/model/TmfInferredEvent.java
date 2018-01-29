@@ -297,7 +297,7 @@ public class TmfInferredEvent extends TmfEvent {
 		return new Pair<List<String>, List<Pair<String, Integer>>>(path, fields);
 	}
 	
-	private TmfInferredEvent(final ITmfTrace trace,
+	protected TmfInferredEvent(final ITmfTrace trace,
             final long rank,
             final long localRank,
             final ITmfTimestamp ts,
