@@ -10,6 +10,7 @@ package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -130,8 +131,19 @@ public class TmfXmlFsm {
 		TmfXmlFsmTransition UNDEFINED = new TmfXmlFsmTransition(null, null, null);
 		/* Initialization */
 		String current = start;							 			// current node
-		Set<String> unvisited = new HashSet<>(); 					// set of unvisited nodes
 		Map<String, Float> distances = new HashMap<>(); 			// associates a node (state) to its tentative distance to the start
+		List<String> unvisited = new ArrayList<>();					// set of unvisited nodes
+		/* the comparator used to sort the list of unvisited nodes according to their distance to start  */
+		Comparator<String> compUnvisited = new Comparator<String>() {
+			
+			@Override
+			public int compare(String o1, String o2) {
+				if (distances.get(o1) == distances.get(o2) ) {
+					return 0;
+				}
+				return (distances.get(o1) <= distances.get(o2)) ? -1 : 1;
+			}
+		};
 		Map<String, TmfXmlFsmTransition> prev = new HashMap<>(); 	// associates a node to the previous optimal node (with the related transition)
 		for (TmfXmlState state : fStatesMap.values()) {
 			distances.put(state.getId(), INFINITY); // set to infinity because the distance is unknown
@@ -157,15 +169,10 @@ public class TmfXmlFsm {
 			
 			/* Remove current node from the list of unvisited nodes */
 			unvisited.remove(current);
-			/* Look for the next node, which is the unvisited node with minimum distance to start 
-				TODO: surely this portion of code can be improved (maybe keep the list ordered) */
+			/* Look for the next node, which is the unvisited node with minimum distance to start */
+			unvisited.sort(compUnvisited);
 			if (!unvisited.isEmpty()) {
-				current = unvisited.iterator().next();
-				for (String remainingNode : unvisited) {
-					if (distances.get(remainingNode) < distances.get(current)) { 
-						current = remainingNode;
-					}
-				}
+				current = unvisited.get(0);
 			}
 		}		
 		/* The target node has been reached */
