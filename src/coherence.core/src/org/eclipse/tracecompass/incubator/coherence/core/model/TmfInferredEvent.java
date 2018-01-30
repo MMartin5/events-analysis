@@ -167,7 +167,6 @@ public class TmfInferredEvent extends TmfEvent {
 			String fieldName = stateValue.getEventField(); // not null in case of XML tag <field ..>
 			Object fieldValue = null;
 			if (fieldName == null) {														// Case 2: condition is a state value with type eventField
-				// TODO check that every sub-case is covered
 				TmfXmlStateValueBase base = stateValue.getBaseStateValue();
     			if (base instanceof TmfXmlReadWriteStateValue.TmfXmlStateValueEventField) {
     				fieldName = ((TmfXmlReadWriteStateValue.TmfXmlStateValueEventField) base).getFieldName(); // not null in case of tag <stateValue type="eventField" ...>
@@ -274,7 +273,6 @@ public class TmfInferredEvent extends TmfEvent {
 		for (ITmfXmlStateAttribute attribute : attributes) {
 			TmfXmlStateAttribute stateAttribute = (TmfXmlStateAttribute) attribute;
 			if (stateAttribute.getType() == TmfXmlStateAttribute.StateAttributeType.EVENTFIELD) { // handle event field
-				// FIXME could be several event field (possibly one per attribute)
 				fields.add(new Pair<String, Integer>(stateAttribute.getName(), attributes.indexOf(stateAttribute))); 
 				path.add("*");
 			}

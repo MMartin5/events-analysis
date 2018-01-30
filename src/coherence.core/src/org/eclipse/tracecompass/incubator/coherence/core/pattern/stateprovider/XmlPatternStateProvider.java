@@ -87,11 +87,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 
 	private boolean fForceObservation;
     
-    // FIXME for testing purpose
-    public List<TmfInferredEvent> getInferredEvents() {
-    	return fInferredEvents;
-    }
-
+    
     /**
      * @param trace
      *            The active trace
@@ -355,5 +351,16 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 
     public @Nullable TmfXmlPatternEventHandler getEventHandler() {
         return fHandler;
+    }
+    
+    /**
+     * Get the inferred events computed after the analysis, 
+     * sorted by their timestamp
+     * 
+     * @return
+     * 			The list of inferred events
+     */
+    public List<TmfInferredEvent> getInferredEvents() {
+    	return fInferredEvents;
     }
 }

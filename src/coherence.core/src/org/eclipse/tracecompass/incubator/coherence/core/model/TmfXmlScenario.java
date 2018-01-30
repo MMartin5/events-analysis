@@ -164,11 +164,14 @@ public class TmfXmlScenario {
     }
     
     /**
-     * Get the attribute uniquely identifying this scenario 
+     * Get the attribute uniquely identifying this scenario.
+     * 
+     * It should be set by the user in every action that is 
+     * executed first, at the location '#CurrentScenario/attribute'.
+     * It should be an integer. 
+     *  
      * @return
      * 			The unique attribute
-     * 
-     * FIXME works only for process_fsm for now
      */
     protected String setAttribute() {
     	String value = "";
@@ -183,7 +186,6 @@ public class TmfXmlScenario {
 			return value;
 		}
     	ITmfStateValue sValue = ss.queryOngoingState(attributeQuark);
-//    	value = sValue.unboxStr();
     	value = String.valueOf(sValue.unboxInt());
     	return value;
     }

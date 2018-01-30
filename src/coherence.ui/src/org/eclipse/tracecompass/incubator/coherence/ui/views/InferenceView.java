@@ -141,6 +141,8 @@ public class InferenceView extends CoherenceView {
     }
 
 	// FIXME make it more general
+	// it depends on the value associated with the action that is executed when
+	// a transition to a certain target is taken (defined by user)
 	private int handleInferredEvent(TmfXmlFsmTransition inferredTransition) {
 		if (inferredTransition == null) {
 			return StateValues.PROCESS_STATUS_UNKNOWN;

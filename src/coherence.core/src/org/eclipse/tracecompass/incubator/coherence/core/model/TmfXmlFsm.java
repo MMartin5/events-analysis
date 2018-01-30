@@ -675,7 +675,7 @@ public class TmfXmlFsm {
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
-            handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal); // TODO: check this isEventCoherent() parameter...
+            handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
                 fPendingScenario = null;
