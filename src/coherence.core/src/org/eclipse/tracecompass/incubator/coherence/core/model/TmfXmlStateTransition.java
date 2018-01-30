@@ -32,9 +32,6 @@ public class TmfXmlStateTransition extends TmfXmlBasicTransition {
     private final List<String> fAction;
     private final boolean fStoredFieldsToBeSaved;
     private final boolean fStoredFieldsToBeCleared;
-    private final boolean fCertainState; // true if this transition always means a coherent state is reached
-    
-    public static final String XML_CERTAINTY_ATTRIBUTE = "certain"; // FIXME : should be inserted in TmfXmlStrings
 
     /**
      * Constructor
@@ -54,7 +51,7 @@ public class TmfXmlStateTransition extends TmfXmlBasicTransition {
         }
         fTarget = target;
         String action = node.getAttribute(TmfXmlStrings.ACTION);
-        List<String> actions = action.equals(TmfXmlStrings.NULL) ? Collections.EMPTY_LIST : Arrays.asList(action.split(TmfXmlStrings.AND_SEPARATOR));
+        List<String> actions = action.equals(TmfXmlStrings.NULL) ? Collections.emptyList() : Arrays.asList(action.split(TmfXmlStrings.AND_SEPARATOR));
         fStoredFieldsToBeSaved = (node.getAttribute(TmfXmlStrings.SAVE_STORED_FIELDS).equals(TmfXmlStrings.EMPTY_STRING) ? false : Boolean.parseBoolean(node.getAttribute(TmfXmlStrings.SAVE_STORED_FIELDS)));
         fStoredFieldsToBeCleared = (node.getAttribute(TmfXmlStrings.CLEAR_STORED_FIELDS).equals(TmfXmlStrings.EMPTY_STRING) ? false : Boolean.parseBoolean(node.getAttribute(TmfXmlStrings.CLEAR_STORED_FIELDS)));
         fAction = new ArrayList<>();
@@ -65,18 +62,6 @@ public class TmfXmlStateTransition extends TmfXmlBasicTransition {
         if (fStoredFieldsToBeCleared) {
             fAction.add(CLEAR_STORED_FIELDS_ACTION_STRINGS);
         }
-        fCertainState = (node.getAttribute(XML_CERTAINTY_ATTRIBUTE).equals(TmfXmlStrings.EMPTY_STRING) ? false : Boolean.parseBoolean(node.getAttribute(XML_CERTAINTY_ATTRIBUTE)));
-    }
-
-    /**
-     * The certainty level (certain, uncertain) of the consistency of the state that is reached 
-     * when this transition is triggered. 
-     * 
-     * @return
-     * 			The certainty level of the state reached by this transition.
-     */
-    public boolean isCertainState() {
-    	return fCertainState;
     }
 
     /**
