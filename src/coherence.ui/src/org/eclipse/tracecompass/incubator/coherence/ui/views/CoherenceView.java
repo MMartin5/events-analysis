@@ -18,18 +18,26 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.action.StatusLineContributionItem;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.events.MenuDetectEvent;
 import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
@@ -40,6 +48,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.X
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
 import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 import org.eclipse.tracecompass.incubator.coherence.ui.Activator;
+import org.eclipse.tracecompass.incubator.coherence.ui.dialogs.InferenceDialog;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipHandler;
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.actions.DisplayInferenceAction;
@@ -63,6 +72,7 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphViewer;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
@@ -105,11 +115,20 @@ public class CoherenceView extends ControlFlowView {
 	private final @NonNull MenuManager fEventMenuManager = new MenuManager();
 	
 	private Map<String, TmfXmlScenario> scenarios = new HashMap<>();
+	
+	private Action fInferenceSelectionAction;
+	private static final String ICON_PATH = "icons/licorne.gif"; //$NON-NLS-1$
+	// FIXME messages
+	private static final String TOOLTIP_TEXT = "Select Values for Inferences"; //$NON-NLS-1$
+	private static final String LABEL_TEXT = "Infer"; //$NON-NLS-1$
+	
+	InferenceDialog dialog;
 
 	public CoherenceView() {
 	    super();
 	    
 	    fNewPresentation = new CoherencePresentationProvider();
+	    dialog = null;
 	}
 	
 	@Override
@@ -316,6 +335,7 @@ public class CoherenceView extends ControlFlowView {
     		}
 			eventSet.add(incoherence);
 			pEntries.put(tidStr, eventSet);
+			
         }
         
         refresh();
@@ -331,7 +351,7 @@ public class CoherenceView extends ControlFlowView {
 	@Override
 	protected List<IMarkerEvent> getViewMarkerList(long startTime, long endTime,
 	        long resolution, @NonNull IProgressMonitor monitor) {
-
+		
 		/* Coherence markers */
 		
 		for (FsmStateIncoherence incoherence : fIncoherences) {
@@ -579,6 +599,65 @@ public class CoherenceView extends ControlFlowView {
                 }
             }
         }
+    }
+	
+	/**
+	 * Action that triggers the opening of the dialog used to 
+	 * allow user-selection of a value for an inferred event field.
+	 * 
+	 * @author mmartin
+	 *
+	 */
+	private final class InferenceSelectionAction extends Action {
+		private final TimeGraphViewer fViewer;
+		
+		public InferenceSelectionAction(TimeGraphViewer timeGraphViewer) {
+			fViewer= timeGraphViewer;
+		}
+
+		@Override
+        public void runWithEvent(Event event) {
+			if (fModule != null) {
+				XmlPatternStateProvider provider = fModule.getStateProvider();
+				if (provider.hasMultiInferredEvents()) {
+		        	Display display = Display.getDefault();
+		    	    if (display != null) {
+		        	    display.syncExec(new Runnable() { // syncExec to wait for the result of the dialog
+		        	        @Override
+		                    public void run() {
+		        	        	Shell shell = fViewer.getControl().getShell();
+		        	        	if (dialog == null) {
+		        	        		dialog = new InferenceDialog(shell, provider); // TODO should we recreate the dialog everytime?
+		        	        	}
+		        	        	dialog.open();
+		        	        }
+		        	    });
+			        }        	
+		        }
+			}
+		}
+	}
+	
+	private IAction getInferenceSelectionAction() {
+        if (fInferenceSelectionAction == null) {
+            fInferenceSelectionAction = new InferenceSelectionAction(this.getTimeGraphViewer());
+            fInferenceSelectionAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(ICON_PATH));
+            fInferenceSelectionAction.setText(LABEL_TEXT);
+            fInferenceSelectionAction.setToolTipText(TOOLTIP_TEXT);
+        }
+        return fInferenceSelectionAction;
+    }
+	
+	@Override
+    protected void fillLocalToolBar(IToolBarManager manager) {
+        // add "Optimization" Button to local tool bar of Controlflow
+        IAction optimizationAction = getInferenceSelectionAction();
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, optimizationAction);
+
+        // add a separator to local tool bar
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, new Separator());
+
+        super.fillLocalToolBar(manager);
     }
 	
 	@Override

@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.ctf.core.event.IEventDefinition;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateValue.TmfXmlStateValueBase;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.MultipleInference;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.readwrite.TmfXmlReadWriteStateValue;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
@@ -32,6 +34,9 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEventType;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
+
 public class TmfInferredEvent extends TmfEvent {
 	
 	/* Interval inside which the event could have happen */
@@ -40,6 +45,12 @@ public class TmfInferredEvent extends TmfEvent {
 	/* Rank relative to the position of this event in the sequence of inferred events between last known coherent event and incoherent event */
 	private final long fLocalRank;
 	private Integer fCpu;
+	
+	private final boolean fIsMulti;
+	private Map<ITmfEventField, MultipleInference> fMultiValues;
+	
+	
+	public static int MULTI_VALUE = -15;
 	
 	/**
 	 * Instantiate a new inferred event
@@ -84,13 +95,31 @@ public class TmfInferredEvent extends TmfEvent {
         if (cpu == null) {
         	cpu = IEventDefinition.UNKNOWN_CPU;
         }
-        TmfEventField content = findContent(inferredTransition, testMap, stateSystem, incoherence.getPrevCoherentEvent(), 
+        
+        SetMultimap<String, TmfEventField> contentCandidates = findContent(inferredTransition, testMap, stateSystem, incoherence.getPrevCoherentEvent(), 
         		scenarioInfo);
+        boolean multi = false;
+        List<TmfEventField> fields = new ArrayList<>();
+        Map<ITmfEventField, MultipleInference> multiValues = new HashMap<>();
+        for (String fieldName : contentCandidates.keySet()) {
+        	Set<TmfEventField> candidateFields = contentCandidates.get(fieldName);
+        	TmfEventField choice;
+        	if (candidateFields.size() > 1) {
+        		choice = new TmfEventField(fieldName, MULTI_VALUE, null); //getUserChoice(candidateFields);
+        		multi = true;
+        		multiValues.put(choice, new MultipleInference(new ArrayList<>(candidateFields)));
+        	}
+        	else {
+        		choice = candidateFields.iterator().next(); // get user choice or get the first and only element
+        	}
+        	fields.add(choice);
+        }        
+        TmfEventField content = new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, fields.toArray(new TmfEventField[fields.size()]));
         TmfEventType type = new CtfTmfEventType(inferredTransition.getEvent(), content);
         
-		return new TmfInferredEvent(trace, ITmfContext.UNKNOWN_RANK, localRank, ts, tsStart, tsEnd, type, content, cpu);
+		return new TmfInferredEvent(trace, ITmfContext.UNKNOWN_RANK, localRank, ts, tsStart, tsEnd, type, content, cpu, multi, multiValues);
 	}
-	
+
 	/**
 	 * Compute the content of an inferred event, given the associated inferred transition
 	 * 
@@ -103,17 +132,17 @@ public class TmfInferredEvent extends TmfEvent {
 	 * @return
  * 					The content of the inferred event, as an event field 
 	 */
-	private static TmfEventField findContent(TmfXmlFsmTransition inferredTransition, 
+	private static SetMultimap<String, TmfEventField> findContent(TmfXmlFsmTransition inferredTransition, 
 			Map<String, TmfXmlTransitionValidator> testMap, 
 			ITmfStateSystem stateSystem, 
 			ITmfEvent event, 
 			TmfXmlScenarioInfo scenarioInfo) {
 		
-		List<TmfEventField> fields = new ArrayList<>();
+		SetMultimap<String, TmfEventField> fields = HashMultimap.create();
         /* Get the conditions in the inferred transition */
         String conditionStr = inferredTransition.to().getCondition();
         String[] conditions = conditionStr.split(":");
-        Map<String, Object> fieldPairs = new HashMap<>();
+        SetMultimap<String, Object> candidateValues = HashMultimap.create();
         for (String cond : conditions) {
         	TmfXmlTransitionValidator validator = testMap.get(cond);
         	ITmfXmlCondition xmlCond = validator.getCondition();
@@ -122,22 +151,18 @@ public class TmfInferredEvent extends TmfEvent {
         	 * so we don't need to consider this case
         	 */
         	if (xmlCond instanceof TmfXmlCondition) {
-        		Map<String, Object> fieldsForCond = inferFromCondition(xmlCond, stateSystem, event, scenarioInfo);
-        		for (String fieldName : fieldsForCond.keySet()) {
-	        		if (fieldsForCond.containsKey(fieldName)) { // it could happen because the same event field could be used in several conditions
-	    				// TODO handle this case
-	    			}
-	        		fieldPairs.put(fieldName, fieldsForCond.get(fieldName));
-        		}
+        		SetMultimap<String, Object> fieldsForCond = inferFromCondition(xmlCond, stateSystem, event, scenarioInfo);
+        		candidateValues.putAll(fieldsForCond);
         	}
         }
-    	// Construct fields with each pair and add them to the "content field" structure
-		for (String fieldName : fieldPairs.keySet()) {
-			TmfEventField field = new TmfEventField(fieldName, fieldPairs.get(fieldName), null);
-			fields.add(field);
-		}
+        
+        // Construct fields with each pair and add them to the "content field" structure
+        for(Entry<String, Object> entry : candidateValues.entries()) {
+        	TmfEventField field = new TmfEventField(entry.getKey(), entry.getValue(), null);
+			fields.put(entry.getKey(), field);
+        }
 		
-		return new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, fields.toArray(new TmfEventField[fields.size()]));
+		return fields;
 	}
 	
 	/**
@@ -154,14 +179,13 @@ public class TmfInferredEvent extends TmfEvent {
 	 * @return
 	 * 				A list of pairs (field name, field value)
 	 */
-	private static Map<String, Object> inferFromCondition(ITmfXmlCondition xmlCond, ITmfStateSystem stateSystem, 
+	private static SetMultimap<String, Object> inferFromCondition(ITmfXmlCondition xmlCond, ITmfStateSystem stateSystem, 
 			ITmfEvent event, TmfXmlScenarioInfo scenarioInfo) {
 		
-		Map<String, Object> fields = new HashMap<>();
+		SetMultimap<String, Object> candidateFields = HashMultimap.create();
 		List<ITmfXmlStateValue> stateValues = ((TmfXmlCondition) xmlCond).getStateValues();
 		/* Get value according to what is needed for the condition to be true */
 		for (ITmfXmlStateValue value : stateValues) { // add one event field for each attribute
-			Map<String, Object> tentativeFields = new HashMap<>();
 			/* Extract field name, then associate it with a field value */
 			TmfXmlStateValue stateValue = (TmfXmlStateValue) value;							// Case 1: condition is a field
 			String fieldName = stateValue.getEventField(); // not null in case of XML tag <field ..>
@@ -200,10 +224,10 @@ public class TmfInferredEvent extends TmfEvent {
     								fieldName = resField.getFirst();
     								/* Find the missing field value in the matching path */
     								int fieldIndex = resField.getSecond();
-        							fieldValue = stateSystem.getFullAttributePathArray(quark)[fieldIndex]; // FIXME several quarks could match => which one should we choose? (for now, we choose the first one)
-        							tentativeFields.put(fieldName, fieldValue);
+        							fieldValue = stateSystem.getFullAttributePathArray(quark)[fieldIndex];
+        							candidateFields.put(fieldName, fieldValue);
     							} 
-    							break;
+    							// we do not break from the loop because there can be more than one match
     						}
     					}
     				}
@@ -211,7 +235,8 @@ public class TmfInferredEvent extends TmfEvent {
     			else { // get value for case 2
     				// field value is the other state value that we are trying to compare it to (2.1)
     				// or is the value of the preceding sequence of state attributes (2.2)
-    				// or is the value of the preceding field tag (2.3)
+    				// or is the value of the preceding field tag (2.3) but in this case we do not retrieve
+    				// it because it depends on a field tag value, which is lost too
     				
     				if (stateValues.size() == 2) {											// case 2.1
 						try {
@@ -219,7 +244,7 @@ public class TmfInferredEvent extends TmfEvent {
 							 * so it's either the preceding if event field is the second 
 							 * or the following if event field is the first */
 							fieldValue = stateValues.get(1 - stateValues.indexOf(value)).getValue(event, scenarioInfo);
-							tentativeFields.put(fieldName, fieldValue);
+							candidateFields.put(fieldName, fieldValue);
 						} catch (AttributeNotFoundException e) {
 							Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
 			                continue;
@@ -234,34 +259,25 @@ public class TmfInferredEvent extends TmfEvent {
 						/* Find value by querying the state system */
 						try {
 							fieldValue = stateSystem.querySingleState(event.getTimestamp().getValue(), quark).getValue();
-							tentativeFields.put(fieldName, fieldValue);
+							candidateFields.put(fieldName, fieldValue);
 						} catch (StateSystemDisposedException e) {
 							Activator.logError("State system disposed while trying to get the value of inferred event", e); //$NON-NLS-1$
 			                continue;
 						}
     				}
-					
-    				// case 2.3
-    				// TODO can we retrieve it? because it depends on a field tag value, which is lost too (confirm?)
     			}
 			}
 			else { // get value for case 1 : the state value following this field tag
 				try {
 					fieldValue = stateValues.get(stateValues.indexOf(value) + 1).getValue(event, scenarioInfo);
-					tentativeFields.put(fieldName, fieldValue);
+					candidateFields.put(fieldName, fieldValue);
 				} catch (AttributeNotFoundException e) {
 					Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
 	                continue;
 				}
 			}
-			for (String tentativeName : tentativeFields.keySet()) {
-				if (fields.containsKey(tentativeName)) { // it could happen because the same event field could be used several times in this condition
-					// TODO handle this case
-				}
-				fields.put(tentativeName, tentativeFields.get(tentativeName));
-			}
 		}
-		return fields;
+		return candidateFields;
 	}
 	
 	/**
@@ -303,13 +319,17 @@ public class TmfInferredEvent extends TmfEvent {
             final ITmfTimestamp tsEnd,
             final ITmfEventType type,
             final ITmfEventField content, 
-            Integer cpu) {
+            Integer cpu, 
+            boolean multi, 
+            Map<ITmfEventField, MultipleInference> multiValues) {
 		super(trace, rank, ts, type, content);
 		
 		fStart = tsStart;
 		fEnd = tsEnd;
 		fLocalRank = localRank;
 		fCpu = cpu;
+		fIsMulti = multi;
+		fMultiValues = multiValues;
 	}
 	
 	@Override
@@ -347,6 +367,40 @@ public class TmfInferredEvent extends TmfEvent {
 	
 	public Integer getCpu() {
 		return fCpu;
+	}
+	
+	public boolean isMulti() {
+		return fIsMulti;
+	}
+	
+	public Map<ITmfEventField, MultipleInference> getMultiValues() {
+		return fMultiValues;
+	}
+	
+	@Override
+    public ITmfEventField getContent() {
+		ITmfEventField content = super.getContent();
+		if (!fIsMulti) {
+			return content; // we can return the content field directly if there is no multiple values
+		}		
+		// Return content based on user-choice for multiple values
+		List<ITmfEventField> fields = new ArrayList<>();
+        for (ITmfEventField field : content.getFields()) {
+        	if (field.getValue().equals(MULTI_VALUE)) {
+        		TmfEventField choice = fMultiValues.get(field).getChoice();
+        		if (choice == null) {
+        			fields.add(field); // return default value if the choice has not been set yet
+        		}
+        		else {
+        			fields.add(choice);
+        		}
+        	}
+        	else {
+        		fields.add(field); // return the single value field
+        	}
+        }
+        
+        return new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, fields.toArray(new TmfEventField[fields.size()]));
 	}
 
 }

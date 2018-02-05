@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.coherence.ui;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -103,6 +104,20 @@ public class Activator extends AbstractUIPlugin {
      */
     public static void logError(String message, Throwable exception) {
         plugin.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message, exception));
+    }
+    
+    
+    
+    
+    /**
+     * Get the ImageDescriptor from a given path
+     *
+     * @param path
+     *            The path to the image file
+     * @return The ImageDescriptor object
+     */
+    public ImageDescriptor getImageDescripterFromPath(String path) {
+        return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, path);
     }
 
 }

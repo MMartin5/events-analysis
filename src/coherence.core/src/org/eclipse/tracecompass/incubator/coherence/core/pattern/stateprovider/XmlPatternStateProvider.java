@@ -84,6 +84,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
     
     private boolean fWithObservers;
     List<TmfInferredEvent> fInferredEvents; // the list of inferred events for this XML analysis
+    List<TmfInferredEvent> fMultiInferredEvents = new ArrayList<>();
 
 	private boolean fForceObservation;
     
@@ -293,6 +294,10 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
 						eventsList.add(inferredEvent);
 						localEventsMap.put(inferredTransition, inferredEvent);
 						index++;
+						
+						if (inferredEvent.isMulti()) {
+							fMultiInferredEvents.add(inferredEvent);
+						}
 					}
 				}
 				
@@ -362,5 +367,13 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
      */
     public List<TmfInferredEvent> getInferredEvents() {
     	return fInferredEvents;
+    }
+    
+    public boolean hasMultiInferredEvents() {
+    	return !fMultiInferredEvents.isEmpty();
+    }
+    
+    public List<TmfInferredEvent> getMultiInferredEvents() {
+    	return fMultiInferredEvents;
     }
 }
