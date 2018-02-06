@@ -122,7 +122,7 @@ public class InferenceDialog extends TitleAreaDialog {
             
             Label label = new Label(this, SWT.NONE);
             label.setText(event.getTimestamp().toString() + " " + event.getName());
-            label.setLayoutData(GridDataFactory.fillDefaults().hint(160, 20).grab(true, true).align(SWT.BEGINNING, SWT.BEGINNING).create());
+            label.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).align(SWT.BEGINNING, SWT.BEGINNING).create());
             
             Tree tree = new Tree(this, SWT.BORDER | SWT.NO_SCROLL); // VIRTUAL => populated on-demand ?
             tree.addTreeListener(new TreeListener() {
