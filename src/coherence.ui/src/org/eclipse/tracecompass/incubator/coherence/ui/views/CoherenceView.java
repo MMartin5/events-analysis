@@ -35,7 +35,6 @@ import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
@@ -79,7 +78,12 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.TimeGraphControl;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 
 import com.google.common.collect.Multimap;
 
@@ -117,10 +121,15 @@ public class CoherenceView extends ControlFlowView {
 	private Map<String, TmfXmlScenario> scenarios = new HashMap<>();
 	
 	private Action fInferenceSelectionAction;
+	private Action fGlobalInferenceViewAction;
 	private static final String ICON_PATH = "icons/licorne.gif"; //$NON-NLS-1$
 	// FIXME messages
 	private static final String TOOLTIP_TEXT = "Select Values for Inferences"; //$NON-NLS-1$
 	private static final String LABEL_TEXT = "Infer"; //$NON-NLS-1$
+	private static final String ICON_PATH2 = "icons/path3699.png"; //$NON-NLS-1$
+	// FIXME messages
+	private static final String TOOLTIP_TEXT2 = "Open Global Inference View"; //$NON-NLS-1$
+	private static final String LABEL_TEXT2 = "Open"; //$NON-NLS-1$
 	
 	InferenceDialog dialog;
 
@@ -616,7 +625,7 @@ public class CoherenceView extends ControlFlowView {
 		}
 
 		@Override
-        public void runWithEvent(Event event) {
+        public void run() {
 			if (fModule != null) {
 				XmlPatternStateProvider provider = fModule.getStateProvider();
 				if (provider.hasMultiInferredEvents()) {
@@ -638,6 +647,28 @@ public class CoherenceView extends ControlFlowView {
 		}
 	}
 	
+	private final class DisplayGlobalInferenceViewAction extends Action {
+
+	    @Override
+	    public void run() {
+	    	/* Open the view */
+	    	final IWorkbench wb = PlatformUI.getWorkbench();
+	        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
+	        try {
+	        	IViewPart view = activePage.showView(GlobalInferenceView.ID);
+	        	if (view instanceof GlobalInferenceView) {
+	        		GlobalInferenceView inferenceView = (GlobalInferenceView) view;
+		        	inferenceView.setProperties(pEntries);
+	        	}
+			} catch (PartInitException e) {
+				Activator.logError("Unable to open the view.", e);
+			}	    	
+	        
+	        super.run();
+	    }
+	    
+	}
+	
 	private IAction getInferenceSelectionAction() {
         if (fInferenceSelectionAction == null) {
             fInferenceSelectionAction = new InferenceSelectionAction(this.getTimeGraphViewer());
@@ -648,11 +679,25 @@ public class CoherenceView extends ControlFlowView {
         return fInferenceSelectionAction;
     }
 	
+	private IAction getGlobalInferenceViewAction() {
+        if (fGlobalInferenceViewAction == null) {
+        	fGlobalInferenceViewAction = new DisplayGlobalInferenceViewAction();
+        	fGlobalInferenceViewAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(ICON_PATH2));
+        	fGlobalInferenceViewAction.setText(LABEL_TEXT2);
+        	fGlobalInferenceViewAction.setToolTipText(TOOLTIP_TEXT2);
+        }
+        return fGlobalInferenceViewAction;
+    }
+	
 	@Override
     protected void fillLocalToolBar(IToolBarManager manager) {
-        // add "Optimization" Button to local tool bar of Controlflow
-        IAction optimizationAction = getInferenceSelectionAction();
-        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, optimizationAction);
+        // add "Select inferences" button to local tool bar of Coherence view
+        IAction inferenceSelectionAction = getInferenceSelectionAction();
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, inferenceSelectionAction);
+        
+        // add "Open global inference view" button
+        IAction inferenceViewAction = getGlobalInferenceViewAction();
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, inferenceViewAction);
 
         // add a separator to local tool bar
         manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, new Separator());

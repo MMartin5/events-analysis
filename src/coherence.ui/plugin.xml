@@ -16,6 +16,13 @@
             name="Inference View"
             restorable="false">
       </view>
+      <view
+            allowMultiple="false"
+            class="org.eclipse.tracecompass.incubator.coherence.ui.views.GlobalInferenceView"
+            id="org.eclipse.tracecompass.incubator.coherence.ui.views.global.inference"
+            name="Global Inference View"
+            restorable="false">
+      </view>
    </extension>
 
 </plugin>

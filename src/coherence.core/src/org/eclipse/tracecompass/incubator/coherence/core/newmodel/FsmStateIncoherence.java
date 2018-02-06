@@ -1,6 +1,7 @@
 package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,6 +61,14 @@ public class FsmStateIncoherence {
 
 	public Collection<TmfInferredEvent> getInferredEvents() {
 		return fInferredEvents.values();
+	}
+	
+	public Map<TmfXmlFsmTransition, ITmfEvent> getInferredEventsMap() {
+		Map<TmfXmlFsmTransition, ITmfEvent> map = new HashMap<>();
+		for (TmfXmlFsmTransition transition : fInferredTransitions) {
+			map.put(transition, getEvent(transition));
+		}
+		return map;
 	}
 	
 	public void setInferences(Map<TmfXmlFsmTransition, TmfInferredEvent> localEventsMap) {
