@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.ctf.core.event.IEventDefinition;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateValue.TmfXmlStateValueBase;
@@ -14,6 +16,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncohe
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.MultipleInference;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.readwrite.TmfXmlReadWriteStateValue;
+import org.eclipse.tracecompass.internal.analysis.os.linux.core.kernel.Attributes;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
@@ -51,6 +54,8 @@ public class TmfInferredEvent extends TmfEvent {
 	
 	
 	public static int MULTI_VALUE = -15;
+	
+	private static final String WILDCARD = "*"; //$NON-NLS-1$
 	
 	/**
 	 * Instantiate a new inferred event
@@ -96,8 +101,10 @@ public class TmfInferredEvent extends TmfEvent {
         	cpu = IEventDefinition.UNKNOWN_CPU;
         }
         
-        SetMultimap<String, TmfEventField> contentCandidates = findContent(inferredTransition, testMap, stateSystem, incoherence.getPrevCoherentEvent(), 
-        		scenarioInfo);
+        IKernelAnalysisEventLayout layout = ((IKernelTrace) trace).getKernelEventLayout();
+        
+        SetMultimap<String, TmfEventField> contentCandidates = findContent(inferredTransition, testMap, stateSystem, 
+        		incoherence.getPrevCoherentEvent(), scenarioInfo, layout);
         boolean multi = false;
         List<TmfEventField> fields = new ArrayList<>();
         Map<ITmfEventField, MultipleInference> multiValues = new HashMap<>();
@@ -105,7 +112,7 @@ public class TmfInferredEvent extends TmfEvent {
         	Set<TmfEventField> candidateFields = contentCandidates.get(fieldName);
         	TmfEventField choice;
         	if (candidateFields.size() > 1) {
-        		choice = new TmfEventField(fieldName, MULTI_VALUE, null); //getUserChoice(candidateFields);
+        		choice = new TmfEventField(fieldName, MULTI_VALUE, null);
         		multi = true;
         		multiValues.put(choice, new MultipleInference(new ArrayList<>(candidateFields)));
         	}
@@ -128,6 +135,7 @@ public class TmfInferredEvent extends TmfEvent {
 	 * @param stateSystem
 	 * @param event
 	 * @param scenarioInfo
+	 * @param layout 
 	 * 
 	 * @return
  * 					The content of the inferred event, as an event field 
@@ -136,13 +144,19 @@ public class TmfInferredEvent extends TmfEvent {
 			Map<String, TmfXmlTransitionValidator> testMap, 
 			ITmfStateSystem stateSystem, 
 			ITmfEvent event, 
-			TmfXmlScenarioInfo scenarioInfo) {
+			TmfXmlScenarioInfo scenarioInfo, 
+			IKernelAnalysisEventLayout layout) {
 		
 		SetMultimap<String, TmfEventField> fields = HashMultimap.create();
+		SetMultimap<String, Object> candidateValues = HashMultimap.create();
+		Map<String, Object> certainValues = new HashMap<>();
+		
+		/* Add the fields that can be inferred from the event name */
+		candidateValues.putAll(inferFromEvent(event.getName(), layout, stateSystem));
+		
         /* Get the conditions in the inferred transition */
         String conditionStr = inferredTransition.to().getCondition();
         String[] conditions = conditionStr.split(":");
-        SetMultimap<String, Object> candidateValues = HashMultimap.create();
         for (String cond : conditions) {
         	TmfXmlTransitionValidator validator = testMap.get(cond);
         	ITmfXmlCondition xmlCond = validator.getCondition();
@@ -152,7 +166,14 @@ public class TmfInferredEvent extends TmfEvent {
         	 */
         	if (xmlCond instanceof TmfXmlCondition) {
         		SetMultimap<String, Object> fieldsForCond = inferFromCondition(xmlCond, stateSystem, event, scenarioInfo);
-        		candidateValues.putAll(fieldsForCond);
+        		for (String fieldName : fieldsForCond.keySet()) {
+        			if (fieldsForCond.get(fieldName).size() == 1) { // there is exactly one possible value
+        				certainValues.put(fieldName, fieldsForCond.get(fieldName).iterator().next()); // remember this certain value
+        			}
+        			else { // there is multiple values, add them all
+        				candidateValues.put(fieldName, fieldsForCond.get(fieldName));
+        			}
+        		}
         	}
         }
         
@@ -161,8 +182,54 @@ public class TmfInferredEvent extends TmfEvent {
         	TmfEventField field = new TmfEventField(entry.getKey(), entry.getValue(), null);
 			fields.put(entry.getKey(), field);
         }
+        for(Entry<String, Object> entry : certainValues.entrySet()) {
+        	TmfEventField field = new TmfEventField(entry.getKey(), entry.getValue(), null);
+        	fields.removeAll(entry.getKey());
+			fields.put(entry.getKey(), field);
+        }
 		
 		return fields;
+	}
+	
+	/**
+	 * 
+	 * FIXME 
+	 * instead of doing this hardcoded stuff, we should create a map of 
+	 * (event names, associated event definition), that would be populated
+	 * when a ctf trace is first read (ie. when each ctf tmf event is being 
+	 * created)
+	 * but we need access to the event definition in the ctf tmf event, which
+	 * is not possible for now
+	 * 
+	 * @param eventName
+	 * @param layout
+	 * @param stateSystem
+	 * @return
+	 */
+	private static SetMultimap<String, Object> inferFromEvent(String eventName, IKernelAnalysisEventLayout layout, ITmfStateSystem stateSystem) {
+		SetMultimap<String, Object> candidateFields = HashMultimap.create();
+		
+		if (eventName.equals(layout.eventSchedSwitch())) {
+			// @see ControlFlowView.buildEntryList
+			for (Integer quark : stateSystem.getQuarks(Attributes.THREADS, WILDCARD)) { // add every possible value for this field (every existing tid)
+				String threadAttributeName = stateSystem.getAttributeName(quark);
+                Pair<Integer, Integer> entryKey = Attributes.parseThreadAttributeName(threadAttributeName);
+                long threadId = entryKey.getFirst();
+				candidateFields.put(layout.fieldPrevTid(), threadId);
+				candidateFields.put(layout.fieldNextTid(), threadId);
+			}
+			// FIXME temporary fix hardcoded
+			candidateFields.put(layout.fieldPrevComm(), "unknown");
+			candidateFields.put(layout.fieldPrevState(), 0l);
+			candidateFields.put(layout.fieldPrevPrio(), 0l);
+			candidateFields.put(layout.fieldNextComm(), "unknown");
+			candidateFields.put(layout.fieldNextPrio(), 0l);
+													
+		}
+		
+		// TODO handle other event names
+				
+		return candidateFields;		
 	}
 	
 	/**
@@ -224,7 +291,7 @@ public class TmfInferredEvent extends TmfEvent {
     								fieldName = resField.getFirst();
     								/* Find the missing field value in the matching path */
     								int fieldIndex = resField.getSecond();
-        							fieldValue = stateSystem.getFullAttributePathArray(quark)[fieldIndex];
+        							fieldValue = Long.valueOf(stateSystem.getFullAttributePathArray(quark)[fieldIndex]); // convert to Long
         							candidateFields.put(fieldName, fieldValue);
     							} 
     							// we do not break from the loop because there can be more than one match
@@ -258,7 +325,7 @@ public class TmfInferredEvent extends TmfEvent {
 						}
 						/* Find value by querying the state system */
 						try {
-							fieldValue = stateSystem.querySingleState(event.getTimestamp().getValue(), quark).getValue();
+							fieldValue = ((Integer) stateSystem.querySingleState(event.getTimestamp().getValue(), quark).getValue()).longValue();
 							candidateFields.put(fieldName, fieldValue);
 						} catch (StateSystemDisposedException e) {
 							Activator.logError("State system disposed while trying to get the value of inferred event", e); //$NON-NLS-1$
@@ -345,9 +412,9 @@ public class TmfInferredEvent extends TmfEvent {
 	}
 	
 	public boolean greaterThan(TmfInferredEvent other) {
-		if ((this.getStartTime() > other.getEndTime()) ||
-				((this.getStartTime() == other.getStartTime()) && (this.getEndTime() == other.getEndTime()) && 
-						(this.getLocalRank() > other.getLocalRank()))) {
+	    if ((this.getTimestamp().getValue() > other.getTimestamp().getValue()) ||
+                ((this.getStartTime() == other.getStartTime()) && (this.getEndTime() == other.getEndTime()) && 
+                        (this.getLocalRank() > other.getLocalRank()))) {
 			return true;
 		}
 		return false;
@@ -389,7 +456,8 @@ public class TmfInferredEvent extends TmfEvent {
         	if (field.getValue().equals(MULTI_VALUE)) {
         		TmfEventField choice = fMultiValues.get(field).getChoice();
         		if (choice == null) {
-        			fields.add(field); // return default value if the choice has not been set yet
+        			// TODO here compute best choice, according to some probabilities
+        			fields.add(fMultiValues.get(field).getPossibilites().iterator().next()); // return first value if the choice has not been set yet
         		}
         		else {
         			fields.add(choice);

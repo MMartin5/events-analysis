@@ -666,7 +666,6 @@ public class TmfXmlFsm {
      *            The ongoing event
      * @param isInputValid
      *            Either the ongoing event validated the preconditions or not
-     * @param layout 
      */
     private void handlePendingScenario(ITmfEvent event, boolean isInputValid, int transitionTotal) {
         if (fConsuming && isEventConsumed()) {

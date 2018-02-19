@@ -45,6 +45,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncohe
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
+import org.eclipse.tracecompass.incubator.coherence.core.trace.InferenceTrace;
 import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
 import org.eclipse.tracecompass.incubator.coherence.ui.Activator;
 import org.eclipse.tracecompass.incubator.coherence.ui.dialogs.InferenceDialog;
@@ -63,11 +64,13 @@ import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
+import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
@@ -237,15 +240,17 @@ public class CoherenceView extends ControlFlowView {
 	@TmfSignalHandler
     @Override
     public void traceClosed(@Nullable TmfTraceClosedSignal signal) {
-		if (fJob != null) {
-            fJob.cancel();
-            fJob = null;
-        }	
-        super.traceClosed(signal);
-        fEvents.clear();
-        fMarkers.clear();
-        incoherencesMap.clear();
-        scenarios.clear();
+	    if (getTrace() == signal.getTrace()) {
+    		if (fJob != null) {
+                fJob.cancel();
+                fJob = null;
+            }	
+            super.traceClosed(signal);
+            fEvents.clear();
+            fMarkers.clear();
+            incoherencesMap.clear();
+            scenarios.clear();
+	    }
     }
 	
 	/**
@@ -651,18 +656,22 @@ public class CoherenceView extends ControlFlowView {
 
 	    @Override
 	    public void run() {
-	    	/* Open the view */
-	    	final IWorkbench wb = PlatformUI.getWorkbench();
-	        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
-	        try {
+	    	try {
+	    		/* Create the InferenceTrace that will be used in the view */
+		    	InferenceTrace newTrace = new InferenceTrace((TmfTrace) getTrace(), fModule.getStateProvider().getInferredEvents());
+		    	/* Open the view */
+		    	final IWorkbench wb = PlatformUI.getWorkbench();
+		        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
 	        	IViewPart view = activePage.showView(GlobalInferenceView.ID);
 	        	if (view instanceof GlobalInferenceView) {
 	        		GlobalInferenceView inferenceView = (GlobalInferenceView) view;
-		        	inferenceView.setProperties(pEntries);
+					inferenceView.setProperties(newTrace);
 	        	}
 			} catch (PartInitException e) {
 				Activator.logError("Unable to open the view.", e);
-			}	    	
+			} catch (TmfTraceException e) {
+				Activator.logError("Unable to open the view.", e);
+			}
 	        
 	        super.run();
 	    }

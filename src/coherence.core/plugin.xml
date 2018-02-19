@@ -9,5 +9,15 @@
             class="org.eclipse.tracecompass.incubator.coherence.core.module.XmlAnalysisModuleSource">
       </source>
    </extension>
+   <extension
+         point="org.eclipse.linuxtools.tmf.core.tracetype">
+      <type
+            event_type="org.eclipse.tracecompass.tmf.core.event.TmfEvent"
+            id="org.eclipse.tracecompass.incubator.coherence.core.trace"
+            isDirectory="false"
+            name="InferenceTrace"
+            trace_type="org.eclipse.tracecompass.incubator.coherence.core.trace.InferenceTrace">
+      </type>
+   </extension>
 
 </plugin>

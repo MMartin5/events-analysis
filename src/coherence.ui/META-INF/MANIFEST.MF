@@ -22,5 +22,7 @@ Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.tracecompass.incubator.coherence.core.model,
  org.eclipse.tracecompass.incubator.coherence.core.newmodel,
  org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider,
- org.eclipse.tracecompass.incubator.coherence.module
+ org.eclipse.tracecompass.incubator.coherence.core.trace,
+ org.eclipse.tracecompass.incubator.coherence.module,
+ org.eclipse.tracecompass.lttng2.kernel.core.trace
 Export-Package: org.eclipse.tracecompass.incubator.coherence.ui.views

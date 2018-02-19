@@ -27,9 +27,14 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.MultipleInference;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
+import org.eclipse.tracecompass.incubator.coherence.ui.views.GlobalInferenceView;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.dialogs.TimeGraphLegend;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * @see TimeGraphLegend
@@ -176,6 +181,14 @@ public class InferenceDialog extends TitleAreaDialog {
 					MultipleInference multipleValue = (MultipleInference) parent.getData();
 					TmfEventField possibility = (TmfEventField) item.getData();
 					multipleValue.update(possibility);
+					
+					/* Refresh view */
+					final IWorkbench wb = PlatformUI.getWorkbench();
+			        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
+		        	IViewPart view = activePage.findView(GlobalInferenceView.ID);
+		        	if (view != null && view instanceof GlobalInferenceView) {
+		        		((GlobalInferenceView) view).needRefresh();
+		        	}
 					
 					System.out.println("event field set to " + multipleValue.getChoice().toString());
 				}
