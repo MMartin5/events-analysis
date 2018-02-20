@@ -678,7 +678,7 @@ public class CoherenceView extends ControlFlowView {
 	    
 	}
 	
-	private IAction getInferenceSelectionAction() {
+	protected IAction getInferenceSelectionAction() {
         if (fInferenceSelectionAction == null) {
             fInferenceSelectionAction = new InferenceSelectionAction(this.getTimeGraphViewer());
             fInferenceSelectionAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(ICON_PATH));

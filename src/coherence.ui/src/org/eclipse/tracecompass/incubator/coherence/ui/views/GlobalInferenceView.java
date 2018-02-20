@@ -1,6 +1,9 @@
 package org.eclipse.tracecompass.incubator.coherence.ui.views;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.incubator.coherence.core.trace.InferenceTrace;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
@@ -9,6 +12,11 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 
 /**
  * A view to show the consequences of the inferred events on the 
@@ -71,4 +79,22 @@ public class GlobalInferenceView extends ControlFlowView {
 		rebuild();
 		refresh();		
 	}
+	
+	@Override
+    protected void fillLocalToolBar(IToolBarManager manager) {
+        // add "Select inferences" button to local tool bar of Coherence view
+		final IWorkbench wb = PlatformUI.getWorkbench();
+        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
+    	IViewPart view = activePage.findView(CoherenceView.ID);
+    	if (view != null && view instanceof CoherenceView) {
+	        IAction inferenceSelectionAction = ((CoherenceView) view).getInferenceSelectionAction();
+	        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, inferenceSelectionAction);
+	        
+	        // add a separator to local tool bar
+	        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, new Separator());
+    	}
+        
+
+        super.fillLocalToolBar(manager);
+    }
 }
