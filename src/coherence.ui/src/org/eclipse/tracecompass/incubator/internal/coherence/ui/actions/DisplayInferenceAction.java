@@ -26,6 +26,7 @@ public class DisplayInferenceAction extends Action {
     private final HostThread fHostThread;
     private final @Nullable String fThreadName;
     private final ControlFlowEntry fEntry;
+	private long fEntryQuark;
 
     /**
      * Constructor
@@ -34,9 +35,10 @@ public class DisplayInferenceAction extends Action {
      * 			The incoherent event associated with the state selected by the user
      * @param entry
      * 			The entry on the control flow view
+     * @param entryQuark 
      */
-    public DisplayInferenceAction(IncoherentEvent event, ControlFlowEntry entry) {
-        this(event, entry, entry.getName(), new HostThread(entry.getTrace().getHostId(), entry.getThreadId()));
+    public DisplayInferenceAction(IncoherentEvent event, ControlFlowEntry entry, long entryQuark) {
+        this(event, entry, entry.getName(), new HostThread(entry.getTrace().getHostId(), entry.getThreadId()), entryQuark);
     }
 
     /**
@@ -50,15 +52,18 @@ public class DisplayInferenceAction extends Action {
      *            the thread name, can be null
      * @param ht
      *            The HostThread to follow
+     * @param entryQuark 
      */
     public DisplayInferenceAction(IncoherentEvent event, 
     		ControlFlowEntry entry,  
     		@Nullable String threadName, 
-    		HostThread ht) {
+    		HostThread ht, 
+    		long entryQuark) {
     	fIncoherence = event;
         fThreadName = threadName;
         fHostThread = ht;
         fEntry = entry;
+        fEntryQuark = entryQuark;
     }
 
 	@Override
@@ -80,7 +85,7 @@ public class DisplayInferenceAction extends Action {
         	IViewPart view = activePage.showView(InferenceView.ID, secondaryId, IWorkbenchPage.VIEW_ACTIVATE);
         	if (view instanceof InferenceView) {
 	        	InferenceView inferenceView = (InferenceView) view;
-	        	inferenceView.setProperties(fEntry, fIncoherence);
+	        	inferenceView.setProperties(fEntry, fIncoherence, fEntryQuark);
         	}
 		} catch (PartInitException e) {
 			Activator.logError("Unable to open the view.", e);

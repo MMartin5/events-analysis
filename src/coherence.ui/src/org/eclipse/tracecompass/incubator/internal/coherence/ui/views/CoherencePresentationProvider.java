@@ -176,7 +176,7 @@ public class CoherencePresentationProvider extends TimeGraphPresentationProvider
         }
         int status = ((TimeEvent) event).getValue();
         if (status == ProcessStatus.RUN_SYTEMCALL.getStateValue().unboxInt()) {
-            int syscallQuark = ssq.optQuarkRelative(entry.getThreadQuark(), Attributes.SYSTEM_CALL);
+            int syscallQuark = ssq.optQuarkRelative((int) entry.getModel().getId(), Attributes.SYSTEM_CALL);
             if (syscallQuark == ITmfStateSystem.INVALID_ATTRIBUTE) {
                 return retMap;
             }
@@ -218,7 +218,7 @@ public class CoherencePresentationProvider extends TimeGraphPresentationProvider
         if (status != ProcessStatus.RUN_SYTEMCALL.getStateValue().unboxInt()) {
             return;
         }
-        int syscallQuark = ss.optQuarkRelative(entry.getThreadQuark(), Attributes.SYSTEM_CALL);
+        int syscallQuark = ss.optQuarkRelative((int) entry.getModel().getId(), Attributes.SYSTEM_CALL);
         if (syscallQuark == ITmfStateSystem.INVALID_ATTRIBUTE) {
             return;
         }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012, 2016 Ericsson, École Polytechnique de Montréal and others.
+ * Copyright (c) 2012, 2018 Ericsson, École Polytechnique de Montréal and others.
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -15,6 +15,8 @@
 
 package org.eclipse.tracecompass.incubator.coherence.ui.views;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,17 +26,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NavigableSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.annotation.NonNull;
@@ -45,14 +45,17 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelTidAspect;
-import org.eclipse.tracecompass.common.core.StreamUtils.StreamFlattener;
-import org.eclipse.tracecompass.internal.analysis.os.linux.core.kernel.Attributes;
+import org.eclipse.tracecompass.internal.analysis.os.linux.core.threadstatus.ThreadEntryModel;
+import org.eclipse.tracecompass.internal.analysis.os.linux.core.threadstatus.ThreadStatusDataProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Messages;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.actions.FollowThreadAction;
@@ -62,29 +65,36 @@ import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowPresentationProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.NaiveOptimizationAlgorithm;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.PackageMessages;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
+import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.filters.ActiveThreadsFilter;
+import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.filters.DynamicFilterDialog;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.filters.SelectionTimeQueryFilter;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.filters.TimeQueryFilter;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphArrow;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphRowModel;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphState;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.response.ITmfResponse;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.response.TmfModelResponse;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
+import org.eclipse.tracecompass.tmf.core.dataprovider.DataProviderManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
-import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
-import org.eclipse.tracecompass.tmf.core.util.Pair;
+import org.eclipse.tracecompass.tmf.ui.views.FormatTimeUtils;
+import org.eclipse.tracecompass.tmf.ui.views.FormatTimeUtils.Resolution;
+import org.eclipse.tracecompass.tmf.ui.views.FormatTimeUtils.TimeFormat;
 import org.eclipse.tracecompass.tmf.ui.views.timegraph.AbstractTimeGraphView;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NamedTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
@@ -92,18 +102,19 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry.Sa
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeLinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.TimeGraphControl;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.Utils;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.Utils.Resolution;
-import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.Utils.TimeFormat;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.PlatformUI;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
-import com.google.common.collect.TreeMultimap;
 
 /**
  * The Control Flow view main object
  */
+@SuppressWarnings("restriction")
 public class ControlFlowView extends AbstractTimeGraphView {
 
     // ------------------------------------------------------------------------
@@ -126,8 +137,6 @@ public class ControlFlowView extends AbstractTimeGraphView {
 
     private static final String NEXT_EVENT_ICON_PATH = "icons/elcl16/shift_r_edit.gif"; //$NON-NLS-1$
     private static final String PREV_EVENT_ICON_PATH = "icons/elcl16/shift_l_edit.gif"; //$NON-NLS-1$
-
-    private static final String WILDCARD = "*"; //$NON-NLS-1$
 
     private static final String[] COLUMN_NAMES = new String[] {
             PROCESS_COLUMN,
@@ -181,11 +190,57 @@ public class ControlFlowView extends AbstractTimeGraphView {
 
     private IAction fHierarchicalAction;
 
-    /**
-     * Cache trace and threadID to a {@link ControlFlowEntry} for faster lookups
-     * when building link list
-     */
-    private Map<ITmfTrace, TreeMultimap<Integer, ControlFlowEntry>> fEntryCache = new HashMap<>();
+    protected Table<ITmfTrace, Long, ControlFlowEntry> fControlFlowEntries = HashBasedTable.create();
+
+    @NonNull
+	protected ActiveThreadsFilter fActiveThreadsFilter = new ActiveThreadsFilter(null, false, null);
+
+    private final ActiveThreadsFilterAction fActiveThreadsRapidToggle = new ActiveThreadsFilterAction();
+
+	private Map<Integer, Long> fEntriesTid = new HashMap<>();
+	
+	public long getEntryQuarkFromTid(int tid) {
+		long value = fEntriesTid.get(tid);
+//		if (value == null) {
+//			return -1; // TODO set default unknown
+//		}
+		return value;
+	}
+
+    class ActiveThreadsFilterAction extends Action {
+        public ActiveThreadsFilterAction() {
+            super(PackageMessages.ControlFlowView_DynamicFiltersActiveThreadToggleLabel, IAction.AS_CHECK_BOX);
+            setToolTipText(PackageMessages.ControlFlowView_DynamicFiltersActiveThreadToggleToolTip);
+            addPropertyChangeListener(new IPropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent event) {
+                    if (!(event.getNewValue() instanceof Boolean)) {
+                        return;
+                    }
+
+                    Boolean enabled = (Boolean) event.getNewValue();
+
+                    /* Always remove the previous Active Threads filter */
+                    getTimeGraphViewer().removeFilter(fActiveThreadsFilter);
+
+                    if (enabled) {
+                        fActiveThreadsFilter.setEnabled(true);
+                        getTimeGraphViewer().addFilter(fActiveThreadsFilter);
+
+                        /* Use flat representation */
+                        if (fFlatAction != null) {
+                            applyFlatPresentation();
+                            fFlatAction.setChecked(true);
+                            fHierarchicalAction.setChecked(false);
+                        }
+                    } else {
+                        fActiveThreadsFilter.setEnabled(false);
+                    }
+                    startZoomThread(getTimeGraphViewer().getTime0(), getTimeGraphViewer().getTime1());
+                }
+            });
+        }
+    }
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -233,10 +288,10 @@ public class ControlFlowView extends AbstractTimeGraphView {
     protected void fillLocalToolBar(IToolBarManager manager) {
         // add "Optimization" Button to local tool bar of Controlflow
         IAction optimizationAction = getOptimizationAction();
-        manager.add(optimizationAction);
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, optimizationAction);
 
         // add a separator to local tool bar
-        manager.add(new Separator());
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, new Separator());
 
         super.fillLocalToolBar(manager);
         IDialogSettings settings = Activator.getDefault().getDialogSettings();
@@ -246,29 +301,29 @@ public class ControlFlowView extends AbstractTimeGraphView {
         }
 
         IAction hideArrowsAction = getTimeGraphViewer().getHideArrowsAction(section);
-        manager.add(hideArrowsAction);
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, hideArrowsAction);
 
         IAction followArrowBwdAction = getTimeGraphViewer().getFollowArrowBwdAction();
         followArrowBwdAction.setText(Messages.ControlFlowView_followCPUBwdText);
         followArrowBwdAction.setToolTipText(Messages.ControlFlowView_followCPUBwdText);
-        manager.add(followArrowBwdAction);
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, followArrowBwdAction);
 
         IAction followArrowFwdAction = getTimeGraphViewer().getFollowArrowFwdAction();
         followArrowFwdAction.setText(Messages.ControlFlowView_followCPUFwdText);
         followArrowFwdAction.setToolTipText(Messages.ControlFlowView_followCPUFwdText);
-        manager.add(followArrowFwdAction);
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, followArrowFwdAction);
 
         IAction previousEventAction = new SearchEventAction(false, PackageMessages.ControlFlowView_PreviousEventJobName);
         previousEventAction.setText(PackageMessages.ControlFlowView_PreviousEventActionName);
         previousEventAction.setToolTipText(PackageMessages.ControlFlowView_PreviousEventActionTooltip);
         previousEventAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(PREV_EVENT_ICON_PATH));
-        manager.add(previousEventAction);
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, previousEventAction);
 
         IAction nextEventAction = new SearchEventAction(true, PackageMessages.ControlFlowView_NextEventJobName);
         nextEventAction.setText(PackageMessages.ControlFlowView_NextEventActionName);
         nextEventAction.setToolTipText(PackageMessages.ControlFlowView_NextEventActionTooltip);
         nextEventAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(NEXT_EVENT_ICON_PATH));
-        manager.add(nextEventAction);
+        manager.appendToGroup(IWorkbenchActionConstants.MB_ADDITIONS, nextEventAction);
     }
 
     private IAction getOptimizationAction() {
@@ -284,7 +339,7 @@ public class ControlFlowView extends AbstractTimeGraphView {
     @Override
     protected void fillLocalMenu(IMenuManager manager) {
         super.fillLocalMenu(manager);
-        final MenuManager item = new MenuManager(Messages.ControlFlowView_threadPresentation);
+        MenuManager item = new MenuManager(Messages.ControlFlowView_threadPresentation);
         fFlatAction = createFlatAction();
         item.add(fFlatAction);
 
@@ -292,6 +347,14 @@ public class ControlFlowView extends AbstractTimeGraphView {
         item.add(fHierarchicalAction);
         manager.add(item);
 
+        item = new MenuManager(PackageMessages.ControlFlowView_DynamicFiltersMenuLabel);
+        item.add(fActiveThreadsRapidToggle);
+        item.add(new Separator());
+
+        IAction dynamicFiltersConfigureAction = createDynamicFilterConfigureAction();
+        item.add(dynamicFiltersConfigureAction);
+
+        manager.add(item);
     }
 
     /**
@@ -353,7 +416,7 @@ public class ControlFlowView extends AbstractTimeGraphView {
                             TmfTraceUtils.getNextEventMatching(cfEntry.getTrace(), rank, predicate, monitor) :
                             TmfTraceUtils.getPreviousEventMatching(cfEntry.getTrace(), rank, predicate, monitor));
                     if (event != null) {
-                        TmfSignalManager.dispatchSignal(new TmfSelectionRangeUpdatedSignal(this, event.getTimestamp()));
+                        TmfSignalManager.dispatchSignal(new TmfSelectionRangeUpdatedSignal(this, event.getTimestamp(), event.getTimestamp(), getTrace()));
                     }
                     return Status.OK_STATUS;
 
@@ -368,6 +431,44 @@ public class ControlFlowView extends AbstractTimeGraphView {
         }
     }
 
+    private IAction createDynamicFilterConfigureAction() {
+        return new Action(PackageMessages.ControlFlowView_DynamicFiltersConfigureLabel, IAction.AS_PUSH_BUTTON) {
+            @Override
+            public void run() {
+                DynamicFilterDialog dialog = new DynamicFilterDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), fActiveThreadsFilter, getTrace());
+                if (dialog.open() == Window.OK) {
+                    /* Remove the previous Active Threads filter */
+                    checkNotNull(getTimeGraphViewer()).removeFilter(fActiveThreadsFilter);
+
+                    ActiveThreadsFilter newFilter = dialog.getActiveThreadsResult();
+                    ActiveThreadsFilter previousFilter = fActiveThreadsFilter;
+
+                    /* Set the filter to the view */
+                    fActiveThreadsFilter = newFilter;
+
+                    boolean enabled = fActiveThreadsFilter.isEnabled();
+                    if (enabled) {
+                        checkNotNull(getTimeGraphViewer()).addFilter(newFilter);
+                    }
+
+                    /*
+                     * Prevent double refresh from change state of setChecked
+                     * and ensure that a refresh is done if the mode of the
+                     * filter is changed or options are changed
+                     */
+                    if (previousFilter.isEnabled() && newFilter.isEnabled()) {
+                        boolean changed = !Objects.equals(previousFilter.getCpuRanges(), newFilter.getCpuRanges()) || previousFilter.isCpuRangesBased() != newFilter.isCpuRangesBased();
+                        if (changed) {
+                            refresh();
+                        }
+                    } else {
+                        fActiveThreadsRapidToggle.setChecked(enabled);
+                    }
+                }
+            }
+        };
+    }
+
     private IAction createHierarchicalAction() {
         IAction action = new Action(Messages.ControlFlowView_hierarchicalViewLabel, IAction.AS_RADIO_BUTTON) {
             @Override
@@ -377,8 +478,10 @@ public class ControlFlowView extends AbstractTimeGraphView {
                     fFlatTraces.remove(parentTrace);
                     List<@NonNull TimeGraphEntry> entryList = getEntryList(parentTrace);
                     if (entryList != null) {
-                        for (TimeGraphEntry traceEntry : entryList) {
-                            addEntriesToHierarchicalTree(Iterables.filter(traceEntry.getChildren(), ControlFlowEntry.class), traceEntry);
+                        for (TraceEntry traceEntry : Iterables.filter(entryList, TraceEntry.class)) {
+                            Collection<ControlFlowEntry> controlFlowEntries = fControlFlowEntries.row(traceEntry.getTrace()).values();
+                            controlFlowEntries.forEach(e -> e.setParent(null));
+                            addEntriesToHierarchicalTree(controlFlowEntries, traceEntry);
                         }
                     }
                 }
@@ -394,21 +497,27 @@ public class ControlFlowView extends AbstractTimeGraphView {
         IAction action = new Action(Messages.ControlFlowView_flatViewLabel, IAction.AS_RADIO_BUTTON) {
             @Override
             public void run() {
-                ITmfTrace parentTrace = getTrace();
-                synchronized (fFlatTraces) {
-                    fFlatTraces.add(parentTrace);
-                    List<@NonNull TimeGraphEntry> entryList = getEntryList(parentTrace);
-                    if (entryList != null) {
-                        for (TimeGraphEntry traceEntry : entryList) {
-                            hierarchicalToFlatTree(traceEntry);
-                        }
-                    }
-                }
+                applyFlatPresentation();
                 refresh();
             }
         };
+        action.setChecked(true);
         action.setToolTipText(Messages.ControlFlowView_flatViewToolTip);
         return action;
+    }
+
+    private void applyFlatPresentation() {
+        ITmfTrace parentTrace = getTrace();
+        synchronized (fFlatTraces) {
+            fFlatTraces.add(parentTrace);
+            List<@NonNull TimeGraphEntry> entryList = getEntryList(parentTrace);
+            if (entryList != null) {
+                for (TraceEntry traceEntry : Iterables.filter(entryList, TraceEntry.class)) {
+                    Collection<ControlFlowEntry> entries = fControlFlowEntries.row(traceEntry.getTrace()).values();
+                    addEntriesToFlatTree(entries, traceEntry);
+                }
+            }
+        }
     }
 
     @Override
@@ -479,26 +588,19 @@ public class ControlFlowView extends AbstractTimeGraphView {
             Map<Integer, Long> orderedTidMap = getUpdatedSchedulingColumn().apply(arrows);
 
             /*
-             * Now that we have our list of ordered tid, it's time to assign a
-             * position for each threads in the view. For this, we assign a
-             * value to an invisible column and sort according to the values in
-             * this column.
+             * Now that we have our list of ordered tid, it's time to assign a position for
+             * each threads in the view. For this, we assign a value to an invisible column
+             * and sort according to the values in this column.
              */
-            for (TimeGraphEntry entry : currentList) {
-                if (entry instanceof TraceEntry) {
-                    for (TimeGraphEntry child : ((TraceEntry) entry).getChildren()) {
-                        if (child instanceof ControlFlowEntry) {
-                            ControlFlowEntry cEntry = (ControlFlowEntry) child;
-                            /*
-                             * If the thread is in our list, we give it a
-                             * position. Otherwise, it means there's no activity
-                             * in the current interval for that thread. We set
-                             * its position to Long.MAX_VALUE so it goes to the
-                             * bottom.
-                             */
-                            cEntry.setSchedulingPosition(orderedTidMap.getOrDefault(cEntry.getThreadId(), Long.MAX_VALUE));
-                        }
-                    }
+            for (TraceEntry entry : Iterables.filter(currentList, TraceEntry.class)) {
+                Collection<ControlFlowEntry> controlFlowEntries = fControlFlowEntries.row(entry.getTrace()).values();
+                for (ControlFlowEntry child : controlFlowEntries) {
+                    /*
+                     * If the thread is in our list, we give it a position. Otherwise, it means
+                     * there's no activity in the current interval for that thread. We set its
+                     * position to Long.MAX_VALUE so it goes to the bottom.
+                     */
+                    child.setSchedulingPosition(orderedTidMap.getOrDefault(child.getThreadId(), Long.MAX_VALUE));
                 }
             }
 
@@ -533,7 +635,7 @@ public class ControlFlowView extends AbstractTimeGraphView {
                     return Integer.toString(entry.getParentThreadId());
                 }
             } else if (COLUMN_NAMES[columnIndex].equals(Messages.ControlFlowView_birthTimeColumn)) {
-                return Utils.formatTime(entry.getStartTime(), TimeFormat.CALENDAR, Resolution.NANOSEC);
+                return FormatTimeUtils.formatTime(entry.getStartTime(), TimeFormat.CALENDAR, Resolution.NANOSEC);
             } else if (COLUMN_NAMES[columnIndex].equals(Messages.ControlFlowView_traceColumn)) {
                 return entry.getTrace().getName();
             } else if (COLUMN_NAMES[columnIndex].equals(INVISIBLE_COLUMN)) {
@@ -569,12 +671,13 @@ public class ControlFlowView extends AbstractTimeGraphView {
     protected static class TraceEntry extends TimeGraphEntry {
 
         private final @NonNull ITmfTrace fTrace;
-        private final @NonNull ITmfStateSystem fStateSystem;
+        private final @NonNull ThreadStatusDataProvider fProvider;
 
-        public TraceEntry(@NonNull ITmfTrace trace, ITmfStateSystem ssq, long endTime) {
-            super(trace.getName(), ssq.getStartTime(), endTime);
+        public TraceEntry(ThreadEntryModel model, @NonNull ITmfTrace trace,
+                @NonNull ThreadStatusDataProvider dataProvider) {
+            super(model);
             fTrace = trace;
-            fStateSystem = ssq;
+            fProvider = dataProvider;
         }
 
         @Override
@@ -586,8 +689,8 @@ public class ControlFlowView extends AbstractTimeGraphView {
             return fTrace;
         }
 
-        public @NonNull ITmfStateSystem getStateSystem() {
-            return fStateSystem;
+        public @NonNull ThreadStatusDataProvider getProvider() {
+            return fProvider;
         }
     }
 
@@ -595,9 +698,14 @@ public class ControlFlowView extends AbstractTimeGraphView {
     @Override
     public void traceClosed(TmfTraceClosedSignal signal) {
         super.traceClosed(signal);
+        ITmfTrace parentTrace = signal.getTrace();
         synchronized (fFlatTraces) {
-            fFlatTraces.remove(signal.getTrace());
-            fEntryCache.remove(signal.getTrace());
+            fFlatTraces.remove(parentTrace);
+        }
+        synchronized (fControlFlowEntries) {
+            for (ITmfTrace trace : TmfTraceManager.getTraceSet(parentTrace)) {
+                fControlFlowEntries.row(trace).clear();
+            }
         }
     }
 
@@ -605,6 +713,8 @@ public class ControlFlowView extends AbstractTimeGraphView {
     @Override
     public void traceSelected(TmfTraceSelectedSignal signal) {
         super.traceSelected(signal);
+
+        /* Update the Flat and Hierarchical actions */
         synchronized (fFlatTraces) {
             if (fFlatTraces.contains(signal.getTrace())) {
                 fHierarchicalAction.setChecked(false);
@@ -614,6 +724,21 @@ public class ControlFlowView extends AbstractTimeGraphView {
                 fHierarchicalAction.setChecked(true);
             }
         }
+
+        /* Update the Dynamic Filters related actions */
+        ViewerFilter activeThreadFilter = null;
+        ViewerFilter[] traceFilters = getFiltersMap().get(signal.getTrace());
+        if (traceFilters != null) {
+            activeThreadFilter = getActiveThreadsFilter(traceFilters);
+        }
+
+        if (activeThreadFilter == null) {
+            fActiveThreadsFilter = new ActiveThreadsFilter(null, false, getTrace());
+        } else {
+            fActiveThreadsFilter = (@NonNull ActiveThreadsFilter) checkNotNull(activeThreadFilter);
+        }
+
+        fActiveThreadsRapidToggle.setChecked(fActiveThreadsFilter.isEnabled());
     }
 
     // ------------------------------------------------------------------------
@@ -622,174 +747,87 @@ public class ControlFlowView extends AbstractTimeGraphView {
 
     @Override
     protected void buildEntryList(final ITmfTrace trace, final ITmfTrace parentTrace, final IProgressMonitor monitor) {
-        final ITmfStateSystem ssq = TmfStateSystemAnalysisModule.getStateSystem(trace, KernelAnalysisModule.ID);
-        if (ssq == null) {
+        ThreadStatusDataProvider dataProvider = DataProviderManager.getInstance()
+                .getDataProvider(trace, ThreadStatusDataProvider.ID, ThreadStatusDataProvider.class);
+        if (dataProvider == null) {
             return;
         }
 
-        final List<ControlFlowEntry> entryList = new ArrayList<>();
-        /** Map of control flow entries, key is a pair [threadId, cpuId] */
-        final Map<Pair<Integer, Integer>, ControlFlowEntry> entryMap = new HashMap<>();
-        final TreeMultimap<Integer, ITmfStateInterval> execNamesPPIDs = TreeMultimap.create(
-                Comparator.naturalOrder(),
-                Comparator.comparing(ITmfStateInterval::getStartTime));
-        final TreeMultimap<Integer, ControlFlowEntry> pidMap = TreeMultimap.create(
-                Comparator.naturalOrder(),
-                Comparator.comparing(ControlFlowEntry::getStartTime));
-        fEntryCache.put(trace, pidMap);
-
-        long start = ssq.getStartTime();
-        setStartTime(Long.min(getStartTime(), start));
-
-        TraceEntry traceEntry = new TraceEntry(trace, ssq, ssq.getCurrentEndTime() + 1);
-        addToEntryList(parentTrace, Collections.singletonList(traceEntry));
-
         boolean complete = false;
-        while (!complete && !monitor.isCanceled() && !ssq.isCancelled()) {
-            complete = ssq.waitUntilBuilt(BUILD_UPDATE_TIMEOUT);
-            long end = ssq.getCurrentEndTime();
-            /* When complete execute one last time regardless of end time. */
-            if (start == end && !complete) {
-                continue;
-            }
-            traceEntry.updateEndTime(end + 1);
-            setEndTime(Long.max(getEndTime(), end + 1));
-
-            /* Create a List with the threads' PPID and EXEC_NAME quarks for the 2D query .*/
-            List<Integer> quarks = new ArrayList<>(ssq.getQuarks(Attributes.THREADS, WILDCARD, Attributes.EXEC_NAME));
-            quarks.addAll(ssq.getQuarks(Attributes.THREADS, WILDCARD, Attributes.PPID));
-
-            long queryStart = Long.max(start, ssq.getStartTime());
-            long queryEnd = Long.min(end, ssq.getCurrentEndTime());
-            execNamesPPIDs.clear();
-            try {
-                for (@NonNull ITmfStateInterval interval : ssq.query2D(quarks, queryStart, queryEnd)) {
-                    if (monitor.isCanceled()) {
-                        return;
-                    }
-                    execNamesPPIDs.put(interval.getAttribute(), interval);
-                }
-            } catch (TimeRangeException e) {
-                Activator.getDefault().logError("CFV: incorrect query times for buildEntryList", e); //$NON-NLS-1$
-                continue;
-            } catch (StateSystemDisposedException e) {
-                /* State System has been disposed, no need to try again. */
+        TraceEntry traceEntry = null;
+        while (!complete && !monitor.isCanceled()) {
+            TmfModelResponse<List<ThreadEntryModel>> response = dataProvider.fetchTree(new TimeQueryFilter(0, Long.MAX_VALUE, 2), monitor);
+            if (response.getStatus() == ITmfResponse.Status.FAILED) {
+                Activator.getDefault().logError("Thread Status Data Provider failed: " + response.getStatusMessage()); //$NON-NLS-1$
+                return;
+            } else if (response.getStatus() == ITmfResponse.Status.CANCELLED) {
                 return;
             }
+            complete = response.getStatus() == ITmfResponse.Status.COMPLETED;
 
-            for (Integer threadQuark : ssq.getQuarks(Attributes.THREADS, WILDCARD)) {
-                String threadAttributeName = ssq.getAttributeName(threadQuark);
-                Pair<Integer, Integer> entryKey = Attributes.parseThreadAttributeName(threadAttributeName);
-                int threadId = entryKey.getFirst();
-                if (threadId < 0) {
-                    // ignore the 'unknown' (-1) thread
-                    continue;
+            List<ThreadEntryModel> model = response.getModel();
+            if (model != null) {
+                synchronized (fControlFlowEntries) {
+                    for (ThreadEntryModel entry : model) {
+                        if (entry.getThreadId() != Integer.MIN_VALUE) {
+                            ControlFlowEntry e = fControlFlowEntries.get(trace, entry.getId());
+                            if (e != null) {
+                                e.updateModel(entry);
+                            } else {
+                                fControlFlowEntries.put(trace, entry.getId(), new ControlFlowEntry(entry, trace));
+                                fEntriesTid.put(entry.getThreadId(), entry.getId());
+                            }
+                        } else {
+                            setStartTime(Long.min(getStartTime(), entry.getStartTime()));
+                            setEndTime(Long.max(getEndTime(), entry.getEndTime() + 1));
+
+                            if (traceEntry != null) {
+                                traceEntry.updateModel(entry);
+                            } else {
+                                traceEntry = new TraceEntry(entry, trace, dataProvider);
+                                addToEntryList(parentTrace, Collections.singletonList(traceEntry));
+                            }
+                        }
+                    }
                 }
 
-                int execNameQuark = ssq.optQuarkRelative(threadQuark, Attributes.EXEC_NAME);
-                int ppidQuark = ssq.optQuarkRelative(threadQuark, Attributes.PPID);
-                Collection<ITmfStateInterval> ppidIterator = execNamesPPIDs.get(ppidQuark);
-                for (ITmfStateInterval execNameInterval : execNamesPPIDs.get(execNameQuark)) {
-                    if (execNameInterval.getValue() == null) {
-                        entryMap.remove(entryKey);
-                        continue;
-                    }
-
-                    ControlFlowEntry entry = entryMap.get(entryKey);
-                    long startTime = execNameInterval.getStartTime();
-                    long endTime = execNameInterval.getEndTime() + 1;
-                    String execName = String.valueOf(execNameInterval.getValue());
-                    int ppid = getPpid((NavigableSet<ITmfStateInterval>) ppidIterator, endTime);
-
-                    if (entry == null) {
-                        entry = new ControlFlowEntry(threadQuark, trace, execName, threadId, ppid, startTime, endTime);
-                        entryList.add(entry);
-                        entryMap.put(entryKey, entry);
+                Objects.requireNonNull(traceEntry, "ControfFlow tree model should have a trace entry with PID=Integer.MIN_VALUE"); //$NON-NLS-1$
+                Collection<ControlFlowEntry> controlFlowEntries = fControlFlowEntries.row(trace).values();
+                synchronized (fFlatTraces) {
+                    if (fFlatTraces.contains(parentTrace)) {
+                        addEntriesToFlatTree(controlFlowEntries, traceEntry);
                     } else {
-                        /*
-                         * Update the name of the entry to the latest execName
-                         * and the parent thread id to the latest ppid.
-                         */
-                        entry.setName(execName);
-                        entry.setParentThreadId(ppid);
-                        entry.updateEndTime(endTime);
+                        addEntriesToHierarchicalTree(controlFlowEntries, traceEntry);
                     }
-                    pidMap.put(threadId, entry);
                 }
+                Iterable<TimeGraphEntry> entries = Iterables.filter(controlFlowEntries, TimeGraphEntry.class);
+                final long resolution = Long.max(1, (traceEntry.getEndTime() - traceEntry.getStartTime()) / getDisplayWidth());
+                zoomEntries(entries, traceEntry.getStartTime(), traceEntry.getEndTime(), resolution, monitor);
             }
-
-            synchronized (fFlatTraces) {
-                if (fFlatTraces.contains(parentTrace)) {
-                    addEntriesToFlatTree(entryList, traceEntry);
-                } else {
-                    addEntriesToHierarchicalTree(entryList, traceEntry);
-                }
-            }
-
-            final long resolution = Long.max(1, (end - ssq.getStartTime()) / getDisplayWidth());
-            /* Transform is just to change the type. */
-            Iterable<TimeGraphEntry> entries = Iterables.transform(entryList, e -> (TimeGraphEntry) e);
-            zoomEntries(entries, ssq.getStartTime(), end, resolution, monitor);
-
             if (parentTrace.equals(getTrace())) {
                 refresh();
             }
 
-            start = end;
-        }
-    }
-
-    /**
-     * Find the parent PID for a given time from a thread's sorted PPID intervals.
-     *
-     * @param ppidIterator
-     *            a navigable set sorted by increasing start time
-     * @param t
-     *            the time stamp at which we want to know the PPID
-     * @return the entry's PPID or -1 if we could not find it.
-     */
-    private static int getPpid(NavigableSet<ITmfStateInterval> ppidIterator, long t) {
-        ITmfStateInterval ppidInterval = ppidIterator.lower(new TmfStateInterval(t, t + 1, 0, 0));
-        if (ppidInterval != null) {
-            Object o = ppidInterval.getValue();
-            if (o instanceof Integer) {
-                return (Integer) o;
+            if (!complete) {
+                try {
+                    Thread.sleep(BUILD_UPDATE_TIMEOUT);
+                } catch (InterruptedException e) {
+                    Activator.getDefault().logError("Failed to wait for analysis to finish", e); //$NON-NLS-1$
+                }
             }
         }
-        return -1;
-    }
-
-    /**
-     * Add entries to the traces's child list in a flat fashion (no hierarchy).
-     * If one entry has children, we do a depth first search to add each child
-     * to the trace's child list and update the parent and child relations.
-     */
-    private static void hierarchicalToFlatTree(TimeGraphEntry traceEntry) {
-        List<@NonNull TimeGraphEntry> rootList = traceEntry.getChildren();
-        // We visit the children of every entry to add
-        StreamFlattener<TimeGraphEntry> sf = new StreamFlattener<>(entry -> entry.getChildren().stream());
-        Stream<TimeGraphEntry> allEntries = rootList.stream().flatMap(sf::flatten);
-
-        // We add every entry that is missing from the trace's entry list
-        List<@NonNull TimeGraphEntry> rootListToAdd = allEntries
-                .filter(entry -> !rootList.contains(entry))
-                .collect(Collectors.toList());
-        rootList.forEach(TimeGraphEntry::clearChildren);
-        rootListToAdd.forEach(entry -> {
-            traceEntry.addChild(entry);
-            entry.clearChildren();
-        });
     }
 
     /**
      * Add entries to the traces's child list in a flat fashion (no hierarchy).
      */
-    private static void addEntriesToFlatTree(List<@NonNull ControlFlowEntry> entryList, TimeGraphEntry traceEntry) {
-        List<TimeGraphEntry> rootList = traceEntry.getChildren();
-        for (ControlFlowEntry entry : entryList) {
-            if (!rootList.contains(entry)) {
-                traceEntry.addChild(entry);
-            }
+    private static void addEntriesToFlatTree(Collection<@NonNull ControlFlowEntry> entries, TimeGraphEntry traceEntry) {
+        traceEntry.clearChildren();
+        for (ControlFlowEntry e : entries) {
+            // reset the entries
+            e.setParent(null);
+            e.clearChildren();
+            traceEntry.addChild(e);
         }
     }
 
@@ -797,33 +835,25 @@ public class ControlFlowView extends AbstractTimeGraphView {
      * Add entries to the trace's child list in a hierarchical fashion.
      */
     private static void addEntriesToHierarchicalTree(Iterable<ControlFlowEntry> entryList, TimeGraphEntry traceEntry) {
-        List<TimeGraphEntry> rootList = traceEntry.getChildren();
-
-        for (ControlFlowEntry entry : entryList) {
-            boolean root = (entry.getParent() == null || entry.getParent() == traceEntry);
-            if (root && entry.getParentThreadId() > 0) {
-                for (ControlFlowEntry parent : entryList) {
-                    /*
-                     * Associate the parent entry only if their time overlap. A
-                     * child entry may start before its parent, for example at
-                     * the beginning of the trace if a parent has not yet
-                     * appeared in the state system. We just want to make sure
-                     * that the entry didn't start after the parent ended or
-                     * ended before the parent started.
-                     */
-                    if (parent.getThreadId() == entry.getParentThreadId() &&
-                            !(entry.getStartTime() > parent.getEndTime() ||
-                            entry.getEndTime() < parent.getStartTime())) {
-                        root = false;
-                        if (rootList.contains(entry)) {
-                            traceEntry.removeChild(entry);
-                        }
-                        parent.addChild(entry);
-                        break;
-                    }
-                }
-            }
-            if (root && (!rootList.contains(entry))) {
+        traceEntry.clearChildren();
+        Map<Long, ControlFlowEntry> map = Maps.uniqueIndex(entryList, entry -> entry.getModel().getId());
+        for (ControlFlowEntry e : entryList) {
+            // reset children tree prior to rebuild
+            e.clearChildren();
+            e.setParent(null);
+        }
+        for (TimeGraphEntry entry : entryList) {
+            ControlFlowEntry parent = map.get(entry.getModel().getParentId());
+            /*
+             * Associate the parent entry only if their time overlap. A child entry may
+             * start before its parent, for example at the beginning of the trace if a
+             * parent has not yet appeared in the state system. We just want to make sure
+             * that the entry didn't start after the parent ended or ended before the parent
+             * started.
+             */
+            if (parent != null) {
+                parent.addChild(entry);
+            } else {
                 traceEntry.addChild(entry);
             }
         }
@@ -832,61 +862,51 @@ public class ControlFlowView extends AbstractTimeGraphView {
     @Override
     protected void zoomEntries(@NonNull Iterable<@NonNull TimeGraphEntry> entries, long zoomStartTime, long zoomEndTime,
             long resolution, @NonNull IProgressMonitor monitor) {
-        boolean isZoomThread = Thread.currentThread() instanceof ZoomThread;
-        Table<ITmfStateSystem, Integer, ControlFlowEntry> table = filterGroupEntries(entries, zoomStartTime, zoomEndTime);
-        TreeMultimap<Integer, ITmfStateInterval> intervals = TreeMultimap.create(Comparator.naturalOrder(),
-                Comparator.comparingLong(ITmfStateInterval::getStartTime));
-
-        for (Entry<ITmfStateSystem, Map<Integer, ControlFlowEntry>> ssEntries : table.rowMap().entrySet()) {
-            ITmfStateSystem ss = ssEntries.getKey();
-            /* Get the time stamps for the 2D query */
-            long start = Long.max(zoomStartTime, ss.getStartTime());
-            long end = Long.min(zoomEndTime, ss.getCurrentEndTime());
-            if (start > end) {
-                continue;
-            }
-            Sampling clampedSampling = new Sampling(start, end, resolution);
-            List<Long> times = StateSystemUtils.getTimes(start, end, resolution);
-            Map<Integer, ControlFlowEntry> quarksToEntries = ssEntries.getValue();
-            /* Do the actual query */
-            try {
-                for (ITmfStateInterval interval : ss.query2D(quarksToEntries.keySet(), times)) {
-                    if (monitor.isCanceled()) {
-                        return;
-                    }
-                    intervals.put(interval.getAttribute(), interval);
-                }
-                for (Entry<Integer, Collection<ITmfStateInterval>> e : intervals.asMap().entrySet()) {
-                    ControlFlowEntry controlFlowEntry = quarksToEntries.get(e.getKey());
-                    if (controlFlowEntry == null) {
-                        continue;
-                    }
-                    List<ITimeEvent> events = createTimeEvents(controlFlowEntry, e.getValue());
-                    if (monitor.isCanceled()) {
-                        return;
-                    }
-                    if (isZoomThread) {
-                        applyResults(() -> {
-                            controlFlowEntry.setZoomedEventList(events);
-                            controlFlowEntry.setSampling(clampedSampling);
-                        });
-                    } else {
-                        controlFlowEntry.setEventList(events);
-                    }
-                }
-            } catch (TimeRangeException e) {
-                Activator.getDefault().logError("CFV: incorrect query times for zoomEvent", e); //$NON-NLS-1$
-            } catch (StateSystemDisposedException e) {
-                // If the state system was disposed, the trace was closed, nothing to do here.
-            } finally {
-                intervals.clear();
-            }
+        if (resolution < 0) {
+            return;
         }
+        long zoomStart = Long.min(zoomStartTime, zoomEndTime);
+        long zoomEnd = Long.max(zoomStartTime, zoomEndTime);
+        List<@NonNull Long> times = StateSystemUtils.getTimes(zoomStart, zoomEnd, resolution);
+        Sampling sampling = new Sampling(zoomStart, zoomEnd, resolution);
+        Table<ThreadStatusDataProvider, Long, ControlFlowEntry> controlFlowEntries = filterGroup(entries, zoomStartTime, zoomEndTime);
+        // One unit of work per data provider
+        IProgressMonitor subMonitor = SubMonitor.convert(monitor, "ControlFlowView#zoomEntries", controlFlowEntries.rowKeySet().size()); //$NON-NLS-1$
+        for (Entry<ThreadStatusDataProvider, Map<Long, ControlFlowEntry>> entry : controlFlowEntries.rowMap().entrySet()) {
+            Map<Long, ControlFlowEntry> map = entry.getValue();
+            SelectionTimeQueryFilter filter = new SelectionTimeQueryFilter(times, map.keySet());
+            TmfModelResponse<List<ITimeGraphRowModel>> fetchRowModel = entry.getKey().fetchRowModel(filter, monitor);
+
+            List<ITimeGraphRowModel> model = fetchRowModel.getModel();
+            if (model != null) {
+                for (ITimeGraphRowModel rowModel : model) {
+                    if (subMonitor.isCanceled()) {
+                        return;
+                    }
+                    ControlFlowEntry controlFlowEntry = map.get(rowModel.getEntryID());
+                    if (controlFlowEntry != null) {
+                        List<ITimeEvent> events = createTimeEvents(controlFlowEntry, rowModel.getStates());
+                        if (Thread.currentThread() instanceof ZoomThread) {
+                            applyResults(() -> {
+                                controlFlowEntry.setZoomedEventList(events);
+                                if (fetchRowModel.getStatus() == ITmfResponse.Status.COMPLETED) {
+                                    controlFlowEntry.setSampling(sampling);
+                                }
+                            });
+                        } else {
+                            controlFlowEntry.setEventList(events);
+                        }
+                    }
+                }
+            }
+            subMonitor.worked(1);
+        }
+        fActiveThreadsFilter.updateData(zoomStartTime, zoomEndTime);
     }
 
     /**
      * Filter the entries to return only ControlFlowEntries which intersect the time
-     * range and group them by State System.
+     * range and group them by data provider.
      *
      * @param visible
      *            the input list of visible entries
@@ -894,46 +914,54 @@ public class ControlFlowView extends AbstractTimeGraphView {
      *            the leftmost time bound of the view
      * @param zoomEndTime
      *            the rightmost time bound of the view
-     * @return A Table of the visible entries keyed by their state system and status
-     *         interval quark.
+     * @return A Table of the visible entries keyed by their data provider and id.
      */
-    private static Table<ITmfStateSystem, Integer, ControlFlowEntry> filterGroupEntries(Iterable<TimeGraphEntry> visible,
+    protected static Table<ThreadStatusDataProvider, Long, ControlFlowEntry> filterGroup(Iterable<TimeGraphEntry> visible,
             long zoomStartTime, long zoomEndTime) {
-        Table<ITmfStateSystem, Integer, ControlFlowEntry> quarksToEntries = HashBasedTable.create();
+        Table<ThreadStatusDataProvider, Long, ControlFlowEntry> table = HashBasedTable.create();
         for (ControlFlowEntry entry : Iterables.filter(visible, ControlFlowEntry.class)) {
             if (zoomStartTime <= entry.getEndTime() && zoomEndTime >= entry.getStartTime()) {
-                quarksToEntries.put(getStateSystem(entry), entry.getThreadQuark(), entry);
+                table.put(getProvider(entry), entry.getModel().getId(), entry);
             }
         }
-        return quarksToEntries;
+        return table;
     }
 
     /**
-     * Get a {@link ControlFlowEntry}'s {@link ITmfStateSystem} from its
-     * {@link TraceEntry} parent.
+     * Get the {@link ThreadStatusDataProvider} from a {@link ControlFlowEntry}'s
+     * parent.
      *
-     * @param controlFlowEntry
-     *            {@link ControlFlowEntry}'s who's {@link ITmfStateSystem} we are
-     *            looking up
-     * @return the controlFlowEntry's state system if the entry has a TraceEntry
-     *         parent, else null.
+     * @param entry
+     *            queried Control Flow Entry.
+     * @return the {@link ThreadStatusDataProvider}
      */
-    private static ITmfStateSystem getStateSystem(ITimeGraphEntry controlFlowEntry) {
-        ITimeGraphEntry parent = controlFlowEntry.getParent();
+    public static @NonNull ThreadStatusDataProvider getProvider(ControlFlowEntry entry) {
+        ITimeGraphEntry parent = entry.getParent();
         while (parent != null) {
             if (parent instanceof TraceEntry) {
-                return ((TraceEntry) parent).getStateSystem();
+                return ((TraceEntry) parent).getProvider();
             }
             parent = parent.getParent();
         }
-        return null;
+        throw new IllegalStateException(entry + " should have a TraceEntry parent"); //$NON-NLS-1$
     }
 
-    protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, Collection<ITmfStateInterval> value) {
-        List<ITimeEvent> events = new ArrayList<>(value.size());
+    /**
+     * Create {@link ITimeEvent}s for an entry from the list of
+     * {@link ITimeGraphState}s, filling in the gaps.
+     *
+     * @param controlFlowEntry
+     *            the {@link ControlFlowEntry} on which we are working
+     * @param values
+     *            the list of {@link ITimeGraphState}s from the
+     *            {@link ThreadStatusDataProvider}.
+     * @return a contiguous List of {@link ITimeEvent}s
+     */
+    protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, List<ITimeGraphState> values) {
+        List<ITimeEvent> events = new ArrayList<>(values.size());
         ITimeEvent prev = null;
-        for (ITmfStateInterval interval : value) {
-            ITimeEvent event = createTimeEvent(interval, controlFlowEntry);
+        for (ITimeGraphState state : values) {
+            ITimeEvent event = createTimeEvent(controlFlowEntry, state);
             if (prev != null) {
                 long prevEnd = prev.getTime() + prev.getDuration();
                 if (prevEnd < event.getTime()) {
@@ -947,213 +975,106 @@ public class ControlFlowView extends AbstractTimeGraphView {
         return events;
     }
 
-    /**
-     * Create a {@link TimeEvent} from an {@link ITmfStateInterval} for a
-     * {@link ControlFlowEntry}.
-     *
-     * @param controlFlowEntry
-     *            control flow entry which receives the new entry.
-     * @param interval
-     *            state interval which will generate the new event
-     */
-    protected static TimeEvent createTimeEvent(ITmfStateInterval interval, ControlFlowEntry controlFlowEntry) {
-        long startTime = interval.getStartTime();
-        long duration = interval.getEndTime() - startTime + 1;
-        Object status = interval.getValue();
-        if (status instanceof Integer) {
-            return new TimeEvent(controlFlowEntry, startTime, duration, (int) status);
+    protected static ITimeEvent createTimeEvent(ControlFlowEntry controlFlowEntry, ITimeGraphState state) {
+        if (state.getValue() == Integer.MIN_VALUE) {
+            return new NullTimeEvent(controlFlowEntry, state.getStartTime(), state.getDuration());
         }
-        return new NullTimeEvent(controlFlowEntry, startTime, duration);
+        String label = state.getLabel();
+        if (label != null) {
+            return new NamedTimeEvent(controlFlowEntry, state.getStartTime(), state.getDuration(), (int) state.getValue(), label);
+        }
+        return new TimeEvent(controlFlowEntry, state.getStartTime(), state.getDuration(), (int) state.getValue());
     }
 
     @Override
     protected List<@NonNull ILinkEvent> getLinkList(long zoomStartTime, long zoomEndTime, long resolution,
             @NonNull IProgressMonitor monitor) {
-        ITmfTrace parentTrace = getTrace();
-        if (parentTrace == null) {
-            return Collections.emptyList();
-        }
-
-        List<TimeGraphEntry> traceEntries = getEntryList(parentTrace);
+        List<@NonNull TimeGraphEntry> traceEntries = getEntryList(getTrace());
         if (traceEntries == null) {
             return Collections.emptyList();
         }
         List<@NonNull ILinkEvent> linkList = new ArrayList<>();
-        /**
-         * MultiMap of the current thread intervals, grouped by CPU, by increasing start
-         * time.
-         */
-        TreeMultimap<Integer, ITmfStateInterval> currentThreadIntervalsMap = TreeMultimap.create(
-                Comparator.naturalOrder(),
-                Comparator.comparing(ITmfStateInterval::getStartTime));
-        for (TimeGraphEntry entry : traceEntries) {
-            TraceEntry traceEntry = (TraceEntry) entry;
-            ITmfStateSystem ss = traceEntry.getStateSystem();
-            /* Get the time stamps for the 2D query */
-            long start = Long.max(zoomStartTime, ss.getStartTime());
-            long end = Long.min(zoomEndTime, ss.getCurrentEndTime());
-            if (start > end) {
-                continue;
-            }
-            List<Integer> quarks = ss.getQuarks(Attributes.CPUS, WILDCARD, Attributes.CURRENT_THREAD);
-            List<Long> times = StateSystemUtils.getTimes(start, end, resolution);
-            try {
-                /* Do the actual query */
-                for (ITmfStateInterval interval : ss.query2D(quarks, times)) {
-                    if (monitor.isCanceled()) {
-                        return linkList;
-                    }
-                    currentThreadIntervalsMap.put(interval.getAttribute(), interval);
-                }
+        List<@NonNull Long> times = StateSystemUtils.getTimes(zoomStartTime, zoomEndTime, resolution);
+        TimeQueryFilter queryFilter = new TimeQueryFilter(times);
 
-                /* Get the arrows. */
-                for (Collection<ITmfStateInterval> currentThreadIntervals : currentThreadIntervalsMap.asMap().values()) {
-                    if (monitor.isCanceled()) {
-                        return linkList;
+        for (TraceEntry entry : Iterables.filter(traceEntries, TraceEntry.class)) {
+            ThreadStatusDataProvider provider = entry.getProvider();
+            TmfModelResponse<List<ITimeGraphArrow>> response = provider.fetchArrows(queryFilter, monitor);
+            List<ITimeGraphArrow> model = response.getModel();
+
+            if (model != null) {
+                Map<Long, ControlFlowEntry> map = fControlFlowEntries.row(entry.getTrace());
+                for (ITimeGraphArrow arrow : model) {
+                    ITimeGraphEntry prevEntry = map.get(arrow.getSourceId());
+                    ITimeGraphEntry nextEntry = map.get(arrow.getDestinationId());
+                    if (prevEntry != null && nextEntry != null) {
+                        linkList.add(new TimeLinkEvent(prevEntry, nextEntry, arrow.getStartTime(), arrow.getDuration(), 0));
                     }
-                    linkList.addAll(createCpuArrows(traceEntry, (NavigableSet<ITmfStateInterval>) currentThreadIntervals));
                 }
-            } catch (TimeRangeException e) {
-                Activator.getDefault().logError("CFV: incorrect query times for getLinkList", e); //$NON-NLS-1$
-            } catch (StateSystemDisposedException e) {
-                // If the state system was disposed, the trace was closed, nothing to do here.
-            } finally {
-                currentThreadIntervalsMap.clear();
             }
         }
         return linkList;
-    }
-
-    /**
-     * Create the list of arrows to follow the current thread on a CPU
-     *
-     * @param trace
-     *            trace displayed in the view
-     * @param entryList
-     *            entry list for this trace
-     * @param intervals
-     *            sorted collection of the current thread intervals for a CPU
-     * @return the list of arrows to follow the current thread on a CPU
-     * @throws StateSystemDisposedException
-     *             If the query is sent after the state system has been disposed
-     */
-    private List<@NonNull ILinkEvent> createCpuArrows(TraceEntry entry, NavigableSet<ITmfStateInterval> intervals)
-            throws StateSystemDisposedException {
-        if (intervals.isEmpty()) {
-            return Collections.emptyList();
-        }
-        /*
-         * Add the previous interval if it is the first query iteration and the first
-         * interval has currentThread=0. Add the following interval if the last interval
-         * has currentThread=0. These are diagonal arrows crossing the query iteration
-         * range.
-         */
-        ITmfStateSystem ss = entry.getStateSystem();
-        ITmfStateInterval first = intervals.first();
-        long start = first.getStartTime() - 1;
-        if (start >= ss.getStartTime() && Objects.equals(first.getValue(), 0)) {
-            intervals.add(ss.querySingleState(start, first.getAttribute()));
-        }
-        ITmfStateInterval last = intervals.last();
-        long end = last.getEndTime() + 1;
-        if (end <= ss.getCurrentEndTime() && Objects.equals(last.getValue(), 0)) {
-            intervals.add(ss.querySingleState(end, last.getAttribute()));
-        }
-
-        List<@NonNull ILinkEvent> linkList = new ArrayList<>();
-        long prevEnd = 0;
-        long lastEnd = 0;
-        ITimeGraphEntry prevEntry = null;
-        for (ITmfStateInterval currentThreadInterval : intervals) {
-            long time = currentThreadInterval.getStartTime();
-            if (time != lastEnd) {
-                /*
-                 * Don't create links where there are gaps in intervals due to the resolution
-                 */
-                prevEntry = null;
-                prevEnd = 0;
-            }
-            Integer tid = (Integer) currentThreadInterval.getValue();
-            lastEnd = currentThreadInterval.getEndTime() + 1;
-            ITimeGraphEntry nextEntry = null;
-            if (tid != null && tid > 0) {
-                nextEntry = findEntry(entry.getTrace(), tid, time);
-                if (prevEntry != null) {
-                    linkList.add(new TimeLinkEvent(prevEntry, nextEntry, prevEnd, time - prevEnd, 0));
-                }
-                prevEntry = nextEntry;
-                prevEnd = lastEnd;
-            }
-        }
-        return linkList;
-    }
-
-    protected ControlFlowEntry findEntry(@NonNull ITmfTrace trace, int tid, long time) {
-        TreeMultimap<Integer, ControlFlowEntry> pidMap = fEntryCache.get(trace);
-        if (pidMap == null) {
-            return null;
-        }
-        /*
-         * FIXME TreeMultimap values are Navigable Sets sorted by start time, find the
-         * values using floor and the relevant anonymous class if ever the iteration
-         * below slows down.
-         */
-        return Iterables.find(pidMap.get(tid), cfe -> cfe.getStartTime() <= time && time <= cfe.getEndTime(), null);
-    }
-
-    /**
-     * Find the thread which started running on a CPU at the queried time.
-     *
-     * @param time
-     *            The currently selected time
-     * @return the threadID or -1 if not found
-     */
-    private int getCurrentThread(long time) {
-        List<@NonNull TimeGraphEntry> entryList = getEntryList(getTrace());
-        if (entryList == null) {
-            return -1;
-        }
-        for (TimeGraphEntry entry : entryList) {
-            TraceEntry traceEntry = (TraceEntry) entry;
-            ITmfStateSystem ssq = traceEntry.getStateSystem();
-            if (time < ssq.getStartTime() || time > ssq.getCurrentEndTime()) {
-                continue;
-            }
-            List<Integer> currentThreadQuarks = ssq.getQuarks(Attributes.CPUS, WILDCARD, Attributes.CURRENT_THREAD);
-            try {
-                for (int currentThreadQuark : currentThreadQuarks) {
-                    ITmfStateInterval currentThreadInterval = ssq.querySingleState(time, currentThreadQuark);
-                    Integer currentThread = (Integer) currentThreadInterval.getValue();
-                    if (currentThread != null && currentThread > 0) {
-                        int statusQuark = ssq.getQuarkAbsolute(Attributes.THREADS, Integer.toString(currentThread));
-                        ITmfStateInterval statusInterval = ssq.querySingleState(time, statusQuark);
-                        if (statusInterval.getStartTime() == time) {
-                            return currentThread;
-                        }
-                    }
-                }
-            } catch (AttributeNotFoundException e) {
-                Activator.getDefault().logError(e.getMessage());
-            } catch (StateSystemDisposedException e) {
-                /* State System has been disposed, no need to try again. */
-            }
-        }
-        return -1;
     }
 
     @Override
     protected void synchingToTime(long time) {
-        int currentThread = getCurrentThread(time);
-        if (currentThread > 0) {
-            for (ITimeGraphEntry element : getTimeGraphViewer().getExpandedElements()) {
-                if (element instanceof ControlFlowEntry) {
-                    ControlFlowEntry entry = (ControlFlowEntry) element;
-                    if (entry.getThreadId() == currentThread) {
-                        getTimeGraphViewer().setSelection(entry, true);
-                        break;
-                    }
+        List<TimeGraphEntry> traceEntries = getEntryList(getTrace());
+        if (traceEntries == null) {
+            return;
+        }
+        for (TraceEntry traceEntry : Iterables.filter(traceEntries, TraceEntry.class)) {
+            Iterable<TimeGraphEntry> unfiltered = Iterables.filter(flatten(traceEntry), TimeGraphEntry.class);
+            Map<Long, TimeGraphEntry> map = Maps.uniqueIndex(unfiltered, e -> e.getModel().getId());
+            // use time -1 as a lower bound for the end of Time events to be included.
+            SelectionTimeQueryFilter filter = new SelectionTimeQueryFilter(time - 1, time, 2, map.keySet());
+            TmfModelResponse<@NonNull List<@NonNull ITimeGraphRowModel>> response = traceEntry.getProvider().fetchRowModel(filter, null);
+            List<@NonNull ITimeGraphRowModel> model = response.getModel();
+            if (model == null) {
+                continue;
+            }
+            for (ITimeGraphRowModel row : model) {
+                if (syncToRow(row, time, map)) {
+                    return;
                 }
             }
         }
+    }
+
+    private boolean syncToRow(ITimeGraphRowModel rowModel, long time, Map<Long, TimeGraphEntry> entryMap) {
+        long id = rowModel.getEntryID();
+        List<@NonNull ITimeGraphState> list = rowModel.getStates();
+        if (list.isEmpty()) {
+            return false;
+        }
+        ITimeGraphState event = list.get(0);
+        if (event.getStartTime() + event.getDuration() <= time && list.size() > 1) {
+            /*
+             * get the second time graph state as passing time - 1 as a first argument to
+             * the filter will get the previous state, if time is the beginning of an event
+             */
+            event = list.get(1);
+        }
+
+        if (time == event.getStartTime()) {
+            TimeGraphEntry entry = entryMap.get(id);
+            if (entry != null) {
+                getTimeGraphViewer().setSelection(entry, true);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Iterable<ITimeGraphEntry> flatten(ITimeGraphEntry root) {
+        return Iterables.concat(Collections.singletonList(root), Iterables.concat(Iterables.transform(root.getChildren(), ControlFlowView::flatten)));
+    }
+
+    private static ActiveThreadsFilter getActiveThreadsFilter(ViewerFilter[] filters) {
+        for (ViewerFilter viewerFilter : filters) {
+            if ((viewerFilter instanceof ActiveThreadsFilter)) {
+                return (ActiveThreadsFilter) viewerFilter;
+            }
+        }
+        return null;
     }
 }

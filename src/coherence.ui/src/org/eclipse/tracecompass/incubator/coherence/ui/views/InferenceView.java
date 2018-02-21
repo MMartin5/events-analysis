@@ -10,8 +10,8 @@ import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTrans
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.kernel.StateValues;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphState;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.TimeGraphState;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
@@ -29,11 +29,11 @@ public class InferenceView extends CoherenceView {
 		fEntry = null;
 	}
 	
-	public void setProperties(ControlFlowEntry entry, IncoherentEvent incoherence) {
+	public void setProperties(ControlFlowEntry entry, IncoherentEvent incoherence, long entryQuark) {
 		fEntry = entry;
 		fIncoherence = incoherence;
 		// Get the local entry of the same entry belonging to the control flow view
-		ControlFlowEntry newEntry = this.findEntry(getTrace(), entry.getThreadId(), entry.getStartTime());
+		ControlFlowEntry newEntry = fControlFlowEntries.get(getTrace(), entryQuark);
 		TraceEntry traceEntry = (TraceEntry) getEntryList(getTrace()).get(0);
 		// Delete every entry of the trace entry and add only the one we need
 		traceEntry.clearChildren();
@@ -42,7 +42,7 @@ public class InferenceView extends CoherenceView {
 	}
 	
 	@Override
-	protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, Collection<ITmfStateInterval> value) {
+	protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, List<ITimeGraphState> values) {
 		
 		// Skip if fEntry has not been initialized yet
 		if (fEntry == null || controlFlowEntry.getName() != fEntry.getName()) {
@@ -66,11 +66,11 @@ public class InferenceView extends CoherenceView {
 	        }
 		
 			// Add incoherent state intervals to the given list of intervals
-			Collection<ITmfStateInterval> newValue = new ArrayList<>();
+			Collection<ITimeGraphState> newValue = new ArrayList<>();
 			
-			Iterator<ITmfStateInterval> intervalIt = value.iterator();
+			Iterator<ITimeGraphState> intervalIt = values.iterator();
 			boolean getNext = true;
-			ITmfStateInterval interval = null;
+			ITimeGraphState interval = null;
 			while (intervalIt.hasNext()) {
 				if (getNext) {
 					interval = intervalIt.next();
@@ -81,17 +81,11 @@ public class InferenceView extends CoherenceView {
 				 */
 				if ((inferredEvent != null) 
 						&& ((inferredEventTs > interval.getStartTime()) 
-								&& (inferredEventTs < interval.getEndTime()))) {
-					ITmfStateInterval newInterval1 = new TmfStateInterval(
-							interval.getStartTime(), 
-							inferredEventTs - 1, 
-							interval.getAttribute(), 
-							interval.getValue());
-					ITmfStateInterval newInterval2 = new TmfStateInterval(
-							inferredEventTs, 
-							interval.getEndTime(), 
-							interval.getAttribute(), 
-							stateValue);
+								&& (inferredEventTs < (interval.getStartTime() + interval.getDuration())))) {
+					
+					ITimeGraphState newInterval1 = new TimeGraphState(interval.getStartTime(), (inferredEventTs - 1) - interval.getStartTime(), interval.getValue(), interval.getLabel());
+					ITimeGraphState newInterval2 = new TimeGraphState(inferredEventTs, interval.getDuration() - newInterval1.getDuration(), stateValue, interval.getLabel());
+					
 					newValue.add(newInterval1);
 					interval = newInterval2; // we cannot add it now because another inferred event could occur before the end of the original interval
 					getNext = false; // we don't want to consider the next interval because we need to check the next inferred event for closing the interval 
@@ -121,8 +115,10 @@ public class InferenceView extends CoherenceView {
 			 */
 			List<ITimeEvent> events = new ArrayList<>(newValue.size());
 	        ITimeEvent prev = null;
-	        for (ITmfStateInterval newInterval : newValue) {
-	            ITimeEvent event = createTimeEvent(newInterval, controlFlowEntry);
+	        for (ITimeGraphState newInterval : newValue) {
+	        	long duration = newInterval.getDuration();
+				ITimeGraphState state = new TimeGraphState(newInterval.getStartTime(), duration, (long) newInterval.getValue());
+	            ITimeEvent event = createTimeEvent(controlFlowEntry, state);
 	            if (prev != null) {
 	                long prevEnd = prev.getTime() + prev.getDuration();
 	                if (prevEnd < event.getTime()) {
@@ -136,7 +132,7 @@ public class InferenceView extends CoherenceView {
 	        return events;
 		}
 		else {
-			return super.createTimeEvents(controlFlowEntry, value);
+			return super.createTimeEvents(controlFlowEntry, values);
 		}
     }
 
