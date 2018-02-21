@@ -46,6 +46,7 @@ public class InferenceDialog extends TitleAreaDialog {
 	
 	private XmlPatternStateProvider fProvider;
 	private final LocalResourceManager fResourceManager = new LocalResourceManager(JFaceResources.getResources());
+	private boolean dirty;
 	
 	static private String TITLE = "Inference resolution";
 	static private String SUBTITLE = "Inferred events";
@@ -79,6 +80,8 @@ public class InferenceDialog extends TitleAreaDialog {
         setTitle(TITLE);
         setDialogHelpAvailable(false);
         setHelpAvailable(false);
+        
+        dirty = false;
 
         composite.addDisposeListener((e) -> {
             fResourceManager.dispose();
@@ -117,6 +120,21 @@ public class InferenceDialog extends TitleAreaDialog {
         createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL,
                 true);
     }
+	
+	@Override 
+	protected void okPressed() {
+		if (dirty) {
+			/* Refresh view */
+			final IWorkbench wb = PlatformUI.getWorkbench();
+	        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
+	    	IViewPart view = activePage.findView(GlobalInferenceView.ID);
+	    	if (view != null && view instanceof GlobalInferenceView) {
+	    		((GlobalInferenceView) view).needRefresh();
+	    	}
+	    	System.out.println("refresh");
+		}
+    	super.okPressed();
+	};
 	
 	private class EventEntry extends Composite {
 
@@ -182,15 +200,7 @@ public class InferenceDialog extends TitleAreaDialog {
 					TmfEventField possibility = (TmfEventField) item.getData();
 					multipleValue.update(possibility);
 					
-					/* Refresh view */
-					final IWorkbench wb = PlatformUI.getWorkbench();
-			        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
-		        	IViewPart view = activePage.findView(GlobalInferenceView.ID);
-		        	if (view != null && view instanceof GlobalInferenceView) {
-		        		((GlobalInferenceView) view).needRefresh();
-		        	}
-					
-					System.out.println("event field set to " + multipleValue.getChoice().toString());
+					dirty = true;
 				}
 				
 				@Override
