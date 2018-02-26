@@ -200,11 +200,12 @@ public class ControlFlowView extends AbstractTimeGraphView {
 	private Map<Integer, Long> fEntriesTid = new HashMap<>();
 	
 	public long getEntryQuarkFromTid(int tid) {
-		long value = fEntriesTid.get(tid);
-//		if (value == null) {
-//			return -1; // TODO set default unknown
-//		}
-		return value;
+		if (fEntriesTid.containsKey(tid)) {
+			return fEntriesTid.get(tid);
+		}
+		else {
+			return -1l; // TODO set default unknown
+		}
 	}
 
     class ActiveThreadsFilterAction extends Action {

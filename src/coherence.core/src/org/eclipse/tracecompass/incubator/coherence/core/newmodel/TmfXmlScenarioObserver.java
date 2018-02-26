@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,22 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 	
 	public static String ALGO1 = "checkEvent";
 	public static String ALGO2 = "checkEvent2";
+	
+	private class WaitingProblematicEvent {
+		public WaitingProblematicEvent(ITmfEvent event, Set<TmfXmlFsmTransition> currentPossibleTransitions, 
+				String activeState, ITmfEvent lastEvent) {
+			this.event = event;
+			this.currentPossibleTransitions = new HashSet<>(currentPossibleTransitions);
+			this.activeState = activeState;
+			this.lastEvent = lastEvent;
+		}
+		ITmfEvent event;
+		Set<TmfXmlFsmTransition> currentPossibleTransitions;
+		String activeState;
+		ITmfEvent lastEvent;
+	}
+	
+	List<WaitingProblematicEvent> waitingEvents = new ArrayList<>();
 	
     /**
      * Constructor
@@ -222,7 +239,12 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 			try {
 				if (isCoherenceCheckingNeeded && !((boolean) checkMethod.invoke(this, event))) {
 				    // Save incoherences
-				    fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fScenarioInfo.getActiveState(), lastEvent); // currentPossibleTransitions has been set in checkEvent
+					if (fAttribute == null) {
+						waitingEvents.add(new WaitingProblematicEvent(event, currentPossibleTransitions, fFsm.getStatesMap().get(fScenarioInfo.getActiveState()).getId(), lastEvent));
+			        }
+					else {
+						fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fFsm.getStatesMap().get(fScenarioInfo.getActiveState()).getId(), lastEvent); // currentPossibleTransitions has been set in checkEvent
+					}
 				}
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				Activator.logError("Error while invoking the method to check event", e);
@@ -277,6 +299,11 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         
         if (fAttribute == null) { // it means this is the first event being handled
         	fAttribute = setAttribute(); // attribute should be set after the fHistoryBuilder.update
+        	if (!waitingEvents.isEmpty()) { // add events that were not added due to the lack of a set attribute
+        		for (WaitingProblematicEvent waitingEvent : waitingEvents) {
+        			fFsm.addProblematicEvent(waitingEvent.event, fAttribute, waitingEvent.currentPossibleTransitions, waitingEvent.activeState, waitingEvent.lastEvent);
+        		}
+        	}
         }
     }
 
