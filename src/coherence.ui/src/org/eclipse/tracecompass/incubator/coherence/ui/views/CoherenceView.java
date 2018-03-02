@@ -370,7 +370,7 @@ public class CoherenceView extends ControlFlowView {
             if (eventTime >= startTime && eventTime <= endTime) {
             	// marker by entry
             	int tid =  Integer.valueOf(incoherence.getScenarioAttribute());
-				ControlFlowEntry entry = findEntry(getTrace(), getEntryQuarkFromTid(tid));
+				ControlFlowEntry entry = findEntry(getTrace(), getEntryQuarkFromTid(tid)); // TODO we should only look for the entry if the incoherence is related to a process (process_fsm)
 				IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
 				// simple marker
 				IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
@@ -417,6 +417,11 @@ public class CoherenceView extends ControlFlowView {
 	 */
 	@Override
 	protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, List<ITimeGraphState> values) {
+		/* Ignore swappers */
+		if (controlFlowEntry.getThreadId() == 0) {
+			return Collections.emptyList();
+		}
+		
 		try {
 			if (fJob != null) { // a job is being run
 				fJob.join(); // wait for the end of requestData
@@ -434,7 +439,11 @@ public class CoherenceView extends ControlFlowView {
 		ITmfStateSystem ss = fModule.getStateSystem();
 		int certaintyStatusQuark;
 		try {
-			int scenarioQuark = scenarios.get(String.valueOf(controlFlowEntry.getThreadId())).getScenarioInfos().getQuark();
+			TmfXmlScenario scenario = scenarios.get(String.valueOf(controlFlowEntry.getThreadId()));
+			if (scenario == null) {
+				return Collections.emptyList();
+			}
+			int scenarioQuark = scenario.getScenarioInfos().getQuark();
 			certaintyStatusQuark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS);
 		} catch (AttributeNotFoundException e) {
 			certaintyStatusQuark = -1;
@@ -484,7 +493,7 @@ public class CoherenceView extends ControlFlowView {
 						&& ((incoherentEventTs > interval.getStartTime()) 
 								&& (incoherentEventTs < interval.getStartTime() + interval.getDuration()))) {
 					ITimeGraphState newInterval1;
-					newInterval1 = new TimeGraphState(interval.getStartTime(), (incoherentEventTs - 1) - interval.getStartTime(), IncoherentEvent.INCOHERENT_VALUE, interval.getLabel());
+					newInterval1 = new TimeGraphState(interval.getStartTime(), incoherentEventTs - interval.getStartTime(), IncoherentEvent.INCOHERENT_VALUE, interval.getLabel());
 					incoherencesMap.put(newInterval1, incoherentEvent);
 					ITimeGraphState newInterval2;
 					newInterval2 = new TimeGraphState(incoherentEventTs, interval.getDuration() - newInterval1.getDuration(), interval.getValue(), interval.getLabel());

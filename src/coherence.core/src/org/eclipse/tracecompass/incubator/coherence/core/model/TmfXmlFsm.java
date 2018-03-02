@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelTidAspect;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
@@ -34,6 +35,8 @@ import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
+import org.eclipse.tracecompass.tmf.core.event.aspect.TmfCpuAspect;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -587,32 +590,45 @@ public class TmfXmlFsm {
      */
     List<String> getAttributesForEvent(ITmfEvent event, IKernelAnalysisEventLayout layout) {
     	List<String> attributes = new ArrayList<>();
-    	ITmfEventField content = event.getContent();
-    	
-    	// We want to collect tid information for process FSM
-    	ITmfEventField prevTid = content.getField(layout.fieldPrevTid());
-    	if (prevTid != null) {
-    		attributes.add(prevTid.getValue().toString());
+    	// FIXME hardcoded pattern names
+    	if (fId.equals("process_fsm")) {
+	    	ITmfEventField content = event.getContent();
+	    	
+	    	// We want to collect tid information for process FSM
+	    	if (event.getName().equals("sched_switch")) {
+		    	ITmfEventField prevTid = content.getField(layout.fieldPrevTid());
+		    	if (prevTid != null) {
+		    		attributes.add(prevTid.getValue().toString());
+		    	}
+		    	
+		    	ITmfEventField nextTid = content.getField(layout.fieldNextTid());
+		    	if (nextTid != null) {
+		    		attributes.add(nextTid.getValue().toString());
+		    	}
+	    	}
+	    	else {
+		    	ITmfEventField childTid = content.getField(layout.fieldChildTid());
+		    	if (childTid != null) {
+		    		attributes.add(childTid.getValue().toString());
+		    	}
+		    	
+				Object tidAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), KernelTidAspect.class, event);
+				if (tidAspect != null) {
+					attributes.add(((Integer) tidAspect).toString());
+				}
+	    	}
     	}
-    	
-    	ITmfEventField nextTid = content.getField(layout.fieldNextTid());
-    	if (nextTid != null) {
-    		attributes.add(nextTid.getValue().toString());
+    	else if (fId.equals("cpu_fsm") || fId.equals("softirq_fsm")) {
+			Object cpuAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), TmfCpuAspect.class, event);
+			if (cpuAspect != null) {
+				attributes.add(((Integer) cpuAspect).toString());
+			}
     	}
-    	
-    	ITmfEventField childTid = content.getField(layout.fieldChildTid());
-    	if (childTid != null) {
-    		attributes.add(childTid.getValue().toString());
-    	}
-    	
-    	ITmfEventField tid = content.getField(layout.fieldTid());
-    	if (tid != null) {
-    		attributes.add(tid.getValue().toString());
-    	}
-    	
-    	ITmfEventField cpuId = content.getField("cpu");
-    	if (cpuId != null) {
-    		attributes.add(cpuId.getValue().toString());
+    	else if (fId.equals("irq_fsm")) {
+    		Object tidAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), KernelTidAspect.class, event);
+			if (tidAspect != null) {
+				attributes.add(((Integer) tidAspect).toString());
+			}
     	}
     	
     	return attributes;
@@ -655,8 +671,10 @@ public class TmfXmlFsm {
 	        }
         }
         
-        boolean isValidInput = validatePreconditions(event, testMap);
-        handlePendingScenario(event, isValidInput, transitionTotal);
+        if (!eventAttributes.isEmpty()) { // if we did not find any attribute for this event, it means it should be applied to no scenario
+	        boolean isValidInput = validatePreconditions(event, testMap);
+	        handlePendingScenario(event, isValidInput, transitionTotal);
+        }
     }
 
     /**
