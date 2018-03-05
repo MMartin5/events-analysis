@@ -346,7 +346,7 @@ public class TmfInferredEvent extends TmfEvent {
 			}
 			else { // get value for case 1 : the state value following this field tag
 				try {
-					fieldValue = stateValues.get(stateValues.indexOf(value) + 1).getValue(event, scenarioInfo);
+					fieldValue = value.getValue(event, scenarioInfo);
 					candidateFields.put(fieldName, fieldValue);
 				} catch (AttributeNotFoundException e) {
 					Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
