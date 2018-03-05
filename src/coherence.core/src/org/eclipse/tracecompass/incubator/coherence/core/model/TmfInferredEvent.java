@@ -154,7 +154,7 @@ public class TmfInferredEvent extends TmfEvent {
 		Map<String, Object> certainValues = new HashMap<>();
 		
 		/* Add the fields that can be inferred from the event name */
-		candidateValues.putAll(inferFromEvent(event.getName(), layout, stateSystem));
+		candidateValues.putAll(inferFromEvent(inferredTransition.getEvent(), layout, stateSystem));
 		
         /* Get the conditions in the inferred transition */
         String conditionStr = inferredTransition.to().getCondition();
