@@ -1048,6 +1048,7 @@
 
                     <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
