@@ -1,12 +1,15 @@
 package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.ctf.core.event.IEventDefinition;
@@ -53,11 +56,13 @@ public class TmfInferredEvent extends TmfEvent {
 	private final boolean fIsMulti;
 	private Map<ITmfEventField, MultipleInference> fMultiValues;
 	
+	private final IKernelAnalysisEventLayout fLayout;	
 	
 	public static int MULTI_VALUE = -15;
 	
 	private static final String WILDCARD = "*"; //$NON-NLS-1$
 	private static final Object UNKNOWN_VALUE = new Long(-1l);
+	private static String UNKNOWN_PROCNAME = "unknown";
 	
 	/**
 	 * Instantiate a new inferred event
@@ -126,7 +131,7 @@ public class TmfInferredEvent extends TmfEvent {
         TmfEventField content = new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, fields.toArray(new TmfEventField[fields.size()]));
         TmfEventType type = new CtfTmfEventType(inferredTransition.getEvent(), content);
         
-		return new TmfInferredEvent(trace, ITmfContext.UNKNOWN_RANK, localRank, ts, tsStart, tsEnd, type, content, cpu, multi, multiValues);
+		return new TmfInferredEvent(trace, ITmfContext.UNKNOWN_RANK, localRank, ts, tsStart, tsEnd, type, content, cpu, multi, multiValues, layout);
 	}
 
 	/**
@@ -223,10 +228,11 @@ public class TmfInferredEvent extends TmfEvent {
 				candidateFields.put(layout.fieldNextTid(), threadId);
 			}
 			// FIXME temporary fix hardcoded
-			candidateFields.put(layout.fieldPrevComm(), "unknown");
+			/* prev_comm and next_comm fields should be created dynamically
+			   when returning the event content because it depends on the 
+			   prev_tid and next_tid fields, resp. */
 			candidateFields.put(layout.fieldPrevState(), 0l);
 			candidateFields.put(layout.fieldPrevPrio(), 0l);
-			candidateFields.put(layout.fieldNextComm(), "unknown");
 			candidateFields.put(layout.fieldNextPrio(), 0l);
 													
 		}
@@ -398,7 +404,8 @@ public class TmfInferredEvent extends TmfEvent {
             final ITmfEventField content, 
             Integer cpu, 
             boolean multi, 
-            Map<ITmfEventField, MultipleInference> multiValues) {
+            Map<ITmfEventField, MultipleInference> multiValues, 
+            IKernelAnalysisEventLayout layout) {
 		super(trace, rank, ts, type, content);
 		
 		fStart = tsStart;
@@ -407,6 +414,7 @@ public class TmfInferredEvent extends TmfEvent {
 		fCpu = cpu;
 		fIsMulti = multi;
 		fMultiValues = multiValues;
+		fLayout = layout;
 	}
 	
 	@Override
@@ -454,28 +462,72 @@ public class TmfInferredEvent extends TmfEvent {
 		return fMultiValues;
 	}
 	
+	public String getExecNameFromTid(int tid) {
+		KernelAnalysisModule module = TmfTraceUtils.getAnalysisModuleOfClass(getTrace(), KernelAnalysisModule.class, KernelAnalysisModule.ID);
+		module.waitForCompletion();
+		ITmfStateSystem ss = module.getStateSystem();
+		int threadQuark;
+		try {
+			threadQuark = ss.getQuarkAbsolute(Attributes.THREADS, String.valueOf(tid));
+			int execNameQuark = ss.optQuarkRelative(threadQuark, Attributes.EXEC_NAME);
+			/* We have to get the value of a non-null interval 
+			   (value could be null if the inferred event is located before
+			   the first event of a thread is handled) */
+			Iterator<ITmfStateInterval> it = ss.query2D(Arrays.asList(execNameQuark), getStartTime(), ss.getCurrentEndTime()).iterator(); // FIXME no guaranteed order => we should check
+			ITmfStateInterval currentInterval = null;
+			boolean found = false;
+			while (it.hasNext() && !found) {
+				currentInterval = it.next();
+				found = (currentInterval.getValue() != null);
+			}
+			if (currentInterval != null) {
+				return (String) currentInterval.getValue();
+			}
+		} catch (AttributeNotFoundException e) {
+			if (tid == 0) {
+				Activator.getDefault().logInfo("Tried to get process name for tid 0");
+			}
+			else {
+				Activator.getDefault().logError(e.getMessage());
+			}
+		} catch (StateSystemDisposedException e) {
+			Activator.getDefault().logError(e.getMessage());
+		}
+		return UNKNOWN_PROCNAME;
+	}
+	
 	@Override
     public ITmfEventField getContent() {
 		ITmfEventField content = super.getContent();
-		if (!fIsMulti) {
-			return content; // we can return the content field directly if there is no multiple values
-		}		
-		// Return content based on user-choice for multiple values
 		List<ITmfEventField> fields = new ArrayList<>();
-        for (ITmfEventField field : content.getFields()) {
-        	if (field.getValue().equals(MULTI_VALUE)) {
-        		TmfEventField choice = fMultiValues.get(field).getChoice();
-        		if (choice == null) {
-        			// TODO here compute best choice, according to some probabilities
-        			fields.add(fMultiValues.get(field).getPossibilites().iterator().next()); // return first value if the choice has not been set yet
-        		}
-        		else {
-        			fields.add(choice);
-        		}
-        	}
-        	else {
-        		fields.add(field); // return the single value field
-        	}
+		if (!fIsMulti) {
+			fields.addAll(content.getFields()); // we can return the content field entirely, after adding eventual prev/next_comm fields
+		}
+		else {
+			// Return content based on user-choice for multiple values
+	        for (ITmfEventField field : content.getFields()) {
+	        	if (field.getValue().equals(MULTI_VALUE)) {
+	        		TmfEventField choice = fMultiValues.get(field).getChoice();
+	        		if (choice == null) {
+	        			// TODO here compute best choice, according to some probabilities
+	        			choice = fMultiValues.get(field).getPossibilites().iterator().next(); // return first value if the choice has not been set yet
+	        		}
+	    			fields.add(choice);
+	        	}
+	        	else {
+	        		fields.add(field); // return the single value field
+	        	}
+	        }
+		}
+	    /* Dynamically create the next_comm and prev_comm fields, if required */
+		ITmfEventField newContent = new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, fields.toArray(new TmfEventField[fields.size()]));
+        if (content.getFieldNames().contains(fLayout.fieldPrevTid())) {
+        	String value = getExecNameFromTid(newContent.getFieldValue(Long.class, fLayout.fieldPrevTid()).intValue());
+        	fields.add(new TmfEventField(fLayout.fieldPrevComm(), value, null));
+        }
+        if (content.getFieldNames().contains(fLayout.fieldNextTid())) {
+        	String value = getExecNameFromTid(newContent.getFieldValue(Long.class, fLayout.fieldNextTid()).intValue());
+        	fields.add(new TmfEventField(fLayout.fieldNextComm(), value, null));
         }
         
         return new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, fields.toArray(new TmfEventField[fields.size()]));
