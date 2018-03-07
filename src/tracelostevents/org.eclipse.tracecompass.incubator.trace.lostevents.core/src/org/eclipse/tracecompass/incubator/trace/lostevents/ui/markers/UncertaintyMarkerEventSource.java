@@ -9,6 +9,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
@@ -36,7 +38,6 @@ import org.eclipse.ui.PlatformUI;
  */
 public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 
-	private String CERTAINTY = "Uncertain state"; //$NON-NLS-1$
 	private static final RGBA CERTAINTY_COLOR = new RGBA(0, 0, 0, 50);
 
 	private @NonNull ITmfTrace fTrace;
@@ -54,9 +55,23 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 		fTrace = trace;
 	}
 
+	/**
+	 * Create one category per FSM, using the ids provided
+	 * by the analysis module
+	 */
 	@Override
 	public List<@NonNull String> getMarkerCategories() {
-		return Arrays.asList(CERTAINTY);
+	    List<@NonNull String> fsmIds = new ArrayList<>();
+	    if (fView == null) {
+	        getView();
+	    }
+        TmfXmlPatternEventHandler handler = fView.getModule().getStateProvider().getEventHandler();
+        if (handler != null) {
+	        for (TmfXmlFsm fsm  : handler.getFsmMap().values()) {
+	            fsmIds.add(fsm.getId());
+	        }
+        }
+        return fsmIds;
 	}
 
 	@Override
@@ -87,11 +102,8 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 	    	return Collections.emptyList();
 	    }
 
-	    List<Integer> fsmQuarks = ss.getQuarks(startingNodeQuark, "*"); // get every FSM quark
+	    List<Integer> fsmQuarks = ss.getQuarks(startingNodeQuark, category); // get the quark of the FSM designated by the category string
 	    for (Integer fsmQuark : fsmQuarks) {
-				if (!ss.getAttributeName(fsmQuark).equals("process_fsm")) { // FIXME: allow temporarily only for process_fsm
-					continue;
-				}
 	        List<Integer> quarks = ss.getQuarks(fsmQuark, "*"); // get every scenario quark
 	    	for (Integer scenarioQuark : quarks) {
 	    		int quark;
@@ -133,13 +145,14 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 		                    long duration = interval.getEndTime() - intervalStartTime;
 		                    // Display a marker only if the certainty status is uncertain
 		                    if (interval.getStateValue().unboxStr().equals(TmfXmlScenarioHistoryBuilder.UNCERTAIN)) {
-		                    	int tid = ss.querySingleState(start, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
+		                        /* Note that we query at 'end' because the attribute could have not been set yet at 'start' */
+		                    	int tid = ss.querySingleState(end, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
 		                    	if (tid == -1) {
 		                    		continue;
 		                    	}
 		                    	long entryQuark = fView.getEntryQuarkFromTid(tid);
 		                    	ControlFlowEntry threadEntry = fView.findEntry(fTrace, entryQuark);
-		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, CERTAINTY, CERTAINTY_COLOR, null, true);
+		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, category, CERTAINTY_COLOR, null, true);
 		                        if (!fMarkers.contains(uncertainZone)) {
 		                        	fMarkers.add(uncertainZone);
 		                        }

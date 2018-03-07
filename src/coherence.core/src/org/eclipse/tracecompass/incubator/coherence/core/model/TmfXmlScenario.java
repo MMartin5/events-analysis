@@ -139,7 +139,7 @@ public class TmfXmlScenario {
         
         // Update the certainty status to certain if the transition is appropriate
         if (fFsm.isCertain(event, out)) {
-        	fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
+        	fHistoryBuilder.updateCertaintyStatus(true, fContainer, fScenarioInfo, event.getTimestamp().getValue());
         }
 
         // Change the activeState
@@ -193,8 +193,8 @@ public class TmfXmlScenario {
     	return fAttribute;
     }
 
-	public void updateCertainty(ITmfEvent event) {
-		fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
+	public void updateCertainty(boolean value, long time) {
+		fHistoryBuilder.updateCertaintyStatus(value, fContainer, fScenarioInfo, time);
 	}
 
 }

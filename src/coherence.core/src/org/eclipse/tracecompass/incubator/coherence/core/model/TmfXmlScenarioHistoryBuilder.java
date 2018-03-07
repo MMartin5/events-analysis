@@ -441,17 +441,18 @@ public class TmfXmlScenarioHistoryBuilder {
         pool.recycle(info.getQuark(), ts);
     }
     
-    public void updateCertaintyStatus(final IXmlStateSystemContainer container, final TmfXmlScenarioInfo info, final ITmfEvent event) {
+    public void updateCertaintyStatus(boolean certain, final IXmlStateSystemContainer container, final TmfXmlScenarioInfo info, final long time) {
     	ITmfStateSystemBuilder ss = (ITmfStateSystemBuilder) container.getStateSystem();
     	int attributeQuark = ss.getQuarkRelativeAndAdd(info.getQuark(), CERTAINTY_STATUS);
     	/* This scenario state status becomes uncertain when a lost event is encountered */
-    	if (event instanceof ITmfLostEvent) {
-    		ss.modifyAttribute(event.getTimestamp().getValue(), UNCERTAIN, attributeQuark);
-    		return;
+    	if (certain) {
+    		ss.modifyAttribute(time, CERTAIN, attributeQuark);
     	}
     	/* Otherwise, we called this method because an appropriate transition was triggered
     	 * so this scenario state status becomes certain  
     	 */
-    	ss.modifyAttribute(event.getTimestamp().getValue(), CERTAIN, attributeQuark);
+    	else {
+    		ss.modifyAttribute(time, UNCERTAIN, attributeQuark);
+    	}
     }
 }

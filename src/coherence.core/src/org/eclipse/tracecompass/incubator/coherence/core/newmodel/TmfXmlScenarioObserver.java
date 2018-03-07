@@ -225,7 +225,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
         if (event instanceof ITmfLostEvent) {
         	// The entry state becomes uncertain
-        	updateCertainty(event);
+        	updateCertainty(false, event.getTimestamp().getValue());
         	
         	if (!fPatternHandler.startChecking()) {    	
 	        	// We start checking the coherence of events when we receive the first 'Lost event'
@@ -279,7 +279,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         
         // Update the certainty status to certain if the transition is appropriate
         if (fFsm.isCertain(event, out)) {
-        	fHistoryBuilder.updateCertaintyStatus(fContainer, fScenarioInfo, event);
+        	fHistoryBuilder.updateCertaintyStatus(true, fContainer, fScenarioInfo, event.getTimestamp().getValue());
         }
 
         // Change the activeState

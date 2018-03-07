@@ -36,6 +36,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.event.aspect.TmfCpuAspect;
+import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
@@ -659,7 +660,7 @@ public class TmfXmlFsm {
         List<String> eventAttributes = getAttributesForEvent(event, layout);
         if (event instanceof ITmfLostEvent) { // check certainty here
         	for (TmfXmlScenario scenario : fActiveScenariosList.values()) {
-        		scenario.updateCertainty(event);
+        		scenario.updateCertainty(false, event.getTimestamp().getValue());
         	}
         }
         else {
@@ -692,6 +693,7 @@ public class TmfXmlFsm {
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
+        	scenario.updateCertainty(false, ((AbstractTmfStateProvider) fContainer).getTrace().getStartTime().getValue());
             handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
