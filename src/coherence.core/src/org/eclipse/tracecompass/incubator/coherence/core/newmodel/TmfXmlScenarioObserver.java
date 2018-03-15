@@ -3,6 +3,7 @@ package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,8 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 	}
 	
 	List<WaitingProblematicEvent> waitingEvents = new ArrayList<>();
+	
+	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	
     /**
      * Constructor
@@ -217,6 +220,11 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
 
         return isCoherent;
     }
+    
+    public void increaseTransitionCounter(TmfXmlFsmTransition transition) {
+		Long value = (fTransitionsCounters.containsKey(transition)) ? fTransitionsCounters.get(transition) + 1 : 1;
+		fTransitionsCounters.put(transition, value);
+	}
 
     @Override
     public void handleEvent(ITmfEvent event, boolean isCoherenceCheckingNeeded, int transitionTotal) {
@@ -257,6 +265,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         lastEvent = event;
         TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(out, currentState, event.getName());
         fFsm.increaseTransitionCounter(fsmTransition);
+        increaseTransitionCounter(fsmTransition);
         
         fFsm.increaseTransitionCount(); // we have found a transition from the current state, so we increase the counter on taken transitions
 
@@ -305,6 +314,10 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         		}
         	}
         }
+    }
+    
+    public Map<TmfXmlFsmTransition, Long> getTransitionsCounters() {
+    	return fTransitionsCounters;
     }
 
 }

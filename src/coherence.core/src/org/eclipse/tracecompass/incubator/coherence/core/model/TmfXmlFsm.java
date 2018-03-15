@@ -105,14 +105,26 @@ public class TmfXmlFsm {
 	    }
 	}
 	
-	private TmfXmlFsmTransition findBestTransition(Set<TmfXmlFsmTransition> possibleTransitions) {
+	private TmfXmlFsmTransition findBestTransition(Set<TmfXmlFsmTransition> possibleTransitions, Map<TmfXmlFsmTransition, Long> counters, boolean isGlobal) {
 		TmfXmlFsmTransition bestTransition = null;
-		for (TmfXmlFsmTransition t : possibleTransitions) {
-	    	if ((fTransitionsCounters.containsKey(t)) && 
-	    			((bestTransition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(bestTransition)))) {
-	    		bestTransition = t;
-	    	}
-	    }
+		if (isGlobal) {
+			for (TmfXmlFsmTransition t : possibleTransitions) {			
+		    	if ((fTransitionsCounters.containsKey(t)) && 
+		    			((bestTransition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(bestTransition)))) {
+		    		bestTransition = t;
+		    	}
+		    }
+		}
+		else {
+			for (TmfXmlFsmTransition t : possibleTransitions) {			
+		    	if ((counters.containsKey(t)) && 
+		    			((bestTransition == null) || (counters.get(t) > counters.get(bestTransition))) || 
+	    			(!counters.containsKey(t)) && (fTransitionsCounters.containsKey(t)) && // if we are using per-object statistics but the transition is not in the map, we try to find it in the global map
+		    			((bestTransition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(bestTransition)))) { // TODO what happens if bestTransition was found using local object statistics? does it make sense to compare counters from global statistics?
+		    		bestTransition = t;
+		    	}
+		    }
+		}
 	    
 	    if (bestTransition == null) { // every possible transition has never been taken in this fsm
 	    	bestTransition = possibleTransitions.iterator().next(); // select first transition
@@ -127,10 +139,14 @@ public class TmfXmlFsm {
 	 * 			The starting state
 	 * @param target
 	 * 			The targeted state
+	 * @param counters 
+	 * 			The local statistics on transitions, on a per-object basis
+	 * 
 	 * @return
 	 * 			The list of inferred transitions, which is the list of each edge on the shortest path
 	 */
-	private List<TmfXmlFsmTransition> computeMissingTransitions(String start, String target) {
+	private List<TmfXmlFsmTransition> computeMissingTransitions(String start, String target, 
+			Map<TmfXmlFsmTransition, Long> counters, boolean isGlobal) {
 		Float INFINITY = Float.POSITIVE_INFINITY; // biggest possible distance
 		TmfXmlFsmTransition UNDEFINED = new TmfXmlFsmTransition(null, null, null);
 		/* Initialization */
@@ -163,7 +179,13 @@ public class TmfXmlFsm {
 			for (TmfXmlFsmTransition neighborTransition : neighbors) {
 				String neighbor = neighborTransition.from().getId();
 				/* Evaluate path to target using the statistics on transitions from the reading of the trace */
-				long weight = fTransitionsCounters.containsKey(neighborTransition) ? fTransitionsCounters.get(neighborTransition) : 1;
+				long weight;
+				if (isGlobal || !counters.containsKey(neighborTransition)) { // if we are using per-object statistics but the transition is not in the map, we try to find it in the global map
+					weight = fTransitionsCounters.containsKey(neighborTransition) ? fTransitionsCounters.get(neighborTransition) : 1;
+				}
+				else {
+					weight = counters.get(neighborTransition);
+				}
 				float newDist = currentDist + (1f / (float) weight); 
 				if (distances.get(neighbor) > newDist) {	// this is a shorter path to target
 					distances.put(neighbor, newDist);
@@ -205,9 +227,12 @@ public class TmfXmlFsm {
 			String targetState = incoherence.getLastCoherentStateName();
 			Set<TmfXmlFsmTransition> possibleTransitions = possibleTransitionsMap.get(incoherence);
 			// Infer transitions
-			TmfXmlFsmTransition lastTransition = findBestTransition(possibleTransitions);
+			Map<TmfXmlFsmTransition, Long> counters = ((TmfXmlScenarioObserver) fActiveScenariosList.get(incoherence.getScenarioAttribute())).getTransitionsCounters();
+			boolean isGlobal = false; // FIXME: hard-coded parameter
+			TmfXmlFsmTransition lastTransition = findBestTransition(possibleTransitions, counters, isGlobal);
 			List<TmfXmlFsmTransition> inferredTransitions = new ArrayList<>();
-	    	inferredTransitions.addAll(computeMissingTransitions(lastTransition.from().getId(), targetState));
+	    	inferredTransitions.addAll(computeMissingTransitions(lastTransition.from().getId(), targetState, counters, 
+	    			isGlobal));
 			inferredTransitions.add(lastTransition);
 			incoherence.setInferredTransitions(inferredTransitions);
 		}
