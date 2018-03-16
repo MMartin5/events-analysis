@@ -56,6 +56,8 @@ public class InferenceTrace extends TmfTrace implements IKernelTrace {
 	private TmfTrace fTrace;
 	private IResource fResource;
 	
+	private static String suffix = ".2"; // FIXME : better name
+	
 	public InferenceTrace() {
 		super();
 	}
@@ -63,9 +65,15 @@ public class InferenceTrace extends TmfTrace implements IKernelTrace {
 	public InferenceTrace(TmfTrace trace, List<TmfInferredEvent> inferredEvents) throws TmfTraceException {
 		super();
 		IResource original = trace.getResource();
-		IPath newPath = new Path(original.getFullPath().toOSString() + ".2"); // FIXME : better name
+		
+		IPath newPath = new Path(original.getFullPath().toOSString() + suffix);
 		try {
 			// TODO maybe create new resource completely? because we have to set the supp. files manually anyway...
+			IPath checkPath = new Path(original.getName() + suffix);
+			IResource old = original.getParent().findMember(checkPath);
+			if (old != null) {
+				old.delete(true, null);
+			}
 			original.copy(newPath, true, null);
 			IResource copy = original.getWorkspace().getRoot().getFolder(newPath);
 			TmfTraceFolder newFolder = new TmfTraceFolder(original.getParent().getName(), (IFolder) copy, TmfProjectRegistry.getProject(original.getProject()));
