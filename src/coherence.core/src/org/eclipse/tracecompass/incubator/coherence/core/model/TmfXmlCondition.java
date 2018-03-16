@@ -62,7 +62,7 @@ public class TmfXmlCondition implements ITmfXmlCondition {
     private ConditionType fType;
     private @Nullable TmfXmlTimestampCondition fTimeCondition;
 
-    private enum LogicalOperator {
+    public enum LogicalOperator {
         NONE,
         NOT,
         AND,
@@ -354,5 +354,13 @@ public class TmfXmlCondition implements ITmfXmlCondition {
     
     public List<ITmfXmlStateValue> getStateValues() {
     	return fStateValues;
+    }
+    
+    public List<TmfXmlCondition> getChildren() {
+    	return fConditions;
+    }
+    
+    public LogicalOperator getOperator() {
+    	return fOperator;
     }
 }

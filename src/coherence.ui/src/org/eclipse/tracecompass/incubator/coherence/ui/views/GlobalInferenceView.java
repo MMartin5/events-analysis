@@ -39,10 +39,12 @@ public class GlobalInferenceView extends ControlFlowView {
 	public void dispose() {
 		/* We need to close the trace, otherwise it will stay open forever */
 		ITmfTrace trace = getTrace();
-		broadcast(new TmfTraceClosedSignal(this, trace));
-		trace.dispose();
-		// manually set the new current trace in TmfTraceManager ? because not reset after traceClosed has been called... FIXME ?
-		broadcast(new TmfTraceSelectedSignal(this, TmfTraceManager.getInstance().getOpenedTraces().iterator().next()));
+		if (trace instanceof InferenceTrace) { // we need this test because sometimes this view is open with a real trace and we don't want to close the trace in this case  
+			broadcast(new TmfTraceClosedSignal(this, trace));
+			trace.dispose();
+			// manually set the new current trace in TmfTraceManager ? because not reset after traceClosed has been called... FIXME ?
+			broadcast(new TmfTraceSelectedSignal(this, TmfTraceManager.getInstance().getOpenedTraces().iterator().next()));
+		}
 	    super.dispose();
 	}
 	
