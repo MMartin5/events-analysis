@@ -5,6 +5,7 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
+import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.trace.InferenceTrace;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
@@ -61,6 +62,11 @@ public class GlobalInferenceView extends ControlFlowView {
 		newTrace.traceOpened(signal);
 		TmfTraceManager.getInstance().traceOpened(signal); // create a trace context for this trace
 		traceSelected(new TmfTraceSelectedSignal(this, newTrace)); // select the trace for this view
+		/* Synchronize traces */
+		TmfTraceManager.getInstance().updateTraceContext(NonNullUtils.checkNotNull(getTrace()),
+				builder -> builder.setSynchronized(true));
+		TmfTraceManager.getInstance().updateTraceContext(NonNullUtils.checkNotNull(((InferenceTrace) getTrace()).getParentTrace()),
+				builder -> builder.setSynchronized(true));
 		refresh();
 	}
 

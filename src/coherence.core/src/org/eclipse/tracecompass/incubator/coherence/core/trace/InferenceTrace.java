@@ -108,6 +108,10 @@ public class InferenceTrace extends TmfTrace implements IKernelTrace {
 		
 		super.dispose();
 	}
+	
+	public TmfTrace getParentTrace() {
+		return fTrace;
+	}
 
 	@Override
 	public void traceRangeUpdated(TmfTraceRangeUpdatedSignal signal) {
