@@ -65,12 +65,17 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 	    if (fView == null) {
 	        getView();
 	    }
-        TmfXmlPatternEventHandler handler = fView.getModule().getStateProvider().getEventHandler();
-        if (handler != null) {
-	        for (TmfXmlFsm fsm  : handler.getFsmMap().values()) {
-	            fsmIds.add(fsm.getId());
-	        }
-        }
+	    if (fView != null) { // the view is open
+    	    XmlPatternStateSystemModule module = fView.getModule();
+    	    if (module != null) { // some data has been requested
+        	    TmfXmlPatternEventHandler handler = module.getStateProvider().getEventHandler();
+                if (handler != null) {
+        	        for (TmfXmlFsm fsm  : handler.getFsmMap().values()) {
+        	            fsmIds.add(fsm.getId());
+        	        }
+                }
+    	    }
+	    }
         return fsmIds;
 	}
 
