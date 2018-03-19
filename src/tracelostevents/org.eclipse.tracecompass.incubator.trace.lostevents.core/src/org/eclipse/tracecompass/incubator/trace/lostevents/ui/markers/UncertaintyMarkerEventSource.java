@@ -156,7 +156,7 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 		                    		continue;
 		                    	}
 		                    	long entryQuark = fView.getEntryQuarkFromTid(tid);
-		                    	ControlFlowEntry threadEntry = fView.findEntry(fTrace, entryQuark);
+		                    	ControlFlowEntry threadEntry = fView.findEntry(entryQuark);
 		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, category, CERTAINTY_COLOR, null, true);
 		                        if (!fMarkers.contains(uncertainZone)) {
 		                        	fMarkers.add(uncertainZone);

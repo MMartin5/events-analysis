@@ -15,6 +15,7 @@ import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.Ti
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 
 public class InferenceView extends CoherenceView {
 
@@ -42,7 +43,8 @@ public class InferenceView extends CoherenceView {
 	}
 	
 	@Override
-	protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, List<ITimeGraphState> values) {
+	protected List<ITimeEvent> createTimeEvents(TimeGraphEntry entry, List<ITimeGraphState> values) {
+		ControlFlowEntry controlFlowEntry = (ControlFlowEntry) entry;
 		
 		// Skip if fEntry has not been initialized yet
 		if (fEntry == null || controlFlowEntry.getName() != fEntry.getName()) {

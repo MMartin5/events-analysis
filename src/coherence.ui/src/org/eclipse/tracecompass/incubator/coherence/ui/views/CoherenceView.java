@@ -80,6 +80,7 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NamedTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.TimeGraphControl;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
@@ -360,7 +361,7 @@ public class CoherenceView extends ControlFlowView {
 	@Override
 	protected List<IMarkerEvent> getViewMarkerList(long startTime, long endTime,
 	        long resolution, @NonNull IProgressMonitor monitor) {
-		
+				
 		/* Coherence markers */
 		
 		for (FsmStateIncoherence incoherence : fIncoherences) {
@@ -370,7 +371,7 @@ public class CoherenceView extends ControlFlowView {
             if (eventTime >= startTime && eventTime <= endTime) {
             	// marker by entry
             	int tid =  Integer.valueOf(incoherence.getScenarioAttribute());
-				ControlFlowEntry entry = findEntry(getTrace(), getEntryQuarkFromTid(tid)); // TODO we should only look for the entry if the incoherence is related to a process (process_fsm)
+				ControlFlowEntry entry = findEntry(getEntryQuarkFromTid(tid)); // TODO we should only look for the entry if the incoherence is related to a process (process_fsm)
 				IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
 				// simple marker
 				IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
@@ -413,10 +414,10 @@ public class CoherenceView extends ControlFlowView {
 	 * Create the list of time events for this entry
 	 * Add the incoherent events if necessary
 	 * 
-	 * @see ControlFlowView.createTimeEvents 
+	 * @see BaseDataProviderTimeGraphView.createTimeEvents 
 	 */
-	@Override
-	protected List<ITimeEvent> createTimeEvents(ControlFlowEntry controlFlowEntry, List<ITimeGraphState> values) {
+	protected List<ITimeEvent> createTimeEvents(TimeGraphEntry entry, List<ITimeGraphState> values) {
+		ControlFlowEntry controlFlowEntry = (ControlFlowEntry) entry; 
 		/* Ignore swappers */
 		if (controlFlowEntry.getThreadId() == 0) {
 			return Collections.emptyList();
@@ -546,8 +547,27 @@ public class CoherenceView extends ControlFlowView {
 	        return events;
 		}
 		else {
-			return super.createTimeEvents(controlFlowEntry, values);
+			return simpleCreateTimeEvents(controlFlowEntry, values);
 		}
+    }
+	
+	/* copy from @see BaseDataProviderTimeGraphView.createTimeEvents */
+	private List<ITimeEvent> simpleCreateTimeEvents(TimeGraphEntry entry, List<ITimeGraphState> values) {
+        List<ITimeEvent> events = new ArrayList<>(values.size());
+        ITimeEvent prev = null;
+        for (ITimeGraphState state : values) {
+            ITimeEvent event = createTimeEvent(entry, state);
+            if (prev != null) {
+                long prevEnd = prev.getTime() + prev.getDuration();
+                if (prevEnd < event.getTime()) {
+                    // fill in the gap.
+                    events.add(new TimeEvent(entry, prevEnd, event.getTime() - prevEnd));
+                }
+            }
+            prev = event;
+            events.add(event);
+        }
+        return events;
     }
 	
 	protected TimeEvent createTimeEventCustom(ITimeGraphState interval, ControlFlowEntry controlFlowEntry) {
@@ -735,7 +755,8 @@ public class CoherenceView extends ControlFlowView {
 		createIncoherentEventContextMenu();
 	}
 
-	public ControlFlowEntry findEntry(ITmfTrace trace, long quark) {
-		return fControlFlowEntries.get(trace, quark);
+	public ControlFlowEntry findEntry(long quark) {
+		TimeGraphEntry traceEntry = getEntryList(getTrace()).get(0);
+		return fControlFlowEntries.get(traceEntry, quark);
 	}
 }
