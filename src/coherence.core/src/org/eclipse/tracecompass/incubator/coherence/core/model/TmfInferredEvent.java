@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
@@ -173,7 +174,7 @@ public class TmfInferredEvent extends TmfEvent {
 	        	 * so we don't need to consider this case
 	        	 */
 	        	if (xmlCond instanceof TmfXmlCondition) {
-	        		SetMultimap<String, Object> fieldsForCond = inferFromCondition(xmlCond, stateSystem, event, scenarioInfo);
+	        		SetMultimap<String, Object> fieldsForCond = inferFromCondition((TmfXmlCondition) xmlCond, stateSystem, event, scenarioInfo, false);
 	        		for (String fieldName : fieldsForCond.keySet()) {
 	        			if (fieldsForCond.get(fieldName).size() == 1) { // there is exactly one possible value
 	        				certainValues.put(fieldName, fieldsForCond.get(fieldName).iterator().next()); // remember this certain value
@@ -252,111 +253,178 @@ public class TmfInferredEvent extends TmfEvent {
 	 * @param stateSystem
 	 * @param event
 	 * @param scenarioInfo
+	 * @param not 
+	 * 				A boolean that indicates if the XML condition is encapsulated in a 'not' tag (if so, it means that 
+	 * 				we need to get values that are not the inferred value)
 	 * 
 	 * @return
 	 * 				A list of pairs (field name, field value)
 	 */
-	private static SetMultimap<String, Object> inferFromCondition(ITmfXmlCondition xmlCond, ITmfStateSystem stateSystem, 
-			ITmfEvent event, TmfXmlScenarioInfo scenarioInfo) {
+	private static SetMultimap<String, Object> inferFromCondition(TmfXmlCondition xmlCond, 
+			ITmfStateSystem stateSystem, 
+			ITmfEvent event, 
+			TmfXmlScenarioInfo scenarioInfo,
+			boolean not) {
 		
 		SetMultimap<String, Object> candidateFields = HashMultimap.create();
-		List<ITmfXmlStateValue> stateValues = ((TmfXmlCondition) xmlCond).getStateValues();
-		/* Get value according to what is needed for the condition to be true */
-		for (ITmfXmlStateValue value : stateValues) { // add one event field for each attribute
-			/* Extract field name, then associate it with a field value */
-			TmfXmlStateValue stateValue = (TmfXmlStateValue) value;							// Case 1: condition is a field
-			String fieldName = stateValue.getEventField(); // not null in case of XML tag <field ..>
-			Object fieldValue = null;
-			if (fieldName == null) {														// Case 2: condition is a state value with type eventField
-				TmfXmlStateValueBase base = stateValue.getBaseStateValue();
-    			if (base instanceof TmfXmlReadWriteStateValue.TmfXmlStateValueEventField) {
-    				fieldName = ((TmfXmlReadWriteStateValue.TmfXmlStateValueEventField) base).getFieldName(); // not null in case of tag <stateValue type="eventField" ...>
-    			}        				
-    			if (fieldName == null) {													// Case 3: condition is a state attribute sequence with a type eventField
-    				List<ITmfXmlStateAttribute> attributes = stateValue.getAttributes();
-    				Pair<List<String>, List<Pair<String, Integer>>> res = getPathFromAttributes(attributes);
-    				List<String> path = res.getFirst();
-    				List<Pair<String, Integer>> resFields = res.getSecond();
-    		
-    				if (resFields.isEmpty()) {												// Case 4 (default): condition is not about an event field
-    					continue;
-    				}
-    				else { // get value for case 3 : depends on the state value following this sequence of stateAttribute tags
-    					String[] pattern = path.toArray(new String[path.size()]);
-    					/* Get every possible path (where missing event field is a wildcard) */
-    					List<Integer> quarks = stateSystem.getQuarks(pattern);
-    					/* Get the following state value for comparison */
-    					ITmfStateValue compValue = null;
-						try {
-							compValue = stateValue.getValue(event, scenarioInfo);
-						} catch (AttributeNotFoundException e) {
-							Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
-			                continue;
-						}
-						/* Try to find a match between a possible value and the comparison value */
-    					for (Integer quark : quarks) {
-    						ITmfStateValue currentValue = stateSystem.queryOngoingState(quark);
-    						if (currentValue == compValue) { // we found a match for the desired value
-    							for (Pair<String, Integer> resField : resFields) {
-    								fieldName = resField.getFirst();
-    								/* Find the missing field value in the matching path */
-    								int fieldIndex = resField.getSecond();
-        							fieldValue = Long.valueOf(stateSystem.getFullAttributePathArray(quark)[fieldIndex]); // convert to Long
-        							candidateFields.put(fieldName, fieldValue);
-    							} 
-    							// we do not break from the loop because there can be more than one match
-    						}
-    					}
-    				}
-    			}
-    			else { // get value for case 2
-    				// field value is the other state value that we are trying to compare it to (2.1)
-    				// or is the value of the preceding sequence of state attributes (2.2)
-    				// or is the value of the preceding field tag (2.3) but in this case we do not retrieve
-    				// it because it depends on a field tag value, which is lost too
-    				
-    				if (stateValues.size() == 2) {											// case 2.1
-						try {
-							/* (1 - index) because there is only 2 state values 
-							 * so it's either the preceding if event field is the second 
-							 * or the following if event field is the first */
-							fieldValue = stateValues.get(1 - stateValues.indexOf(value)).getValue(event, scenarioInfo);
-							candidateFields.put(fieldName, fieldValue);
-						} catch (AttributeNotFoundException e) {
-							Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
-			                continue;
-						}
-    				}
-    				else {																	// case 2.2
-	    				/* Look for the quark, starting from root and descending until the last attribute is reached */
-						int quark = IXmlStateSystemContainer.ROOT_QUARK;
-						for (ITmfXmlStateAttribute attr : value.getAttributes()) {
-							quark = attr.getAttributeQuark(event, quark, scenarioInfo);
-						}
-						/* Find value by querying the state system */
-						try {
-							Object queryValue = stateSystem.querySingleState(event.getTimestamp().getValue(), quark).getValue();
-							if (queryValue == null) {
-								fieldValue = UNKNOWN_VALUE;
-							}
-							else {
-								fieldValue = ((Integer) queryValue).longValue();
-							}
-							candidateFields.put(fieldName, fieldValue);
-						} catch (StateSystemDisposedException e) {
-							Activator.logError("State system disposed while trying to get the value of inferred event", e); //$NON-NLS-1$
-			                continue;
-						}
-    				}
-    			}
+		
+		if (xmlCond.getStateValues().isEmpty() && !xmlCond.getChildren().isEmpty()) {
+			not = false;
+			switch (xmlCond.getOperator()) {
+            case AND:
+                break;
+            case NONE:
+                break;
+            case NOT:
+            	not = true;
+                break;
+            case OR:
+                break;
+            default:
+                break;
+            }
+			for (TmfXmlCondition subCond : xmlCond.getChildren()) {
+				candidateFields.putAll(inferFromCondition(subCond, stateSystem, event, scenarioInfo, not));
 			}
-			else { // get value for case 1 : the state value following this field tag
-				try {
-					fieldValue = value.getValue(event, scenarioInfo).unboxValue();
-					candidateFields.put(fieldName, fieldValue);
-				} catch (AttributeNotFoundException e) {
-					Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
-	                continue;
+		}
+		else {
+		
+			List<ITmfXmlStateValue> stateValues = xmlCond.getStateValues();
+			/* Get value according to what is needed for the condition to be true */
+			for (ITmfXmlStateValue value : stateValues) { // add one event field for each attribute
+				/* Extract field name, then associate it with a field value */
+				TmfXmlStateValue stateValue = (TmfXmlStateValue) value;							// Case 1: condition is a field
+				String fieldName = stateValue.getEventField(); // not null in case of XML tag <field ..>
+				Object fieldValue = null;
+				if (fieldName == null) {														// Case 2: condition is a state value with type eventField
+					TmfXmlStateValueBase base = stateValue.getBaseStateValue();
+	    			if (base instanceof TmfXmlReadWriteStateValue.TmfXmlStateValueEventField) {
+	    				fieldName = ((TmfXmlReadWriteStateValue.TmfXmlStateValueEventField) base).getFieldName(); // not null in case of tag <stateValue type="eventField" ...>
+	    			}        				
+	    			if (fieldName == null) {													// Case 3: condition is a state attribute sequence with a type eventField
+	    				List<ITmfXmlStateAttribute> attributes = stateValue.getAttributes();
+	    				Pair<List<String>, List<Pair<String, Integer>>> res = getPathFromAttributes(attributes);
+	    				List<String> path = res.getFirst();
+	    				List<Pair<String, Integer>> resFields = res.getSecond();
+	    		
+	    				if (resFields.isEmpty()) {												// Case 4 (default): condition is not about an event field
+	    					continue;
+	    				}
+	    				else { // get value for case 3 : depends on the state value following this sequence of stateAttribute tags
+	    					String[] pattern = path.toArray(new String[path.size()]);
+	    					/* Get every possible path (where missing event field is a wildcard) */
+	    					List<Integer> quarks = stateSystem.getQuarks(pattern);
+	    					/* Get the following state value for comparison */
+	    					ITmfStateValue compValue = null;
+							try {
+								compValue = stateValue.getValue(event, scenarioInfo);
+							} catch (AttributeNotFoundException e) {
+								Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
+				                continue;
+							}
+							/* Try to find a match between a possible value and the comparison value */
+	    					for (Integer quark : quarks) {
+	    						ITmfStateValue currentValue = stateSystem.queryOngoingState(quark);
+	    						if ((!not && currentValue == compValue) || (not && currentValue != compValue)) { // we found a match for the desired value
+	    							for (Pair<String, Integer> resField : resFields) {
+	    								fieldName = resField.getFirst();
+	    								/* Find the missing field value in the matching path */
+	    								int fieldIndex = resField.getSecond();
+	        							fieldValue = Long.valueOf(stateSystem.getFullAttributePathArray(quark)[fieldIndex]); // convert to Long
+	        							candidateFields.put(fieldName, fieldValue);
+	    							} 
+	    							// we do not break from the loop because there can be more than one match
+	    						}
+	    					}
+	    				}
+	    			}
+	    			else { // get value for case 2
+	    				// field value is the other state value that we are trying to compare it to (2.1)
+	    				// or is the value of the preceding sequence of state attributes (2.2)
+	    				// or is the value of the preceding field tag (2.3) but in this case we do not retrieve
+	    				// it because it depends on a field tag value, which is lost too
+	    				
+	    				if (stateValues.size() == 2) {											// case 2.1
+							try {
+								/* (1 - index) because there is only 2 state values 
+								 * so it's either the preceding if event field is the second 
+								 * or the following if event field is the first */
+								fieldValue = stateValues.get(1 - stateValues.indexOf(value)).getValue(event, scenarioInfo);
+								
+								if (not) { // we cannot find the solution space because the value was set by the user
+									if (fieldValue instanceof Long) {
+										fieldValue = (long) fieldValue + 1;
+									}
+									if (fieldValue instanceof Integer) {
+										fieldValue = (int) fieldValue + 1;
+									}
+									if (fieldValue instanceof String) {
+										fieldValue = "not_" + fieldValue;
+									}
+								}
+								
+								candidateFields.put(fieldName, fieldValue);
+							} catch (AttributeNotFoundException e) {
+								Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
+				                continue;
+							}
+	    				}
+	    				else {																	// case 2.2
+		    				/* Look for the quark, starting from root and descending until the last attribute is reached */
+							int quark = IXmlStateSystemContainer.ROOT_QUARK;
+							for (ITmfXmlStateAttribute attr : value.getAttributes()) {
+								quark = attr.getAttributeQuark(event, quark, scenarioInfo);
+							}
+							/* Find value by querying the state system */
+							try {
+								Object queryValue = stateSystem.querySingleState(event.getTimestamp().getValue(), quark).getValue();
+								if (queryValue == null) {
+									fieldValue = UNKNOWN_VALUE;
+								}
+								else {
+									fieldValue = ((Integer) queryValue).longValue();
+								}
+								
+								if (not) {
+									/* Find every other possible value for this state attribute */
+									Iterable<ITmfStateInterval> intervals = stateSystem.query2D(new ArrayList<Integer>(quark), stateSystem.getStartTime(), stateSystem.getCurrentEndTime());
+									for (ITmfStateInterval interval : intervals) {
+										if (!interval.getValue().equals(fieldValue)) {
+											candidateFields.put(fieldName, interval.getValue());
+										}
+									}
+								}
+								else {
+									candidateFields.put(fieldName, fieldValue);
+								}
+							} catch (StateSystemDisposedException e) {
+								Activator.logError("State system disposed while trying to get the value of inferred event", e); //$NON-NLS-1$
+				                continue;
+							}
+	    				}
+	    			}
+				}
+				else { // get value for case 1 : the state value following this field tag
+					try {
+						fieldValue = value.getValue(event, scenarioInfo).unboxValue();
+						
+						if (not) { // we cannot find the solution space because the value was set by the user
+							if (fieldValue instanceof Long) {
+								fieldValue = (long) fieldValue + 1;
+							}
+							if (fieldValue instanceof Integer) {
+								fieldValue = (int) fieldValue + 1;
+							}
+							if (fieldValue instanceof String) {
+								fieldValue = "not_" + fieldValue;
+							}
+						}
+						
+						candidateFields.put(fieldName, fieldValue);
+					} catch (AttributeNotFoundException e) {
+						Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
+		                continue;
+					}
 				}
 			}
 		}
