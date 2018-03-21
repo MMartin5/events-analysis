@@ -117,10 +117,10 @@ public class TmfXmlFsm {
 		}
 		else {
 			for (TmfXmlFsmTransition t : possibleTransitions) {			
-		    	if ((counters.containsKey(t)) && 
-		    			((bestTransition == null) || (counters.get(t) > counters.get(bestTransition))) || 
-	    			(!counters.containsKey(t)) && (fTransitionsCounters.containsKey(t)) && // if we are using per-object statistics but the transition is not in the map, we try to find it in the global map
-		    			((bestTransition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(bestTransition)))) { // TODO what happens if bestTransition was found using local object statistics? does it make sense to compare counters from global statistics?
+		    	if ((counters.containsKey(t) &&
+		    			((bestTransition == null) || (counters.containsKey(bestTransition) && (counters.get(t) > counters.get(bestTransition))))) ||
+	    			(!counters.containsKey(t) && (fTransitionsCounters.containsKey(t)) && // if we are using per-object statistics but the transition is not in the map, we try to find it in the global map
+		    			((bestTransition == null) || (fTransitionsCounters.get(t) > fTransitionsCounters.get(bestTransition))))) { // TODO what happens if bestTransition was found using local object statistics? does it make sense to compare counters from global statistics?
 		    		bestTransition = t;
 		    	}
 		    }
