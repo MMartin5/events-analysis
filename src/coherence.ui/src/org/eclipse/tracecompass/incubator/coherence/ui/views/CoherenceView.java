@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -341,7 +342,7 @@ public class CoherenceView extends ControlFlowView {
             	eventSet = pEntries.get(tidStr);
     		}
     		else {
-    			eventSet = new HashSet<>();
+    			eventSet = new LinkedHashSet<>();
     		}
 			eventSet.add(incoherence);
 			pEntries.put(tidStr, eventSet);
@@ -416,6 +417,7 @@ public class CoherenceView extends ControlFlowView {
 	 * 
 	 * @see BaseDataProviderTimeGraphView.createTimeEvents 
 	 */
+	@Override
 	protected List<ITimeEvent> createTimeEvents(TimeGraphEntry entry, List<ITimeGraphState> values) {
 		ControlFlowEntry controlFlowEntry = (ControlFlowEntry) entry; 
 		/* Ignore swappers */
@@ -460,14 +462,19 @@ public class CoherenceView extends ControlFlowView {
 	        	incoherentEvent = incoherentEventsIt.next();
 	        	incoherentEventTs = incoherentEvent.getIncoherentEvent().getTimestamp().getValue();
 	        }
+	        ITimeGraphState firstInterval = values.get(0);
+	        while (incoherentEventsIt.hasNext() && incoherentEventTs < firstInterval.getStartTime()) {
+	        	incoherentEvent = incoherentEventsIt.next();
+	        	incoherentEventTs = incoherentEvent.getIncoherentEvent().getTimestamp().getValue();
+	        }
 		
 			// Add incoherent state intervals to the given list of intervals
 	        List<ITimeGraphState> newValue = new ArrayList<>();
 			
 			for (ITimeGraphState interval : values) {
-				// Case 1: the incoherent event is at the start of the next interval (end of the current interval + 1)
+				// Case 1: the incoherent event is at the start of the next interval (end of the current interval)
 				if ((incoherentEvent != null) 
-						&& ((incoherentEventTs == (interval.getStartTime() + interval.getDuration() + 1)))) {
+						&& ((incoherentEventTs == (interval.getStartTime() + interval.getDuration())))) {
 					ITimeGraphState newInterval;
 					newInterval = new TimeGraphState(interval.getStartTime(), interval.getDuration(), IncoherentEvent.INCOHERENT_VALUE, interval.getLabel());
 					incoherencesMap.put(newInterval, incoherentEvent);
