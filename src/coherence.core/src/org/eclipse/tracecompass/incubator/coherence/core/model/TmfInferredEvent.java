@@ -237,6 +237,9 @@ public class TmfInferredEvent extends TmfEvent {
 			candidateFields.put(layout.fieldNextPrio(), 0l);
 													
 		}
+		else if (eventName.equals(layout.eventIrqHandlerExit()) || eventName.equals(layout.eventIrqHandlerEntry())) {
+			candidateFields.put(layout.fieldIrq(), 0l);
+		}
 		
 		// TODO handle other event names
 				
@@ -548,7 +551,7 @@ public class TmfInferredEvent extends TmfEvent {
 				currentInterval = it.next();
 				found = (currentInterval.getValue() != null);
 			}
-			if (currentInterval != null) {
+			if (found) {
 				return (String) currentInterval.getValue();
 			}
 		} catch (AttributeNotFoundException e) {
