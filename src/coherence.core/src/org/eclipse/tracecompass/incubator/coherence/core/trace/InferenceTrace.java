@@ -88,7 +88,7 @@ public class InferenceTrace extends TmfTrace implements IKernelTrace {
 		}		
 		
 		fTrace = trace;
-		fInferredEvents = new ArrayList<>(inferredEvents); // inferredEvents is already sorted
+		fInferredEvents = inferredEvents.isEmpty() ? new ArrayList<>() : new ArrayList<>(inferredEvents); // inferredEvents is already sorted
 		it = fInferredEvents.iterator();
 		currentInferred = (it.hasNext()) ? it.next() : null;
 		

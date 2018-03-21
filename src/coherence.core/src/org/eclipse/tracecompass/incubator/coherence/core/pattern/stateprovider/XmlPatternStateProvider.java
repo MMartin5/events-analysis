@@ -83,7 +83,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
     private final @NonNull TmfXmlScenarioHistoryBuilder fHistoryBuilder;
     
     private boolean fWithObservers;
-    List<TmfInferredEvent> fInferredEvents; // the list of inferred events for this XML analysis
+    List<TmfInferredEvent> fInferredEvents = new ArrayList<>(); // the list of inferred events for this XML analysis
     List<TmfInferredEvent> fMultiInferredEvents = new ArrayList<>();
 
 	private boolean fForceObservation;
