@@ -136,13 +136,13 @@ public class CoherenceView extends ControlFlowView {
 	private static final String TOOLTIP_TEXT2 = "Open Global Inference View"; //$NON-NLS-1$
 	private static final String LABEL_TEXT2 = "Open"; //$NON-NLS-1$
 	
-	InferenceDialog dialog;
+	Map<ITmfTrace, InferenceDialog> dialogs;
 
 	public CoherenceView() {
 	    super();
 	    
 	    fNewPresentation = new CoherencePresentationProvider();
-	    dialog = null;
+	    dialogs = new HashMap<>();
 	}
 	
 	public XmlPatternStateSystemModule getModule() {
@@ -666,10 +666,10 @@ public class CoherenceView extends ControlFlowView {
 		        	        @Override
 		                    public void run() {
 		        	        	Shell shell = fViewer.getControl().getShell();
-		        	        	if (dialog == null) {
-		        	        		dialog = new InferenceDialog(shell, provider); // TODO should we recreate the dialog everytime?
+		        	        	if (dialogs.get(getTrace()) == null) {
+		        	        		dialogs.put(getTrace(), new InferenceDialog(shell, provider)); // TODO should we recreate the dialog everytime?
 		        	        	}
-		        	        	dialog.open();
+		        	        	dialogs.get(getTrace()).open();
 		        	        }
 		        	    });
 			        }        	
