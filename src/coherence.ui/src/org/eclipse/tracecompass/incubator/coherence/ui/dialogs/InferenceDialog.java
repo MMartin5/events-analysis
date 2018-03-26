@@ -15,6 +15,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.events.TreeEvent;
 import org.eclipse.swt.events.TreeListener;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -65,6 +66,14 @@ public class InferenceDialog extends TitleAreaDialog {
 		fProvider = provider;
 	}
 	
+	/**
+	 * Allow the dialog window to be resizable
+	 */
+	@Override
+	protected boolean isResizable() {
+		return true;
+	}
+	
 	@Override
     protected Control createDialogArea(Composite parent) {		
         Composite dlgArea = (Composite) super.createDialogArea(parent);
@@ -112,7 +121,12 @@ public class InferenceDialog extends TitleAreaDialog {
         for (TmfInferredEvent event : events) {
             new EventEntry(gs, event);
         }
-        sc.setMinSize(gs.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        /* Allow scroll bar to be resized dynamically, according to the extendable content 
+           (see www.codeaffine.com/2016/03/01/swt-scrolledcomposite/) */
+        sc.addListener(SWT.Resize, event -> {
+        	int width = sc.getClientArea().width;
+        	sc.setMinSize(composite.computeSize(width, SWT.DEFAULT));
+        });
     }
 	
 	@Override
@@ -131,7 +145,6 @@ public class InferenceDialog extends TitleAreaDialog {
 	    	if (view != null && view instanceof GlobalInferenceView) {
 	    		((GlobalInferenceView) view).needRefresh();
 	    	}
-	    	System.out.println("refresh");
 		}
     	super.okPressed();
 	};
@@ -170,6 +183,12 @@ public class InferenceDialog extends TitleAreaDialog {
 									}
 								}
 							}
+							/* Resize parent shell after item has been extended  
+							   see https://stackoverflow.com/questions/20204381/swt-shell-resize-depending-on-children#20214239 */
+							Shell parentShell = parent.getShell();
+							parentShell.layout(true, true);
+							final Point newSize = parentShell.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+							parentShell.setSize(newSize);
 						}
 					});
 				}
