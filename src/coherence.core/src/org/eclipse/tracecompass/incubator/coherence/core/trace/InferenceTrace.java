@@ -112,6 +112,10 @@ public class InferenceTrace extends TmfTrace implements IKernelTrace {
 	public TmfTrace getParentTrace() {
 		return fTrace;
 	}
+	
+	public List<TmfInferredEvent> getInferredEvents() {
+		return fInferredEvents;
+	}
 
 	@Override
 	public void traceRangeUpdated(TmfTraceRangeUpdatedSignal signal) {

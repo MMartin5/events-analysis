@@ -1,11 +1,19 @@
 package org.eclipse.tracecompass.incubator.coherence.ui.views;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.trace.InferenceTrace;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
@@ -13,6 +21,8 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -31,6 +41,11 @@ import org.eclipse.ui.PlatformUI;
 public class GlobalInferenceView extends ControlFlowView {
 
 	public static final @NonNull String ID = "org.eclipse.tracecompass.incubator.coherence.ui.views.global.inference";
+	private static final String INFERENCE = "Inferred event";
+	private static final String INFERENCE_LABEL = "Inferred";
+	private static final RGBA INFERENCE_COLOR = new RGBA(255, 0, 0, 50);
+	
+	private final List<IMarkerEvent> fMarkers = Collections.synchronizedList(new ArrayList<>());
 	
 	public GlobalInferenceView() {
 		super();
@@ -38,6 +53,7 @@ public class GlobalInferenceView extends ControlFlowView {
 	
 	@Override
 	public void dispose() {
+		fMarkers.clear();
 		/* We need to close the trace, otherwise it will stay open forever */
 		ITmfTrace trace = getTrace();
 		if (trace instanceof InferenceTrace) { // we need this test because sometimes this view is open with a real trace and we don't want to close the trace in this case  
@@ -56,6 +72,7 @@ public class GlobalInferenceView extends ControlFlowView {
 	 * 			The trace that should be displayed. It must be of type InferenceTrace.
 	 */
 	public void setProperties(InferenceTrace newTrace) {
+		fMarkers.clear();
 		/* Note that we don't want to broadcast the signal because this trace should only be 
 		   visible in this view */
 		TmfTraceOpenedSignal signal = new TmfTraceOpenedSignal(this, newTrace, null);
@@ -85,7 +102,7 @@ public class GlobalInferenceView extends ControlFlowView {
 		module.waitForCompletion();
 		// Update the view
 		rebuild();
-		refresh();		
+		refresh();
 	}
 	
 	@Override
@@ -105,4 +122,38 @@ public class GlobalInferenceView extends ControlFlowView {
 
         super.fillLocalToolBar(manager);
     }
+	
+	@Override
+	protected @NonNull List<String> getViewMarkerCategories() {
+	    return Arrays.asList(INFERENCE);
+
+	}
+
+	@Override
+	protected List<IMarkerEvent> getViewMarkerList(long startTime, long endTime,
+	        long resolution, @NonNull IProgressMonitor monitor) {
+				
+		if (getTrace() instanceof InferenceTrace) {
+			/* Inference markers */
+			List<TmfInferredEvent> inferredEvents = ((InferenceTrace) getTrace()).getInferredEvents();
+			
+			for (TmfInferredEvent event : inferredEvents) {
+				// Add incoherent marker
+	            long eventTime = event.getTimestamp().getValue();
+	            if (eventTime >= startTime && eventTime <= endTime) {
+					IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, INFERENCE, INFERENCE_COLOR, INFERENCE_LABEL, true);
+					
+					if (!fMarkers.contains(marker)) {
+						fMarkers.add(marker);
+					}            	
+	            }
+			}
+			
+	        return fMarkers;
+		}
+		else {
+			return Collections.emptyList();
+		}
+	}
+	
 }
