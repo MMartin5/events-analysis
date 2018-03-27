@@ -11,7 +11,6 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.graphics.RGBA;
-import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.trace.InferenceTrace;
@@ -20,7 +19,6 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.ui.IViewPart;
@@ -84,24 +82,6 @@ public class GlobalInferenceView extends ControlFlowView {
 				builder -> builder.setSynchronized(true));
 		TmfTraceManager.getInstance().updateTraceContext(NonNullUtils.checkNotNull(((InferenceTrace) getTrace()).getParentTrace()),
 				builder -> builder.setSynchronized(true));
-		refresh();
-	}
-
-	/**
-	 * Run the kernel analysis again and refresh the view with the new results.
-	 * We need this to be able to update the view when new values are selected.
-	 * 
-	 * TODO maybe specifiy a reduced interval in need of an update (timestamp of the inferred event +/- 1)
-	 */
-	public void needRefresh() {
-		// Run the analysis
-		KernelAnalysisModule module = TmfTraceUtils.getAnalysisModuleOfClass(getTrace(), KernelAnalysisModule.class, KernelAnalysisModule.ID);
-		module.resetAnalysis();
-		TmfTraceManager.deleteSupplementaryFiles(getTrace()); // TODO delete only one
-		module.schedule();
-		module.waitForCompletion();
-		// Update the view
-		rebuild();
 		refresh();
 	}
 	

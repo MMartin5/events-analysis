@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.MultipleInference;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
-import org.eclipse.tracecompass.incubator.coherence.ui.views.GlobalInferenceView;
+import org.eclipse.tracecompass.incubator.coherence.ui.views.CoherenceView;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.dialogs.TimeGraphLegend;
@@ -141,9 +141,9 @@ public class InferenceDialog extends TitleAreaDialog {
 			/* Refresh view */
 			final IWorkbench wb = PlatformUI.getWorkbench();
 	        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();
-	    	IViewPart view = activePage.findView(GlobalInferenceView.ID);
-	    	if (view != null && view instanceof GlobalInferenceView) {
-	    		((GlobalInferenceView) view).needRefresh();
+	    	IViewPart view = activePage.findView(CoherenceView.ID);
+	    	if (view != null && view instanceof CoherenceView) {
+	    		((CoherenceView) view).getGlobalInferenceViewAction().run();
 	    	}
 		}
     	super.okPressed();

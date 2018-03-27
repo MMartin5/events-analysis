@@ -714,7 +714,7 @@ public class CoherenceView extends ControlFlowView {
         return fInferenceSelectionAction;
     }
 	
-	private IAction getGlobalInferenceViewAction() {
+	public IAction getGlobalInferenceViewAction() {
         if (fGlobalInferenceViewAction == null) {
         	fGlobalInferenceViewAction = new DisplayGlobalInferenceViewAction();
         	fGlobalInferenceViewAction.setImageDescriptor(Activator.getDefault().getImageDescripterFromPath(ICON_PATH2));
