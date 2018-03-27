@@ -10,16 +10,21 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGBA;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.trace.InferenceTrace;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceOpenedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceSelectedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
@@ -108,6 +113,23 @@ public class GlobalInferenceView extends ControlFlowView {
 	    return Arrays.asList(INFERENCE);
 
 	}
+	
+	private class InferredEventMarker extends MarkerEvent {
+		
+		private TmfInferredEvent fEvent;
+
+		public InferredEventMarker(TmfInferredEvent inferredEvent, long time, long duration, String category, RGBA color,
+				String label, boolean foreground) {
+			super(null, time, duration, category, color, label, foreground);
+			
+			fEvent = inferredEvent;
+		}
+		
+		public TmfInferredEvent getInferredEvent() {
+			return fEvent;
+		}
+		
+	}
 
 	@Override
 	protected List<IMarkerEvent> getViewMarkerList(long startTime, long endTime,
@@ -121,7 +143,7 @@ public class GlobalInferenceView extends ControlFlowView {
 				// Add incoherent marker
 	            long eventTime = event.getTimestamp().getValue();
 	            if (eventTime >= startTime && eventTime <= endTime) {
-					IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, INFERENCE, INFERENCE_COLOR, INFERENCE_LABEL, true);
+					IMarkerEvent marker = new InferredEventMarker(event, eventTime, 1, INFERENCE, INFERENCE_COLOR, INFERENCE_LABEL, true);
 					
 					if (!fMarkers.contains(marker)) {
 						fMarkers.add(marker);
@@ -133,6 +155,21 @@ public class GlobalInferenceView extends ControlFlowView {
 		}
 		else {
 			return Collections.emptyList();
+		}
+	}
+	
+	@TmfSignalHandler
+	@Override
+	public void selectionRangeUpdated(TmfSelectionRangeUpdatedSignal signal) {
+		super.selectionRangeUpdated(signal);
+		
+		for (IMarkerEvent marker : fMarkers) {
+			if (marker instanceof InferredEventMarker && marker.getTime() == signal.getBeginTime().getValue()) {
+				MessageBox infoBox = new MessageBox(getParentComposite().getShell(), SWT.ICON_INFORMATION | SWT.OK);
+				infoBox.setMessage(((InferredEventMarker) marker).getInferredEvent().toString());
+				infoBox.open();
+				return;
+			}
 		}
 	}
 	

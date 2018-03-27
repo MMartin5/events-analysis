@@ -603,5 +603,10 @@ public class TmfInferredEvent extends TmfEvent {
         
         return new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, fields.toArray(new TmfEventField[fields.size()]));
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("[%s] %s { %s }", getTimestamp().toString(), getName(), getContent().toString());
+	}
 
 }
