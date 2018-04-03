@@ -718,7 +718,6 @@ public class TmfXmlFsm {
 
         TmfXmlScenario scenario = fPendingScenario;
         if ((fInitialStateId.equals(TmfXmlState.INITIAL_STATE_ID) || isInputValid) && scenario != null) {
-        	scenario.updateCertainty(false, ((AbstractTmfStateProvider) fContainer).getTrace().getStartTime().getValue());
             handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
             if (!scenario.isPending()) {
                 addActiveScenario(scenario);
@@ -764,6 +763,8 @@ public class TmfXmlFsm {
             else {
             	fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);
             }
+            /* We have no information on certainty before the scenario starts, so set state to uncertain */
+            fPendingScenario.updateCertainty(false, ((AbstractTmfStateProvider) fContainer).getTrace().getStartTime().getValue());
         }
     }
 
