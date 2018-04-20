@@ -1,9 +1,11 @@
 package org.eclipse.tracecompass.incubator.internal.coherence.ui.views;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
@@ -14,10 +16,15 @@ import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEven
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.kernel.Attributes;
+import org.eclipse.tracecompass.internal.analysis.os.linux.core.threadstatus.ThreadStatusDataProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Messages;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.registry.LinuxStyle;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.filters.SelectionTimeQueryFilter;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphDataProvider;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.TimeGraphEntryModel;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.response.TmfModelResponse;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
@@ -27,10 +34,12 @@ import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.ui.views.timegraph.BaseDataProviderTimeGraphView;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.StateItem;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEventStyleStrings;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NamedTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.Utils;
@@ -137,116 +146,59 @@ public class CoherencePresentationProvider extends TimeGraphPresentationProvider
     private static StateItem getMatchingState(int status) {
         return STATE_MAP.getOrDefault(status, STATE_MAP.get(ProcessStatus.WAIT_UNKNOWN.getStateValue().unboxInt()));
     }
-
+    
     @Override
-    public Map<String, String> getEventHoverToolTipInfo(ITimeEvent event) {
-        Map<String, String> retMap = new LinkedHashMap<>();
+    public Map<String, String> getEventHoverToolTipInfo(ITimeEvent event, long hoverTime) {
+        Map<String, String> retMap = super.getEventHoverToolTipInfo(event, hoverTime);
+        if (retMap == null) {
+            retMap = new LinkedHashMap<>(1);
+        }
+
         if (!(event instanceof TimeEvent) || !((TimeEvent) event).hasValue() ||
                 !(event.getEntry() instanceof ControlFlowEntry)) {
             return retMap;
         }
+
         ControlFlowEntry entry = (ControlFlowEntry) event.getEntry();
-        ITmfStateSystem ssq = TmfStateSystemAnalysisModule.getStateSystem(entry.getTrace(), KernelAnalysisModule.ID);
-        if (ssq == null) {
-            return retMap;
-        }
-        int tid = entry.getThreadId();
-
-        try {
-            // Find every CPU first, then get the current thread
-            int cpusQuark = ssq.getQuarkAbsolute(Attributes.CPUS);
-            List<Integer> cpuQuarks = ssq.getSubAttributes(cpusQuark, false);
-            for (Integer cpuQuark : cpuQuarks) {
-                int currentThreadQuark = ssq.getQuarkRelative(cpuQuark, Attributes.CURRENT_THREAD);
-                ITmfStateInterval interval = ssq.querySingleState(event.getTime(), currentThreadQuark);
-                if (!interval.getStateValue().isNull()) {
-                    ITmfStateValue state = interval.getStateValue();
-                    int currentThreadId = state.unboxInt();
-                    if (tid == currentThreadId) {
-                        retMap.put(Messages.ControlFlowView_attributeCpuName, ssq.getAttributeName(cpuQuark));
-                        break;
-                    }
-                }
-            }
-
-        } catch (AttributeNotFoundException | TimeRangeException | StateValueTypeException e) {
-            Activator.getDefault().logError("Error in ControlFlowPresentationProvider", e); //$NON-NLS-1$
-        } catch (StateSystemDisposedException e) {
-            /* Ignored */
-        }
-        int status = ((TimeEvent) event).getValue();
-        if (status == ProcessStatus.RUN_SYTEMCALL.getStateValue().unboxInt()) {
-            int syscallQuark = ssq.optQuarkRelative((int) entry.getModel().getId(), Attributes.SYSTEM_CALL);
-            if (syscallQuark == ITmfStateSystem.INVALID_ATTRIBUTE) {
-                return retMap;
-            }
-            try {
-                ITmfStateInterval value = ssq.querySingleState(event.getTime(), syscallQuark);
-                if (!value.getStateValue().isNull()) {
-                    ITmfStateValue state = value.getStateValue();
-                    retMap.put(Messages.ControlFlowView_attributeSyscallName, state.toString());
-                }
-
-            } catch (TimeRangeException e) {
-                Activator.getDefault().logError("Error in ControlFlowPresentationProvider", e); //$NON-NLS-1$
-            } catch (StateSystemDisposedException e) {
-                /* Ignored */
+        ITimeGraphDataProvider<? extends TimeGraphEntryModel> dataProvider = BaseDataProviderTimeGraphView.getProvider(entry);
+        TmfModelResponse<@NonNull Map<@NonNull String, @NonNull String>> response = dataProvider.fetchTooltip(
+                new SelectionTimeQueryFilter(hoverTime, hoverTime, 1, Collections.singletonList(entry.getModel().getId())), null);
+        Map<@NonNull String, @NonNull String> map = response.getModel();
+        if (map != null) {
+            String cpu = map.get(ThreadStatusDataProvider.CPU);
+            if (cpu != null) {
+                retMap.put(Messages.ControlFlowView_attributeCpuName, cpu);
             }
         }
 
         return retMap;
     }
-
+    
+    /**
+     * Returns the average character width, measured in pixels, of the font
+     * described by the receiver.
+     *
+     * @param gc
+     *            The graphic context
+     * @return the average character width of the font
+     */
+    @Deprecated
+    private static int getAverageCharWidth(GC gc) {
+        return gc.getFontMetrics().getAverageCharWidth();
+    }
+    
     @Override
     public void postDrawEvent(ITimeEvent event, Rectangle bounds, GC gc) {
         if (fAverageCharacterWidth == null) {
-            fAverageCharacterWidth = gc.getFontMetrics().getAverageCharWidth();
+            fAverageCharacterWidth = getAverageCharWidth(gc);
         }
-        if (bounds.width <= fAverageCharacterWidth) {
+        if (bounds.width <= fAverageCharacterWidth || !(event instanceof NamedTimeEvent)) {
+            // NamedTimeEvents are used only for the sys calls which we want.
             return;
         }
-        if (!(event instanceof TimeEvent)) {
-            return;
-        }
-        ControlFlowEntry entry = (ControlFlowEntry) event.getEntry();
-        ITmfStateSystem ss = TmfStateSystemAnalysisModule.getStateSystem(entry.getTrace(), KernelAnalysisModule.ID);
-        if (ss == null) {
-            return;
-        }
-        int status = ((TimeEvent) event).getValue();
-
-        if (status != ProcessStatus.RUN_SYTEMCALL.getStateValue().unboxInt()) {
-            return;
-        }
-        int syscallQuark = ss.optQuarkRelative((int) entry.getModel().getId(), Attributes.SYSTEM_CALL);
-        if (syscallQuark == ITmfStateSystem.INVALID_ATTRIBUTE) {
-            return;
-        }
-        try {
-            ITmfStateInterval value = ss.querySingleState(event.getTime(), syscallQuark);
-            if (!value.getStateValue().isNull()) {
-                ITmfStateValue state = value.getStateValue();
-                gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
-
-                /*
-                 * Remove the "sys_" or "syscall_entry_" or similar from what we
-                 * draw in the rectangle. This depends on the trace's event
-                 * layout.
-                 */
-                int beginIndex = 0;
-                ITmfTrace trace = entry.getTrace();
-                if (trace instanceof IKernelTrace) {
-                    IKernelAnalysisEventLayout layout = ((IKernelTrace) trace).getKernelEventLayout();
-                    beginIndex = layout.eventSyscallEntryPrefix().length();
-                }
-
-                Utils.drawText(gc, state.toString().substring(beginIndex), bounds.x, bounds.y, bounds.width, bounds.height, true, true);
-            }
-        } catch (TimeRangeException e) {
-            Activator.getDefault().logError("Error in ControlFlowPresentationProvider", e); //$NON-NLS-1$
-        } catch (StateSystemDisposedException e) {
-            /* Ignored */
-        }
+        NamedTimeEvent controlFlowEvent = (NamedTimeEvent) event;
+        gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+        Utils.drawText(gc, controlFlowEvent.getLabel(), bounds.x, bounds.y, bounds.width, bounds.height, true, true);
     }
 
 }

@@ -635,7 +635,8 @@ public class CoherenceView extends ControlFlowView {
                 if (object instanceof IncoherentEvent) {
                 	IncoherentEvent event = (IncoherentEvent) object;
                 	ControlFlowEntry entry = (ControlFlowEntry) event.getEntry();
-                    menuManager.add(new DisplayInferenceAction(event, entry, getEntryQuarkFromTid(entry.getThreadId())));
+                    menuManager.add(new DisplayInferenceAction(event, entry, getEntryQuarkFromTid(entry.getThreadId()), 
+                    		getTrace(entry)));
                 }
             }
         }

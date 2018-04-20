@@ -1,5 +1,6 @@
 package org.eclipse.tracecompass.incubator.internal.coherence.ui.actions;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.Action;
 import org.eclipse.tracecompass.analysis.os.linux.core.model.HostThread;
@@ -7,6 +8,7 @@ import org.eclipse.tracecompass.incubator.coherence.ui.Activator;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.incubator.coherence.ui.views.InferenceView;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -36,9 +38,10 @@ public class DisplayInferenceAction extends Action {
      * @param entry
      * 			The entry on the control flow view
      * @param entryQuark 
+     * @param trace 
      */
-    public DisplayInferenceAction(IncoherentEvent event, ControlFlowEntry entry, long entryQuark) {
-        this(event, entry, entry.getName(), new HostThread(entry.getTrace().getHostId(), entry.getThreadId()), entryQuark);
+    public DisplayInferenceAction(IncoherentEvent event, ControlFlowEntry entry, long entryQuark, ITmfTrace trace) {
+        this(event, entry, entry.getName(), new HostThread(trace.getHostId(), entry.getThreadId()), entryQuark);
     }
 
     /**

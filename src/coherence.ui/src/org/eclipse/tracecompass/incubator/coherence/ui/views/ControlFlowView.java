@@ -271,7 +271,7 @@ public class ControlFlowView extends BaseDataProviderTimeGraphView {
             StructuredSelection sSel = (StructuredSelection) selection;
             if (sSel.getFirstElement() instanceof ControlFlowEntry) {
                 ControlFlowEntry entry = (ControlFlowEntry) sSel.getFirstElement();
-                menuManager.add(new FollowThreadAction(ControlFlowView.this, entry.getName(), entry.getThreadId(), entry.getTrace()));
+                menuManager.add(new FollowThreadAction(ControlFlowView.this, entry.getName(), entry.getThreadId(), getTrace(entry)));
             }
         }
     }
@@ -393,7 +393,7 @@ public class ControlFlowView extends BaseDataProviderTimeGraphView {
                     ControlFlowEntry cfEntry = (ControlFlowEntry) entry;
                     int tid = cfEntry.getThreadId();
 
-                    ITmfTrace trace = cfEntry.getTrace();
+                    ITmfTrace trace = getTrace(cfEntry);
                     ITmfContext ctx = trace.seekEvent(TmfTimestamp.fromNanos(ts));
                     long rank = ctx.getRank();
                     ctx.dispose();
@@ -405,8 +405,8 @@ public class ControlFlowView extends BaseDataProviderTimeGraphView {
                     Predicate<@NonNull ITmfEvent> predicate = event -> Objects.equals(tid, KernelTidAspect.INSTANCE.resolve(event));
 
                     ITmfEvent event = (ifDirection ?
-                            TmfTraceUtils.getNextEventMatching(cfEntry.getTrace(), rank, predicate, monitor) :
-                            TmfTraceUtils.getPreviousEventMatching(cfEntry.getTrace(), rank, predicate, monitor));
+                            TmfTraceUtils.getNextEventMatching(trace, rank, predicate, monitor) :
+                            TmfTraceUtils.getPreviousEventMatching(trace, rank, predicate, monitor));
                     if (event != null) {
                         TmfSignalManager.dispatchSignal(new TmfSelectionRangeUpdatedSignal(this, event.getTimestamp(), event.getTimestamp(), getTrace()));
                     }
@@ -626,7 +626,7 @@ public class ControlFlowView extends BaseDataProviderTimeGraphView {
                 } else if (COLUMN_NAMES[columnIndex].equals(Messages.ControlFlowView_birthTimeColumn)) {
                     return FormatTimeUtils.formatTime(entry.getStartTime(), TimeFormat.CALENDAR, Resolution.NANOSEC);
                 } else if (COLUMN_NAMES[columnIndex].equals(Messages.ControlFlowView_traceColumn)) {
-                    return entry.getTrace().getName();
+                    return getTrace(entry).getName();
                 } else if (COLUMN_NAMES[columnIndex].equals(INVISIBLE_COLUMN)) {
                     return Long.toString(entry.getSchedulingPosition());
                 }
@@ -732,7 +732,7 @@ public class ControlFlowView extends BaseDataProviderTimeGraphView {
                             if (e != null) {
                                 e.updateModel(entry);
                             } else {
-                                fControlFlowEntries.put(traceEntry, entry.getId(), new ControlFlowEntry(entry, trace));
+                                fControlFlowEntries.put(traceEntry, entry.getId(), new ControlFlowEntry(entry));
                                 fEntriesTid.put(entry.getThreadId(), entry.getId());
                             }
                         } else {
@@ -869,6 +869,12 @@ public class ControlFlowView extends BaseDataProviderTimeGraphView {
                 }
             }
         }
+    }
+
+    @Override
+    protected void zoomEntries(@NonNull Iterable<@NonNull TimeGraphEntry> entries, long zoomStartTime, long zoomEndTime, long resolution, @NonNull IProgressMonitor monitor) {
+        super.zoomEntries(entries, zoomStartTime, zoomEndTime, resolution, monitor);
+        fActiveThreadsFilter.updateData(zoomStartTime, zoomEndTime);
     }
 
     private boolean syncToRow(ITimeGraphRowModel rowModel, long time, Map<Long, TimeGraphEntry> entryMap) {
