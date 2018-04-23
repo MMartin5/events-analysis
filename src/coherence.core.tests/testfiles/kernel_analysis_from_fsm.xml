@@ -390,31 +390,197 @@
                 </stateChange>
             </action>
 
-	    <action id="init_cpu">
-		<stateChange>
-		    <stateAttribute type="constant" value="#CurrentScenario" />
-		    <stateAttribute type="constant" value="attribute" />
-		    <stateValue type="eventField" value="cpu" forcedType="int" />
-		</stateChange>
-	    </action>
+    	    <action id="init_cpu">
+        		<stateChange>
+        		    <stateAttribute type="constant" value="#CurrentScenario" />
+        		    <stateAttribute type="constant" value="attribute" />
+        		    <stateValue type="eventField" value="cpu" forcedType="int" />
+        		</stateChange>
+                <stateChange>
+        		    <stateAttribute type="constant" value="CPUs" />
+                    <stateAttribute type="eventField" value="cpu" />
+        		    <stateAttribute type="constant" value="hasScenario" />
+        		    <stateValue type="string" value="true" />
+        		</stateChange>
+    	    </action>
 
-	    <action id="init_irq">
-		<stateChange>
-		    <stateAttribute type="constant" value="#CurrentScenario" />
-		    <stateAttribute type="constant" value="attribute" />
-		    <stateValue type="eventField" value="irq" forcedType="int" />
-		</stateChange>
-	    </action>
+    	    <action id="init_irq">
+        		<stateChange>
+        		    <stateAttribute type="constant" value="#CurrentScenario" />
+        		    <stateAttribute type="constant" value="attribute" />
+        		    <stateValue type="eventField" value="irq" forcedType="int" />
+        		</stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="IRQs" />
+                    <stateAttribute type="eventField" value="irq" />
+                    <stateAttribute type="constant" value="hasScenario" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+    	    </action>
 
-	    <action id="init_softirq">
-		<stateChange>
-		    <stateAttribute type="constant" value="#CurrentScenario" />
-		    <stateAttribute type="constant" value="attribute" />
-		    <stateValue type="eventField" value="cpu" forcedType="int" /> <!-- use the cpu id -->
-		</stateChange>
-	    </action>
+    	    <action id="init_softirq">
+        		<stateChange>
+        		    <stateAttribute type="constant" value="#CurrentScenario" />
+        		    <stateAttribute type="constant" value="attribute" />
+        		    <stateValue type="eventField" value="cpu" forcedType="int" /> <!-- use the cpu id -->
+        		</stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="SoftIRQs" />
+                    <stateAttribute type="eventField" value="cpu" />
+                    <stateAttribute type="constant" value="hasScenario" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+    	    </action>
 
-            <!-- Conditions on thread id -->
+            <!-- Conditions -->
+
+            <!-- initial tests -->
+
+            <test id="initial_test">
+                <if>
+                    <and>
+                        <!-- this condition is used only in the initial state
+                        to make sure no scenario has already been
+                        instantiated for this process -->
+                        <not> <!-- ignore swappers -->
+                            <condition>
+                                <field name="tid" />
+                                <stateValue type="long" value="0" />
+                            </condition>
+                        </not>
+                        <condition>
+                            <stateAttribute type="constant" value="Threads" />
+                            <stateAttribute type="eventField" value="tid" />
+                            <stateAttribute type="constant" value="hasScenario" />
+                            <stateValue type="null" />
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="constant" value="attribute" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="initial_test_prev">
+                <if>
+                    <and>
+                        <!-- this condition is used only in the initial state
+                        to make sure no scenario has already been
+                        instantiated for this process -->
+                        <not> <!-- ignore swappers -->
+                            <condition>
+                                <field name="prev_tid" />
+                                <stateValue type="long" value="0" />
+                            </condition>
+                        </not>
+                        <condition>
+                            <stateAttribute type="constant" value="Threads" />
+                            <stateAttribute type="eventField" value="prev_tid" />
+                            <stateAttribute type="constant" value="hasScenario" />
+                            <stateValue type="null" />
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="constant" value="attribute" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="initial_test_next">
+                <if>
+                    <and>
+                        <!-- this condition is used only in the initial state
+                        to make sure no scenario has already been
+                        instantiated for this process -->
+                        <not> <!-- ignore swappers -->
+                            <condition>
+                                <field name="next_tid" />
+                                <stateValue type="long" value="0" />
+                            </condition>
+                        </not>
+                        <condition>
+                            <stateAttribute type="constant" value="Threads" />
+                            <stateAttribute type="eventField" value="next_tid" />
+                            <stateAttribute type="constant" value="hasScenario" />
+                            <stateValue type="null" />
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="constant" value="attribute" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="initial_test_cpu">
+                <if>
+                  <and>
+                      <!-- this condition is used only in the initial state
+                          to make sure no scenario has already been
+                          instantiated for this process -->
+                      <condition>
+                          <stateAttribute type="constant" value="CPUs" />
+                          <stateAttribute type="eventField" value="cpu" />
+                          <stateAttribute type="constant" value="hasScenario" />
+                          <stateValue type="null" />
+                      </condition>
+                      <condition>
+                          <stateAttribute type="constant" value="#CurrentScenario" />
+                          <stateAttribute type="constant" value="attribute" />
+                          <stateValue type="null" />
+                      </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="initial_test_irq">
+                <if>
+                  <and>
+                      <!-- this condition is used only in the initial state
+                          to make sure no scenario has already been
+                          instantiated for this process -->
+                      <condition>
+                          <stateAttribute type="constant" value="IRQs" />
+                          <stateAttribute type="eventField" value="irq" />
+                          <stateAttribute type="constant" value="hasScenario" />
+                          <stateValue type="null" />
+                      </condition>
+                      <condition>
+                          <stateAttribute type="constant" value="#CurrentScenario" />
+                          <stateAttribute type="constant" value="attribute" />
+                          <stateValue type="null" />
+                      </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="initial_test_softirq">
+                <if>
+                    <and>
+                        <!-- this condition is used only in the initial state
+                        to make sure no scenario has already been
+                        instantiated for this process -->
+                        <condition>
+                            <stateAttribute type="constant" value="SoftIRQs" />
+                            <stateAttribute type="eventField" value="cpu" />
+                            <stateAttribute type="constant" value="hasScenario" />
+                            <stateValue type="null" />
+                        </condition>
+                        <condition>
+                            <stateAttribute type="constant" value="#CurrentScenario" />
+                            <stateAttribute type="constant" value="attribute" />
+                            <stateValue type="null" />
+                        </condition>
+                    </and>
+                </if>
+            </test>
+
+            <!-- scenario attribute tests -->
 
             <test id="next_tid_is_current_scenario_thread">
                 <if>
@@ -470,7 +636,37 @@
                 </if>
             </test>
 
-            <!-- Other conditions -->
+            <test id="irq_is_current_scenario_attribute">
+                <if>
+                    <condition>
+            		    <stateAttribute type="constant" value="#CurrentScenario" />
+            		    <stateAttribute type="constant" value="attribute" />
+            		    <stateValue type="eventField" value="irq" />
+                    </condition>
+                </if>
+            </test>
+
+            <test id="softirq_is_current_scenario_attribute">
+                <if>
+                    <condition>
+            		    <stateAttribute type="constant" value="#CurrentScenario" />
+            		    <stateAttribute type="constant" value="attribute" />
+            		    <stateValue type="eventField" value="cpu" />
+                    </condition>
+                </if>
+            </test>
+
+            <test id="cpu_is_current_scenario_attribute">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="constant" value="attribute" />
+                        <stateValue type="eventField" value="cpu" />
+                    </condition>
+                </if>
+            </test>
+
+            <!-- other tests -->
 
             <test id="current_thread_system_call_null">
                 <if>
@@ -555,69 +751,6 @@
                         <stateAttribute type="constant" value="System_call" />
                         <stateValue type="null" />
                     </condition>
-                </if>
-            </test>
-
-            <test id="initial_test">
-                <if>
-                  <and>
-                      <!-- this condition is used only in the initial state
-                          to make sure no scenario has already been
-                          instantiated for this process -->
-                      <condition>
-                          <stateAttribute type="constant" value="Threads" />
-                          <stateAttribute type="eventField" value="tid" />
-                          <stateAttribute type="constant" value="hasScenario" />
-                          <stateValue type="null" />
-                      </condition>
-                      <condition>
-                          <stateAttribute type="constant" value="#CurrentScenario" />
-                          <stateAttribute type="constant" value="attribute" />
-                          <stateValue type="null" />
-                      </condition>
-                    </and>
-                </if>
-            </test>
-
-            <test id="initial_test_prev">
-                <if>
-                  <and>
-                    <!-- this condition is used only in the initial state
-                        to make sure no scenario has already been
-                        instantiated for this process -->
-                    <condition>
-                        <stateAttribute type="constant" value="Threads" />
-                        <stateAttribute type="eventField" value="prev_tid" />
-                        <stateAttribute type="constant" value="hasScenario" />
-                        <stateValue type="null" />
-                    </condition>
-                    <condition>
-                        <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="attribute" />
-                        <stateValue type="null" />
-                    </condition>
-                  </and>
-                </if>
-            </test>
-
-            <test id="initial_test_next">
-                <if>
-                  <and>
-                    <!-- this condition is used only in the initial state
-                        to make sure no scenario has already been
-                        instantiated for this process -->
-                    <condition>
-                        <stateAttribute type="constant" value="Threads" />
-                        <stateAttribute type="eventField" value="next_tid" />
-                        <stateAttribute type="constant" value="hasScenario" />
-                        <stateValue type="null" />
-                    </condition>
-                    <condition>
-                        <stateAttribute type="constant" value="#CurrentScenario" />
-                        <stateAttribute type="constant" value="attribute" />
-                        <stateValue type="null" />
-                    </condition>
-                  </and>
                 </if>
             </test>
 
@@ -726,42 +859,70 @@
 
             <!-- State machines -->
 
-            <fsm id="cpu_fsm" initial="idle">
+            <fsm id="cpu_fsm" consuming="false">
+                <initialState>
+                    <!-- from idle -->
+                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq:init_cpu" cond="initial_test_cpu" />
+                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq:init_cpu" cond="initial_test_cpu" />
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_not_null:next_tid_not_0:initial_test_cpu" />
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_null:next_tid_not_0:initial_test_cpu" />
+                    <transition event="sched_switch" target="idle" cond="next_tid_0:initial_test_cpu" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid:init_cpu" />
+                    <!-- from usermode -->
+                    <transition event="sys_*" target="syscall" action="update_cpu_to_syscall:init_cpu" cond="initial_test_cpu" />
+                    <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall:init_cpu" cond="initial_test_cpu" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_cpu_to_syscall:init_cpu" cond="initial_test_cpu" />
+                    <!-- Note: I don't want to authorize entry of the FSM from an exit... -->
+                    <!-- from syscall -->
+                    <!-- <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode:init_cpu" cond="initial_test_cpu" />
+                    <transition event="syscall_exit_*" target="usermode" action="update_cpu_to_usermode:init_cpu" cond="initial_test_cpu" /> -->
+                    <!-- from irq -->
+                    <!-- <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle:init_cpu" cond="current_cpu_current_thread_null:initial_test_cpu" />
+                    <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle:init_cpu" cond="current_cpu_current_thread_0:initial_test_cpu" />
+                    <transition event="irq_handler_exit" target="usermode" action="update_cpu_to_usermode:init_cpu" cond="current_thread_system_call_null:initial_test_cpu" />
+                    <transition event="irq_handler_exit" target="syscall" action="update_cpu_to_syscall:init_cpu" cond="current_thread_system_call_not_null:initial_test_cpu" /> -->
+                    <!-- from softirq -->
+                    <!-- <transition event="softirq_exit" target="idle" action="update_cpu_to_idle:init_cpu" cond="current_cpu_current_thread_null:initial_test_cpu" />
+                    <transition event="softirq_exit" target="idle" action="update_cpu_to_idle:init_cpu" cond="current_cpu_current_thread_0:initial_test_cpu" />
+                    <transition event="softirq_exit" target="usermode" action="update_cpu_to_usermode:init_cpu" cond="current_thread_system_call_null:initial_test_cpu" />
+                    <transition event="softirq_exit" target="syscall" action="update_cpu_to_syscall:init_cpu" cond="current_thread_system_call_not_null:initial_test_cpu" /> -->
+                </initialState>
                 <state id="idle">
-                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq:init_cpu" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq:init_cpu" />
-                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_null:next_tid_not_0"/>
-                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid:init_cpu" />
+                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0:cpu_is_current_scenario_attribute" />
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0:cpu_is_current_scenario_attribute" />
+                    <transition event="sched_switch" target="idle" cond="next_tid_0:cpu_is_current_scenario_attribute" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                 </state>
                 <state id="usermode">
-                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" />
-                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
-                    <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" />
-                    <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" />
-                    <transition event="syscall_entry_*" target="syscall" action="update_cpu_to_syscall" />
-                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0"/>
+                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
+                    <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="syscall_entry_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0:cpu_is_current_scenario_attribute"/>
+                    <transition event="sched_switch" target="idle" cond="next_tid_0:cpu_is_current_scenario_attribute" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0:cpu_is_current_scenario_attribute"/>
                 </state>
                 <state id="syscall">
-                    <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" />
-                    <transition event="syscall_exit_*" target="usermode" action="update_cpu_to_usermode" />
-                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0"/>
-                    <transition event="sched_switch" target="idle" cond="next_tid_0" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
-                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0"/>
+                    <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
+                    <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="syscall_exit_*" target="usermode" action="update_cpu_to_usermode" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0:cpu_is_current_scenario_attribute"/>
+                    <transition event="sched_switch" target="idle" cond="next_tid_0:cpu_is_current_scenario_attribute" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
+                    <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0:cpu_is_current_scenario_attribute"/>
                 </state>
                 <state id="irq">
-                    <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null" />
-                    <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_0" />
-                    <transition event="irq_handler_exit" target="usermode" action="update_cpu_to_usermode" cond="current_thread_system_call_null" />
-                    <transition event="irq_handler_exit" target="syscall" action="update_cpu_to_syscall" cond="current_thread_system_call_not_null" />
+                    <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null:cpu_is_current_scenario_attribute" />
+                    <transition event="irq_handler_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_0:cpu_is_current_scenario_attribute" />
+                    <transition event="irq_handler_exit" target="usermode" action="update_cpu_to_usermode" cond="current_thread_system_call_null:cpu_is_current_scenario_attribute" />
+                    <transition event="irq_handler_exit" target="syscall" action="update_cpu_to_syscall" cond="current_thread_system_call_not_null:cpu_is_current_scenario_attribute" />
                 </state>
                 <state id="softirq">
-                    <transition event="softirq_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null" />
-                    <transition event="softirq_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_0" />
-                    <transition event="softirq_exit" target="usermode" action="update_cpu_to_usermode" cond="current_thread_system_call_null" />
-                    <transition event="softirq_exit" target="syscall" action="update_cpu_to_syscall" cond="current_thread_system_call_not_null" />
+                    <transition event="softirq_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_null:cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_exit" target="idle" action="update_cpu_to_idle" cond="current_cpu_current_thread_0:cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_exit" target="usermode" action="update_cpu_to_usermode" cond="current_thread_system_call_null:cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_exit" target="syscall" action="update_cpu_to_syscall" cond="current_thread_system_call_not_null:cpu_is_current_scenario_attribute" />
                 </state>
             </fsm>
 
@@ -786,15 +947,11 @@
                     <transition event="sched_process_fork" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu:set_child_thread_ppid:set_child_thread_exec_name:set_child_thread_system_call_parent_thread_system_call" cond="initial_test" />
 
                     <!-- Test prev_tid -->
-                    <transition event="sched_switch" target="syscall" action="init_scenario_prev:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_not_null" />
-                    <transition event="sched_switch" target="usermode" action="init_scenario_prev:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:new_current_thread_system_call_null" />
                     <transition event="sched_switch" target="wait_cpu" action="init_scenario_prev:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_0" />
                     <transition event="sched_switch" target="wait_blocked" action="init_scenario_prev:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_prev:prev_state_not_0" />
                     <!-- Test next_tid -->
                     <transition event="sched_switch" target="syscall" action="init_scenario_next:update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="usermode" action="init_scenario_next:update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:new_current_thread_system_call_null" />
-                    <transition event="sched_switch" target="wait_cpu" action="init_scenario_next:update_process_to_wait_cpu:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_0" />
-                    <transition event="sched_switch" target="wait_blocked" action="init_scenario_next:update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="initial_test_next:prev_state_not_0" />
 
                     <transition event="sched_wakeup*" target="wait_cpu" action="init_scenario:update_process_to_wait_cpu" cond="initial_test:test_for_sched_wakeup" />
                 </initialState>
@@ -852,7 +1009,6 @@
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <state id="syscall">
-                    <!-- TODO vérifier si irq possibles quand syscall en cours -->
                     <transition event="irq_handler_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
                     <transition event="softirq_entry" target="interrupted" action="update_process_to_interrupted" cond="cpu_current_thread_is_current_scenario_thread" />
                     <!-- should match IPI entry events -->
@@ -892,28 +1048,36 @@
 
                     <transition event="sched_switch" target="syscall" action="update_process_to_syscall:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_not_null" />
                     <transition event="sched_switch" target="usermode" action="update_process_to_usermode:set_new_current_thread_exec_name_next_comm" cond="next_tid_is_current_scenario_thread:new_current_thread_system_call_null" />
+                    <transition event="sched_switch" target="wait_blocked" action="update_process_to_wait_blocked:set_new_current_thread_exec_name_next_comm" cond="prev_tid_is_current_scenario_thread:prev_state_not_0" />
 
                     <transition event="sched_process_free" target="final_state" action="set_thread_delete" cond="tid_is_current_scenario_thread" />
                 </state>
                 <final id="final_state" />
             </fsm>
 
-            <fsm id="irq_fsm" initial="no_irq">
+            <fsm id="irq_fsm" consuming="false">
+                <initialState>
+                    <transition event="irq_handler_entry" target="irq" action="update_irq:init_irq" cond="initial_test_irq" />
+                </initialState>
                 <state id="no_irq">
-                    <transition event="irq_handler_entry" target="irq" action="update_irq:init_irq" />
+                    <transition event="irq_handler_entry" target="irq" action="update_irq" cond="irq_is_current_scenario_attribute" />
                 </state>
                 <state id="irq">
-                    <transition event="irq_handler_exit" target="no_irq" action="update_no_irq" />
+                    <transition event="irq_handler_exit" target="no_irq" action="update_no_irq" cond="irq_is_current_scenario_attribute" />
                 </state>
             </fsm>
 
-            <fsm id="softirq_fsm" initial="no_softirq">
+            <fsm id="softirq_fsm" consuming="false">
+                <initialState>
+                    <transition event="softirq_entry" target="softirq" action="update_softirq:init_softirq" cond="initial_test_softirq" />
+                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" cond="initial_test_softirq" />
+                </initialState>
                 <state id="no_softirq">
-                    <transition event="softirq_entry" target="softirq" action="update_softirq:init_softirq" />
-                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" />
+                    <transition event="softirq_entry" target="softirq" action="update_softirq" cond="softirq_is_current_scenario_attribute" />
+                    <transition event="softirq_raise" target="softirq" action="update_softirq_raised" cond="softirq_is_current_scenario_attribute" />
                 </state>
                 <state id="softirq">
-                    <transition event="softirq_exit" target="no_softirq" action="update_no_softirq" />
+                    <transition event="softirq_exit" target="no_softirq" action="update_no_softirq" cond="softirq_is_current_scenario_attribute" />
                 </state>
             </fsm>
 
