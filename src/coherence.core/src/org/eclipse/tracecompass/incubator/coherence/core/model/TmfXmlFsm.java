@@ -31,6 +31,8 @@ import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemC
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserverNaive;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserverOptimized;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
@@ -758,7 +760,12 @@ public class TmfXmlFsm {
         if (force || isNewScenarioAllowed()) {
             fTotalScenarios++;
             if (isObserver) {
-            	fPendingScenario = new TmfXmlScenarioObserver(event, eventHandler, fId, fContainer, fModelFactory, fCoherenceAlgo);
+            	if (fCoherenceAlgo.equals(TmfXmlScenarioObserver.ALGO1)) {
+            		fPendingScenario = new TmfXmlScenarioObserverNaive(event, eventHandler, fId, fContainer, fModelFactory);
+            	}
+            	else if (fCoherenceAlgo.equals(TmfXmlScenarioObserver.ALGO2)) {
+            		fPendingScenario = new TmfXmlScenarioObserverOptimized(event, eventHandler, fId, fContainer, fModelFactory);
+            	}
             }
             else {
             	fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);

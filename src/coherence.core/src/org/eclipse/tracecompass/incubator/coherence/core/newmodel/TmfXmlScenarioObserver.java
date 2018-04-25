@@ -1,7 +1,5 @@
 package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,11 +30,10 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
  * @author mmartin
  *
  */
-public class TmfXmlScenarioObserver extends TmfXmlScenario {
+public abstract class TmfXmlScenarioObserver extends TmfXmlScenario {
 	
 	ITmfEvent lastEvent; // the last event having triggered a transition
 	Set<TmfXmlFsmTransition> currentPossibleTransitions = new HashSet<>();
-	Method checkMethod;
 	
 	public static String ALGO1 = "checkEvent";
 	public static String ALGO2 = "checkEvent2";
@@ -69,19 +66,9 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
      * @param modelFactory
      */
     public TmfXmlScenarioObserver(@Nullable ITmfEvent event, @NonNull TmfXmlPatternEventHandler patternHandler, @NonNull String fsmId, 
-    		@NonNull IXmlStateSystemContainer container, @NonNull ITmfXmlModelFactory modelFactory, String algoId) {
+    		@NonNull IXmlStateSystemContainer container, @NonNull ITmfXmlModelFactory modelFactory) {
         super(event, patternHandler, fsmId, container, modelFactory);
-        
-        try {
-        	Class[] args = new Class[1];
-        	args[0] = ITmfEvent.class;
-			checkMethod = TmfXmlScenarioObserver.class.getDeclaredMethod(algoId, args);
-		} catch (NoSuchMethodException e) {
-			Activator.logError("No such algorithm", e);
-		} catch (SecurityException e) {
-			Activator.logError("SecurityException while trying to get the coherence algorithm", e);
-		}
-        
+                
         lastEvent = null;
     }
     
@@ -150,76 +137,7 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
      *
      * @return True if event is coherent, false otherwise
      */
-    private boolean checkEvent(ITmfEvent event) {
-        boolean isCoherent = true;
-
-        Map<String, TmfXmlState> states = fFsm.getStatesMap();
-        TmfXmlState currentState = states.get(fScenarioInfo.getActiveState());
-
-        if (currentState == null) {
-            return false;
-        }
-
-        TmfXmlStateTransition stateTransition = null;
-
-        // We check every state of the FSM
-        for (TmfXmlState state : states.values()) {
-            // We check every transition of the state
-            for (int i = 0; i < state.getTransitionList().size(); i++) {
-                stateTransition = state.getTransitionList().get(i);
-                if (stateTransition.test(event, fScenarioInfo, fPatternHandler.getTestMap())) { // true if the transition can be taken
-                    if (!state.getId().equals(currentState.getId())) {
-                        /* A transition could have been taken from another state */
-                        isCoherent = false;
-	        			// Save the possible transition
-                        TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state, event.getName());
-                        currentPossibleTransitions.add(fsmTransition);
-                    }
-                }
-            }
-        }
-
-        return isCoherent;
-    }
-    
-    private boolean checkEvent2(ITmfEvent event) {
-        boolean isCoherent = true;
-        
-        Set<String> prevStates = fFsm.getPrevStates().get(event.getName());
-        if (prevStates != null) { // we might have a null set if this event is never accepted by any state of the FSM
-	        Map<String, TmfXmlState> states = fFsm.getStatesMap();
-	        TmfXmlState currentState = states.get(fScenarioInfo.getActiveState());
-	        	
-	        if (currentState == null) {
-	            return false;
-	        }
-	
-	        TmfXmlStateTransition stateTransition = null;
-	
-	        // We check only in the possible previous states for this event
-	        for (String stateName : prevStates) { // TODO: key is the string of a Pattern
-	        	TmfXmlState state = states.get(stateName);
-	        	if (state == null) { // state is null because stateId in statesMap is not the same as the id of XML state
-	        		state = states.get(TmfXmlState.INITIAL_STATE_ID);
-	        	}
-	            // We check every transition of the state
-	            for (int i = 0; i < state.getTransitionList().size(); i++) {
-	                stateTransition = state.getTransitionList().get(i);
-	                if (stateTransition.test(event, fScenarioInfo, fPatternHandler.getTestMap())) { // true if the transition can be taken
-	                    if (!state.getId().equals(currentState.getId())) {
-	                        /* A transition could have been taken from another state */
-	                        isCoherent = false;
-	                        // Save the possible transition
-	                        TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(stateTransition, state, event.getName());
-	                        currentPossibleTransitions.add(fsmTransition);
-	                    }
-	                }
-	            }
-	        }
-        }
-
-        return isCoherent;
-    }
+    protected abstract boolean checkEvent(ITmfEvent event);
     
     public void increaseTransitionCounter(TmfXmlFsmTransition transition) {
 		Long value = (fTransitionsCounters.containsKey(transition)) ? fTransitionsCounters.get(transition) + 1 : 1;
@@ -244,18 +162,14 @@ public class TmfXmlScenarioObserver extends TmfXmlScenario {
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) { // No transition from the current state has been found
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
-			try {
-				if (isCoherenceCheckingNeeded && !((boolean) checkMethod.invoke(this, event))) {
-				    // Save incoherences
-					if (fAttribute == null) {
-						waitingEvents.add(new WaitingProblematicEvent(event, currentPossibleTransitions, fFsm.getStatesMap().get(fScenarioInfo.getActiveState()).getId(), lastEvent));
-			        }
-					else {
-						fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fFsm.getStatesMap().get(fScenarioInfo.getActiveState()).getId(), lastEvent); // currentPossibleTransitions has been set in checkEvent
-					}
+			if (isCoherenceCheckingNeeded && !((boolean) checkEvent(event))) {
+			    // Save incoherences
+				if (fAttribute == null) {
+					waitingEvents.add(new WaitingProblematicEvent(event, currentPossibleTransitions, fFsm.getStatesMap().get(fScenarioInfo.getActiveState()).getId(), lastEvent));
+		        }
+				else {
+					fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fFsm.getStatesMap().get(fScenarioInfo.getActiveState()).getId(), lastEvent); // currentPossibleTransitions has been set in checkEvent
 				}
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				Activator.logError("Error while invoking the method to check event", e);
 			}
             return;
         }
