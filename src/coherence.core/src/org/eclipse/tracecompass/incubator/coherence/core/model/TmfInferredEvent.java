@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
@@ -327,17 +326,23 @@ public class TmfInferredEvent extends TmfEvent {
 							}
 							/* Try to find a match between a possible value and the comparison value */
 	    					for (Integer quark : quarks) {
-	    						ITmfStateValue currentValue = stateSystem.queryOngoingState(quark);
-	    						if ((!not && currentValue == compValue) || (not && currentValue != compValue)) { // we found a match for the desired value
-	    							for (Pair<String, Integer> resField : resFields) {
-	    								fieldName = resField.getFirst();
-	    								/* Find the missing field value in the matching path */
-	    								int fieldIndex = resField.getSecond();
-	        							fieldValue = Long.valueOf(stateSystem.getFullAttributePathArray(quark)[fieldIndex]); // convert to Long
-	        							candidateFields.put(fieldName, fieldValue);
-	    							} 
-	    							// we do not break from the loop because there can be more than one match
-	    						}
+								try {
+									// TODO should we use the event timestamp ??? we cannot query ongoing state because the state system has been close
+									ITmfStateValue currentValue = stateSystem.querySingleState(event.getTimestamp().getValue(), quark).getStateValue();
+									if ((!not && currentValue == compValue) || (not && currentValue != compValue)) { // we found a match for the desired value
+										for (Pair<String, Integer> resField : resFields) {
+											fieldName = resField.getFirst();
+											/* Find the missing field value in the matching path */
+											int fieldIndex = resField.getSecond();
+											fieldValue = Long.valueOf(stateSystem.getFullAttributePathArray(quark)[fieldIndex]); // convert to Long
+											candidateFields.put(fieldName, fieldValue);
+										}
+										// we do not break from the loop because there can be more than one match
+									}
+								} catch (StateSystemDisposedException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 	    					}
 	    				}
 	    			}

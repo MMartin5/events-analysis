@@ -11,13 +11,25 @@ package org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlTransitionValidator;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
 /**
  * State system analysis for pattern matching analysis described in XML. This
@@ -35,6 +47,9 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
     private String fAlgoId;
     private final boolean fForceObservation;
 
+    List<TmfInferredEvent> fInferredEvents;
+    List<TmfInferredEvent> fMultiInferredEvents = new ArrayList<>();
+
     /**
      * Constructor
      *
@@ -48,6 +63,7 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
         fStateProvider = null;
         fAlgoId = TmfXmlScenarioObserver.ALGO1; // by default, use this coherence algorithm
         fForceObservation = forceObservation;
+        fInferredEvents = null;
     }
 
     @Override
@@ -87,6 +103,78 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
      */
     public void changeCoherenceAlgorithm(String algoId) {
     	fAlgoId = algoId;
+    }
+
+    /**
+     * Get the inferred events computed after the analysis,
+     * sorted by their timestamp
+     *
+     * @return
+     * 			The list of inferred events
+     */
+	public List<TmfInferredEvent> getInferredEvents() {
+		if (fInferredEvents == null) {
+			waitForCompletion();
+			TmfXmlPatternEventHandler handler = getStateProvider().getEventHandler();
+			handler.computeInferences();
+			ITmfTrace trace = getTrace();
+			List<TmfInferredEvent> eventsList = new ArrayList<>();
+			Map<String, TmfXmlTransitionValidator> testMap = handler.getTestMap();
+			for (TmfXmlFsm fsm : handler.getFsmMap().values()) {
+				List<FsmStateIncoherence> incoherences = fsm.getIncoherences();
+				for (FsmStateIncoherence incoherence : incoherences) {
+					long index = 1;
+					Map<TmfXmlFsmTransition, TmfInferredEvent> localEventsMap = new HashMap<>();
+					List<TmfXmlFsmTransition> transitions = incoherence.getInferredTransitions();
+					Iterator<TmfXmlFsmTransition> it = transitions.iterator();
+					int nbInferred = transitions.size() - 1 ; // (nb transitions - 1) because no inferred event for the last transition
+					
+					while (it.hasNext()) {
+						TmfXmlFsmTransition inferredTransition = it.next();
+						if (it.hasNext()) { // it means this is not the last transition, whose label is the incoherent event
+							TmfInferredEvent inferredEvent = TmfInferredEvent.create(
+									trace,
+									incoherence,
+									inferredTransition,
+									index,
+									nbInferred,
+									testMap,
+									getStateSystem(),
+									fsm.getActiveScenariosList().get(incoherence.getScenarioAttribute()).getScenarioInfos());
+							eventsList.add(inferredEvent);
+							localEventsMap.put(inferredTransition, inferredEvent);
+							index++;
+							
+							if (inferredEvent.isMulti()) {
+								fMultiInferredEvents.add(inferredEvent);
+							}
+						}
+					}
+					
+					incoherence.setInferences(localEventsMap);
+				}
+			}
+			// Sort the list of inferred events before saving it
+			eventsList.sort(new Comparator<TmfInferredEvent>() {
+				@Override
+				public int compare(TmfInferredEvent event1, TmfInferredEvent event2) {
+					if (event1.equals(event2)) {
+						return 0;
+					}
+					return event1.greaterThan(event2) ? 1 : -1;
+				}
+			});
+			fInferredEvents = eventsList;
+		}
+		return fInferredEvents;
+	}
+	
+    public boolean hasMultiInferredEvents() {
+    	return !fMultiInferredEvents.isEmpty();
+    }
+    
+    public List<TmfInferredEvent> getMultiInferredEvents() {
+    	return fMultiInferredEvents;
     }
 
 }

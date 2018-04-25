@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.MultipleInference;
-import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
+import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
 import org.eclipse.tracecompass.incubator.coherence.ui.views.CoherenceView;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
@@ -45,7 +45,7 @@ import org.eclipse.ui.PlatformUI;
  */
 public class InferenceDialog extends TitleAreaDialog {
 	
-	private XmlPatternStateProvider fProvider;
+	private XmlPatternStateSystemModule fModule;
 	private final LocalResourceManager fResourceManager = new LocalResourceManager(JFaceResources.getResources());
 	private boolean dirty;
 	
@@ -57,13 +57,13 @@ public class InferenceDialog extends TitleAreaDialog {
      *
      * @param parent
      *            The parent shell
-     * @param provider
+     * @param fModule
      *            The presentation provider
      */
-	public InferenceDialog(Shell parentShell, XmlPatternStateProvider provider) {
+	public InferenceDialog(Shell parentShell, XmlPatternStateSystemModule module) {
 		super(parentShell);
 		
-		fProvider = provider;
+		fModule = module;
 	}
 	
 	/**
@@ -117,7 +117,7 @@ public class InferenceDialog extends TitleAreaDialog {
         gs.setLayout(layout);
 
         // Go through all the inferred events
-        List<TmfInferredEvent> events = fProvider.getMultiInferredEvents();
+        List<TmfInferredEvent> events = fModule.getMultiInferredEvents();
         for (TmfInferredEvent event : events) {
             new EventEntry(gs, event);
         }

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,6 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
@@ -659,8 +659,7 @@ public class CoherenceView extends ControlFlowView {
 		@Override
         public void run() {
 			if (fModule != null) {
-				XmlPatternStateProvider provider = fModule.getStateProvider();
-				if (provider.hasMultiInferredEvents()) {
+				if (fModule.hasMultiInferredEvents()) {
 		        	Display display = Display.getDefault();
 		    	    if (display != null) {
 		        	    display.syncExec(new Runnable() { // syncExec to wait for the result of the dialog
@@ -668,7 +667,7 @@ public class CoherenceView extends ControlFlowView {
 		                    public void run() {
 		        	        	Shell shell = fViewer.getControl().getShell();
 		        	        	if (dialogs.get(getTrace()) == null) {
-		        	        		dialogs.put(getTrace(), new InferenceDialog(shell, provider)); // TODO should we recreate the dialog everytime?
+		        	        		dialogs.put(getTrace(), new InferenceDialog(shell, fModule)); // TODO should we recreate the dialog everytime?
 		        	        	}
 		        	        	dialogs.get(getTrace()).open();
 		        	        }
@@ -684,8 +683,10 @@ public class CoherenceView extends ControlFlowView {
 	    @Override
 	    public void run() {
 	    	try {
+	    		/* Compute inferred events */
+	    		List<TmfInferredEvent> inferredEvents = fModule.getInferredEvents();
 	    		/* Create the InferenceTrace that will be used in the view */
-		    	InferenceTrace newTrace = new InferenceTrace((TmfTrace) getTrace(), fModule.getStateProvider().getInferredEvents());
+		    	InferenceTrace newTrace = new InferenceTrace((TmfTrace) getTrace(), inferredEvents);
 		    	/* Open the view */
 		    	final IWorkbench wb = PlatformUI.getWorkbench();
 		        final IWorkbenchPage activePage = wb.getActiveWorkbenchWindow().getActivePage();

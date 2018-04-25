@@ -124,10 +124,10 @@ public class InferenceTrace extends TmfTrace implements IKernelTrace {
 		if (it.hasNext()) {
 			currentInferred = it.next();
 		}
-		while (it.hasNext() && currentInferred.getTimestamp().getValue() < start) {
+		while (it.hasNext() && currentInferred != null && currentInferred.getTimestamp().getValue() < start) {
     		currentInferred = it.next();
     	}
-		if (!it.hasNext() && currentInferred.getTimestamp().getValue() < start) {
+		if (!it.hasNext() && currentInferred != null && currentInferred.getTimestamp().getValue() < start) {
 			currentInferred = null;
 		}
 		

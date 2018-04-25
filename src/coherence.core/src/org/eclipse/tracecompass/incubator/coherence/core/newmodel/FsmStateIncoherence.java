@@ -1,5 +1,6 @@
 package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -22,9 +23,9 @@ public class FsmStateIncoherence {
 	/* The name of the state the scenario was in when the coherent event happened */
 	private final String fLastCoherentStateName;
 	/* The list of inferred transitions computed for this incoherence */
-	private List<TmfXmlFsmTransition> fInferredTransitions;
+	private List<TmfXmlFsmTransition> fInferredTransitions = new ArrayList<>();
 	/* The list of inferred events computed for this incoherence, and the associated inferred transition (as key) */
-	private Map<TmfXmlFsmTransition, TmfInferredEvent> fInferredEvents;
+	private Map<TmfXmlFsmTransition, TmfInferredEvent> fInferredEvents = new HashMap<>();
 
 	
 	public FsmStateIncoherence(ITmfEvent incoherentEvent, String scenarioAttribute, ITmfEvent prevCoherentEvent, String currentStateName) {

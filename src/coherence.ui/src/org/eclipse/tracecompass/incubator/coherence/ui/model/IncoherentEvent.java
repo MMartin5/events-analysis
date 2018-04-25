@@ -41,7 +41,7 @@ public class IncoherentEvent extends TimeEvent {
     public IncoherentEvent(ITimeGraphEntry entry, long time, long duration, FsmStateIncoherence incoherence) {
         super(entry, time, duration, INCOHERENT_VALUE);
         fIncoherence = incoherence;
-    	fIncoherenceMsg = "should have taken a " + incoherence.getInferredTransitions().get(incoherence.getInferredTransitions().size() - 1).toString();  // get last transition
+//    	fIncoherenceMsg = "should have taken a " + incoherence.getInferredTransitions().get(incoherence.getInferredTransitions().size() - 1).toString();  // get last transition
     }
     
     public String getIncoherenceMessage() {
