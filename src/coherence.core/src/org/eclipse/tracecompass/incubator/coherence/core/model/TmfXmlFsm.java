@@ -370,7 +370,7 @@ public class TmfXmlFsm {
 	        			statesId = new HashSet<>();
 	        		}
 	        		statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
-    				prevStates.replace(eventName, statesId);
+    				prevStates.put(eventName, statesId);
     				
 					// Add a state to the list of next states for the current event
 	        		if (nextStates.containsKey(eventName)) {
@@ -380,7 +380,7 @@ public class TmfXmlFsm {
 	        			statesId = new HashSet<>();
 	        		}
 	        		statesId.add(transition.getTarget());
-    				nextStates.replace(eventName, statesId);
+    				nextStates.put(eventName, statesId);
     				
     				// Add a state to the list of previous states for the target state
     				TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(transition, state, eventName);
