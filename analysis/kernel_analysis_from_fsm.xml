@@ -233,7 +233,7 @@
             <action id="update_softirq">
                 <stateChange>
                     <stateAttribute type="location" value="CurrentSoftIRQ" />
-                    <stateValue type="eventField" value="cpu" />
+                    <stateValue type="eventField" value="vec" />
                 </stateChange>
             </action>
 
@@ -422,11 +422,11 @@
         		<stateChange>
         		    <stateAttribute type="constant" value="#CurrentScenario" />
         		    <stateAttribute type="constant" value="attribute" />
-        		    <stateValue type="eventField" value="cpu" forcedType="int" /> <!-- use the cpu id -->
+        		    <stateValue type="eventField" value="vec" forcedType="int" />
         		</stateChange>
                 <stateChange>
                     <stateAttribute type="constant" value="SoftIRQs" />
-                    <stateAttribute type="eventField" value="cpu" />
+                    <stateAttribute type="eventField" value="vec" />
                     <stateAttribute type="constant" value="hasScenario" />
                     <stateValue type="string" value="true" />
                 </stateChange>
@@ -567,7 +567,7 @@
                         instantiated for this process -->
                         <condition>
                             <stateAttribute type="constant" value="SoftIRQs" />
-                            <stateAttribute type="eventField" value="cpu" />
+                            <stateAttribute type="eventField" value="vec" />
                             <stateAttribute type="constant" value="hasScenario" />
                             <stateValue type="null" />
                         </condition>
@@ -651,7 +651,7 @@
                     <condition>
             		    <stateAttribute type="constant" value="#CurrentScenario" />
             		    <stateAttribute type="constant" value="attribute" />
-            		    <stateValue type="eventField" value="cpu" />
+            		    <stateValue type="eventField" value="vec" />
                     </condition>
                 </if>
             </test>
@@ -1070,14 +1070,21 @@
             <fsm id="softirq_fsm" consuming="false">
                 <initialState>
                     <transition event="softirq_entry" target="softirq" action="update_softirq:init_softirq" cond="initial_test_softirq" />
+                    <transition event="irq_softirq_entry" target="softirq" action="update_softirq:init_softirq" cond="initial_test_softirq" />
+
                     <transition event="softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" cond="initial_test_softirq" />
+                    <transition event="irq_softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" cond="initial_test_softirq" />
                 </initialState>
                 <state id="no_softirq">
                     <transition event="softirq_entry" target="softirq" action="update_softirq" cond="softirq_is_current_scenario_attribute" />
+                    <transition event="irq_softirq_entry" target="softirq" action="update_softirq" cond="softirq_is_current_scenario_attribute" />
+
                     <transition event="softirq_raise" target="softirq" action="update_softirq_raised" cond="softirq_is_current_scenario_attribute" />
+                    <transition event="irq_softirq_raise" target="softirq" action="update_softirq_raised" cond="softirq_is_current_scenario_attribute" />
                 </state>
                 <state id="softirq">
                     <transition event="softirq_exit" target="no_softirq" action="update_no_softirq" cond="softirq_is_current_scenario_attribute" />
+                    <transition event="irq_softirq_exit" target="no_softirq" action="update_no_softirq" cond="softirq_is_current_scenario_attribute" />
                 </state>
             </fsm>
 
