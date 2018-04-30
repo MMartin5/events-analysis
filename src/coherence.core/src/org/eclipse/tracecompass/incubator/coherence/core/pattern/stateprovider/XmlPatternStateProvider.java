@@ -181,6 +181,7 @@ public class XmlPatternStateProvider extends AbstractTmfStateProvider implements
     
     public void setNoObservers() {
     	fWithObservers = false;
+    	fHandler.setStartChecking(false);
     }
 
     @Override
