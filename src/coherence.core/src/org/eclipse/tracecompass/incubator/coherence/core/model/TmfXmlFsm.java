@@ -646,7 +646,7 @@ public class TmfXmlFsm {
 				}
 	    	}
     	}
-    	else if (fId.equals("cpu_fsm") || fId.equals("softirq_fsm")) {
+    	else if (fId.equals("cpu_fsm")) {
 			Object cpuAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), TmfCpuAspect.class, event);
 			if (cpuAspect != null) {
 				attributes.add(((Integer) cpuAspect).toString());
@@ -657,6 +657,14 @@ public class TmfXmlFsm {
 			if (tidAspect != null) {
 				attributes.add(((Integer) tidAspect).toString());
 			}
+    	}
+    	else if (fId.equals("softirq_fsm")) {
+    		ITmfEventField content = event.getContent();
+
+    		ITmfEventField vecField = content.getField(layout.fieldVec());
+	    	if (vecField != null) {
+	    		attributes.add(vecField.getValue().toString());
+	    	}
     	}
     	
     	return attributes;

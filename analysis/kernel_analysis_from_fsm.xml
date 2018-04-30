@@ -233,7 +233,7 @@
             <action id="update_softirq">
                 <stateChange>
                     <stateAttribute type="location" value="CurrentSoftIRQ" />
-                    <stateValue type="eventField" value="vec" />
+                    <stateValue type="eventField" value="cpu" />
                 </stateChange>
             </action>
 
