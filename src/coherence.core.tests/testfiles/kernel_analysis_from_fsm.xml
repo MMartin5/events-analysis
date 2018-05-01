@@ -422,11 +422,11 @@
         		<stateChange>
         		    <stateAttribute type="constant" value="#CurrentScenario" />
         		    <stateAttribute type="constant" value="attribute" />
-        		    <stateValue type="eventField" value="cpu" forcedType="int" /> <!-- use the cpu id -->
+        		    <stateValue type="eventField" value="vec" forcedType="int" />
         		</stateChange>
                 <stateChange>
                     <stateAttribute type="constant" value="SoftIRQs" />
-                    <stateAttribute type="eventField" value="cpu" />
+                    <stateAttribute type="eventField" value="vec" />
                     <stateAttribute type="constant" value="hasScenario" />
                     <stateValue type="string" value="true" />
                 </stateChange>
@@ -567,7 +567,7 @@
                         instantiated for this process -->
                         <condition>
                             <stateAttribute type="constant" value="SoftIRQs" />
-                            <stateAttribute type="eventField" value="cpu" />
+                            <stateAttribute type="eventField" value="vec" />
                             <stateAttribute type="constant" value="hasScenario" />
                             <stateValue type="null" />
                         </condition>
@@ -651,7 +651,7 @@
                     <condition>
             		    <stateAttribute type="constant" value="#CurrentScenario" />
             		    <stateAttribute type="constant" value="attribute" />
-            		    <stateValue type="eventField" value="cpu" />
+            		    <stateValue type="eventField" value="vec" />
                     </condition>
                 </if>
             </test>
@@ -863,7 +863,7 @@
                 <initialState>
                     <!-- from idle -->
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq:init_cpu" cond="initial_test_cpu" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq:init_cpu" cond="initial_test_cpu" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq:init_cpu" cond="initial_test_cpu" />
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_not_null:next_tid_not_0:initial_test_cpu" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_null:next_tid_not_0:initial_test_cpu" />
                     <transition event="sched_switch" target="idle" cond="next_tid_0:initial_test_cpu" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid:init_cpu" />
@@ -888,14 +888,14 @@
                 </initialState>
                 <state id="idle">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq" cond="cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0:cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0:cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="idle" cond="next_tid_0:cpu_is_current_scenario_attribute" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
                     <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
                     <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
                     <transition event="syscall_entry_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
@@ -905,7 +905,7 @@
                 </state>
                 <state id="syscall">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
                     <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" cond="cpu_is_current_scenario_attribute" />
                     <transition event="syscall_exit_*" target="usermode" action="update_cpu_to_usermode" cond="cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0:cpu_is_current_scenario_attribute"/>
@@ -1070,14 +1070,21 @@
             <fsm id="softirq_fsm" consuming="false">
                 <initialState>
                     <transition event="softirq_entry" target="softirq" action="update_softirq:init_softirq" cond="initial_test_softirq" />
+                    <transition event="irq_softirq_entry" target="softirq" action="update_softirq:init_softirq" cond="initial_test_softirq" />
+
                     <transition event="softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" cond="initial_test_softirq" />
+                    <transition event="irq_softirq_raise" target="softirq" action="update_softirq_raised:init_softirq" cond="initial_test_softirq" />
                 </initialState>
                 <state id="no_softirq">
                     <transition event="softirq_entry" target="softirq" action="update_softirq" cond="softirq_is_current_scenario_attribute" />
+                    <transition event="irq_softirq_entry" target="softirq" action="update_softirq" cond="softirq_is_current_scenario_attribute" />
+
                     <transition event="softirq_raise" target="softirq" action="update_softirq_raised" cond="softirq_is_current_scenario_attribute" />
+                    <transition event="irq_softirq_raise" target="softirq" action="update_softirq_raised" cond="softirq_is_current_scenario_attribute" />
                 </state>
                 <state id="softirq">
                     <transition event="softirq_exit" target="no_softirq" action="update_no_softirq" cond="softirq_is_current_scenario_attribute" />
+                    <transition event="irq_softirq_exit" target="no_softirq" action="update_no_softirq" cond="softirq_is_current_scenario_attribute" />
                 </state>
             </fsm>
 

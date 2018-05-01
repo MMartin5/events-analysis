@@ -863,7 +863,7 @@
                 <initialState>
                     <!-- from idle -->
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq:init_cpu" cond="initial_test_cpu" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq:init_cpu" cond="initial_test_cpu" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq:init_cpu" cond="initial_test_cpu" />
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_not_null:next_tid_not_0:initial_test_cpu" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid:init_cpu" cond="new_current_thread_system_call_null:next_tid_not_0:initial_test_cpu" />
                     <transition event="sched_switch" target="idle" cond="next_tid_0:initial_test_cpu" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid:init_cpu" />
@@ -888,14 +888,14 @@
                 </initialState>
                 <state id="idle">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq" cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq" cond="cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="syscall" action="update_cpu_to_syscall:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_not_null:next_tid_not_0:cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0:cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="idle" cond="next_tid_0:cpu_is_current_scenario_attribute" action="update_cpu_to_idle:set_current_cpu_current_thread_next_tid" />
                 </state>
                 <state id="usermode">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
                     <transition event="sys_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
                     <transition event="compat_sys_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
                     <transition event="syscall_entry_*" target="syscall" action="update_cpu_to_syscall" cond="cpu_is_current_scenario_attribute" />
@@ -905,7 +905,7 @@
                 </state>
                 <state id="syscall">
                     <transition event="irq_handler_entry" target="irq" action="update_cpu_to_irq" cond="cpu_is_current_scenario_attribute" />
-                    <transition event="softirq_entry" target="irq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
+                    <transition event="softirq_entry" target="softirq" action="update_cpu_to_softirq"  cond="cpu_is_current_scenario_attribute" />
                     <transition event="exit_syscall" target="usermode" action="update_cpu_to_usermode" cond="cpu_is_current_scenario_attribute" />
                     <transition event="syscall_exit_*" target="usermode" action="update_cpu_to_usermode" cond="cpu_is_current_scenario_attribute" />
                     <transition event="sched_switch" target="usermode" action="update_cpu_to_usermode:set_current_cpu_current_thread_next_tid" cond="new_current_thread_system_call_null:next_tid_not_0:cpu_is_current_scenario_attribute"/>
