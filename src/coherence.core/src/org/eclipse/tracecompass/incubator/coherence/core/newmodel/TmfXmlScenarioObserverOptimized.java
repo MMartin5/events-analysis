@@ -1,7 +1,11 @@
 package org.eclipse.tracecompass.incubator.coherence.core.newmodel;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.incubator.coherence.core.model.ITmfXmlModelFactory;
@@ -41,7 +45,17 @@ public class TmfXmlScenarioObserverOptimized extends TmfXmlScenarioObserver {
     protected boolean checkEvent(ITmfEvent event) {
         boolean isCoherent = true;
         
-        Set<String> prevStates = fFsm.getPrevStates().get(event.getName());
+        // Get every key where event name matches
+        Set<Pattern> matchingKeys = fFsm.getPrevStates().keySet()
+							        					.stream()
+							        					.filter(entry -> entry.matcher(event.getName()).matches())
+							        					.collect(Collectors.toSet());
+        // Get every possible value for each matching key
+        Set<String> prevStates = new HashSet<>();
+        for (Pattern key : matchingKeys) {
+        	prevStates.addAll(fFsm.getPrevStates().get(key));
+        }
+        
         if (prevStates != null) { // we might have a null set if this event is never accepted by any state of the FSM
 	        Map<String, TmfXmlState> states = fFsm.getStatesMap();
 	        TmfXmlState currentState = states.get(fScenarioInfo.getActiveState());
@@ -53,7 +67,7 @@ public class TmfXmlScenarioObserverOptimized extends TmfXmlScenarioObserver {
 	        TmfXmlStateTransition stateTransition = null;
 	
 	        // We check only in the possible previous states for this event
-	        for (String stateName : prevStates) { // TODO: key is the string of a Pattern
+	        for (String stateName : prevStates) {
 	        	TmfXmlState state = states.get(stateName);
 	        	if (state == null) { // state is null because stateId in statesMap is not the same as the id of XML state
 	        		state = states.get(TmfXmlState.INITIAL_STATE_ID);

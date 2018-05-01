@@ -74,8 +74,8 @@ public class TmfXmlFsm {
     protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
     protected int transitionCount;					/* counter representing the number of transitions taken for the current event */
     
-    Map<String, Set<String>> fPrevStates;
-	Map<String, Set<String>> fNextStates;
+    Map<Pattern, Set<String>> fPrevStates;
+	Map<Pattern, Set<String>> fNextStates;
 	Map<String, Set<TmfXmlFsmTransition>> fPrevStatesForState;
 	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
@@ -85,7 +85,7 @@ public class TmfXmlFsm {
 	private List<FsmStateIncoherence> incoherences = new ArrayList<>();
 	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new HashMap<>(); // temporarily save the possible transitions for each incoherence, before processing
 	
-	private Map<Pair<String, String>, Set<String>> certaintyMap = new HashMap<>(); // map a pair of (event name, condition name) to a list of unique target state names
+	private Map<Pair<Pattern, String>, Set<String>> certaintyMap = new HashMap<>(); // map a pair of (event name, condition name) to a list of unique target state names
 	
 	/**
 	 * Increase the counter of the given transition
@@ -150,7 +150,6 @@ public class TmfXmlFsm {
 	private List<TmfXmlFsmTransition> computeMissingTransitions(String start, String target, 
 			Map<TmfXmlFsmTransition, Long> counters, boolean isGlobal) {
 		Float INFINITY = Float.POSITIVE_INFINITY; // biggest possible distance
-		TmfXmlFsmTransition UNDEFINED = new TmfXmlFsmTransition(null, null, null);
 		/* Initialization */
 		String current = start;							 			// current node
 		Map<String, Float> distances = new HashMap<>(); 			// associates a node (state) to its tentative distance to the start
@@ -170,7 +169,7 @@ public class TmfXmlFsm {
 		for (TmfXmlState state : fStatesMap.values()) {
 			distances.put(state.getId(), INFINITY); // set to infinity because the distance is unknown
 			unvisited.add(state.getId());
-			prev.put(state.getId(), UNDEFINED);
+			prev.put(state.getId(), TmfXmlFsmTransition.UNDEFINED);
 		}
 		distances.put(current, 0f); // the current node is the start ; distance to itself is 0
 		
@@ -210,7 +209,7 @@ public class TmfXmlFsm {
 		 */
 		Stack<TmfXmlFsmTransition> transitions = new Stack<>();
 		String node = target;
-		while (!prev.get(node).equals(UNDEFINED)) { // we should reach an UNDEFINED value when reaching the starting node
+		while (!prev.get(node).equals(TmfXmlFsmTransition.UNDEFINED)) { // we should reach an UNDEFINED value when reaching the starting node
 			TmfXmlFsmTransition transition = prev.get(node);
 			transitions.push(transition);
 			node = transition.to().getTarget();
@@ -350,10 +349,10 @@ public class TmfXmlFsm {
             }
         }
 
-        Map<String, Set<String>> prevStates = new HashMap<>();
-        Map<String, Set<String>> nextStates = new HashMap<>();
+        Map<Pattern, Set<String>> prevStates = new HashMap<>();
+        Map<Pattern, Set<String>> nextStates = new HashMap<>();
         Map<String, Set<TmfXmlFsmTransition>> prevStatesForState = new HashMap<>();
-        Map<Pair<String, String>, Set<String>> certaintyInfo = new HashMap<>();
+        Map<Pair<Pattern, String>, Set<String>> certaintyInfo = new HashMap<>();
         
         // Create the maps of previous states and next states
         for (TmfXmlState state : statesMap.values()) {
@@ -361,38 +360,37 @@ public class TmfXmlFsm {
         		prevStatesForState.put(state.getId(), new HashSet<>()); // every state will have at least an empty set of previous states
         	}
 	        for (TmfXmlStateTransition transition : state.getTransitionList()) {
-	        	for (Pattern pattern : transition.getAcceptedEvents()) {
-	        		String eventName = pattern.toString();
+	        	for (Pattern eventPattern : transition.getAcceptedEvents()) {
 	        		// Add a state to the list of previous states for the current event
 	        		Set<String> statesId;
-	        		if (prevStates.containsKey(eventName)) {
-	                	statesId = prevStates.get(eventName);
+	        		if (prevStates.containsKey(eventPattern)) {
+	                	statesId = prevStates.get(eventPattern);
 	        		}
 	        		else {
 	        			statesId = new HashSet<>();
 	        		}
 	        		statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
-    				prevStates.put(eventName, statesId);
+    				prevStates.put(eventPattern, statesId);
     				
 					// Add a state to the list of next states for the current event
-	        		if (nextStates.containsKey(eventName)) {
-	        			statesId = nextStates.get(eventName);
+	        		if (nextStates.containsKey(eventPattern)) {
+	        			statesId = nextStates.get(eventPattern);
 	        		}
 	        		else {
 	        			statesId = new HashSet<>();
 	        		}
 	        		statesId.add(transition.getTarget());
-    				nextStates.put(eventName, statesId);
+    				nextStates.put(eventPattern, statesId);
     				
     				// Add a state to the list of previous states for the target state
-    				TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(transition, state, eventName);
+    				TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(transition, state, eventPattern);
     				String targetState = transition.getTarget();
     				Set<TmfXmlFsmTransition> set = (prevStatesForState.containsKey(targetState)) ? prevStatesForState.get(targetState) : new HashSet<>();
     				set.add(fsmTransition);
     				prevStatesForState.put(targetState, set);
     				
     				// Add a certainty information
-    				Pair<String, String> p = new Pair<>(eventName, transition.getCondition());
+    				Pair<Pattern, String> p = new Pair<>(eventPattern, transition.getCondition());
     				Set<String> targets = certaintyInfo.containsKey(p) ? certaintyInfo.get(p) : new HashSet<>();
     				targets.add(targetState);
     				certaintyInfo.put(p, targets);
@@ -406,8 +404,8 @@ public class TmfXmlFsm {
 
     protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, IXmlStateSystemContainer container, String id, boolean consuming,
             boolean multiple, String initialState, String finalState, String abandonState, List<TmfXmlBasicTransition> preconditions,
-            Map<String, TmfXmlState> states, Map<String, Set<String>> prevStates, Map<String, Set<String>> nextStates, 
-            Map<String, Set<TmfXmlFsmTransition>> prevStatesForState, Map<Pair<String, String>, Set<String>> certaintyInfo) {
+            Map<String, TmfXmlState> states, Map<Pattern, Set<String>> prevStates, Map<Pattern, Set<String>> nextStates,
+            Map<String, Set<TmfXmlFsmTransition>> prevStatesForState, Map<Pair<Pattern, String>, Set<String>> certaintyInfo) {
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
         fContainer = container;
@@ -426,11 +424,11 @@ public class TmfXmlFsm {
         certaintyMap = certaintyInfo;
     }
     
-    public Map<String, Set<String>> getPrevStates() {
+    public Map<Pattern, Set<String>> getPrevStates() {
 		return fPrevStates;
 	}    
     
-    public Map<String, Set<String>> getNextStates() {
+    public Map<Pattern, Set<String>> getNextStates() {
 		return fNextStates;
 	}
 
