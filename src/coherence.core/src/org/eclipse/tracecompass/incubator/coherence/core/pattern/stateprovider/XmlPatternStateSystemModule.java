@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -121,14 +122,13 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 			List<TmfInferredEvent> eventsList = new ArrayList<>();
 			Map<String, TmfXmlTransitionValidator> testMap = handler.getTestMap();
 			for (TmfXmlFsm fsm : handler.getFsmMap().values()) {
-				List<FsmStateIncoherence> incoherences = fsm.getIncoherences();
+				Set<FsmStateIncoherence> incoherences = fsm.getIncoherences();
 				for (FsmStateIncoherence incoherence : incoherences) {
 					long index = 1;
 					Map<TmfXmlFsmTransition, TmfInferredEvent> localEventsMap = new HashMap<>();
 					List<TmfXmlFsmTransition> transitions = incoherence.getInferredTransitions();
 					Iterator<TmfXmlFsmTransition> it = transitions.iterator();
 					int nbInferred = transitions.size() - 1 ; // (nb transitions - 1) because no inferred event for the last transition
-					
 					while (it.hasNext()) {
 						TmfXmlFsmTransition inferredTransition = it.next();
 						if (it.hasNext()) { // it means this is not the last transition, whose label is the incoherent event

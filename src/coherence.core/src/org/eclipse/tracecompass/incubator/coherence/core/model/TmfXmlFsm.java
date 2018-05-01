@@ -82,7 +82,6 @@ public class TmfXmlFsm {
 	
 	private String fCoherenceAlgo;
 	
-	private List<FsmStateIncoherence> incoherences = new ArrayList<>();
 	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new HashMap<>(); // temporarily save the possible transitions for each incoherence, before processing
 	
 	private Map<Pair<Pattern, String>, Set<String>> certaintyMap = new HashMap<>(); // map a pair of (event name, condition name) to a list of unique target state names
@@ -99,12 +98,9 @@ public class TmfXmlFsm {
 	
 	public void addProblematicEvent(ITmfEvent event, String scenarioAttribute, Set<TmfXmlFsmTransition> transitions, String currentState, ITmfEvent lastEvent) {
 	    FsmStateIncoherence incoherence = new FsmStateIncoherence(event, scenarioAttribute, lastEvent, currentState);
-	    if (!incoherences.contains(incoherence)) {
-	    	incoherences.add(incoherence);
-	    	Set<TmfXmlFsmTransition> possibleTransitions = new HashSet<>(); // copy transitions because it will be disposed by the scenario observer
-	    	possibleTransitions.addAll(transitions);
-	    	possibleTransitionsMap.put(incoherence, possibleTransitions);
-	    }
+    	Set<TmfXmlFsmTransition> possibleTransitions = new HashSet<>(); // copy transitions because it will be disposed by the scenario observer
+    	possibleTransitions.addAll(transitions);
+    	possibleTransitionsMap.put(incoherence, possibleTransitions);
 	}
 	
 	private TmfXmlFsmTransition findBestTransition(Set<TmfXmlFsmTransition> possibleTransitions, Map<TmfXmlFsmTransition, Long> counters, boolean isGlobal) {
@@ -224,7 +220,7 @@ public class TmfXmlFsm {
 	 * 			The status of this operation
 	 */
 	public void setTransitions() {
-		for (FsmStateIncoherence incoherence : incoherences) {
+		for (FsmStateIncoherence incoherence : getIncoherences()) {
 			String targetState = incoherence.getLastCoherentStateName();
 			Set<TmfXmlFsmTransition> possibleTransitions = possibleTransitionsMap.get(incoherence);
 			// Infer transitions
@@ -239,13 +235,13 @@ public class TmfXmlFsm {
 		}
 	}
 	
-	public List<FsmStateIncoherence> getIncoherences() {
-		return incoherences;
+	public Set<FsmStateIncoherence> getIncoherences() {
+		return possibleTransitionsMap.keySet();
 	}
 	
 	public List<ITmfEvent> getIncoherentEvents() {
 		List<ITmfEvent> incoherentEvents = new ArrayList<>();
-		for (FsmStateIncoherence incoherence : incoherences) {
+		for (FsmStateIncoherence incoherence : getIncoherences()) {
 			incoherentEvents.add(incoherence.getIncoherentEvent());
 		}
 		return incoherentEvents;
