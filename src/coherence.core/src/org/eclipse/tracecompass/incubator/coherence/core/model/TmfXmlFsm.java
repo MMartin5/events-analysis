@@ -75,7 +75,6 @@ public class TmfXmlFsm {
     protected int transitionCount;					/* counter representing the number of transitions taken for the current event */
     
     Map<Pattern, Set<String>> fPrevStates;
-	Map<Pattern, Set<String>> fNextStates;
 	Map<String, Set<TmfXmlFsmTransition>> fPrevStatesForState;
 	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
@@ -346,7 +345,6 @@ public class TmfXmlFsm {
         }
 
         Map<Pattern, Set<String>> prevStates = new HashMap<>();
-        Map<Pattern, Set<String>> nextStates = new HashMap<>();
         Map<String, Set<TmfXmlFsmTransition>> prevStatesForState = new HashMap<>();
         Map<Pair<Pattern, String>, Set<String>> certaintyInfo = new HashMap<>();
         
@@ -367,17 +365,7 @@ public class TmfXmlFsm {
 	        		}
 	        		statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
     				prevStates.put(eventPattern, statesId);
-    				
-					// Add a state to the list of next states for the current event
-	        		if (nextStates.containsKey(eventPattern)) {
-	        			statesId = nextStates.get(eventPattern);
-	        		}
-	        		else {
-	        			statesId = new HashSet<>();
-	        		}
-	        		statesId.add(transition.getTarget());
-    				nextStates.put(eventPattern, statesId);
-    				
+    				    				
     				// Add a state to the list of previous states for the target state
     				TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(transition, state, eventPattern);
     				String targetState = transition.getTarget();
@@ -395,12 +383,12 @@ public class TmfXmlFsm {
         }
         
         return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, 
-        		abandonStateId, preconditions, statesMap, prevStates, nextStates, prevStatesForState, certaintyInfo);
+        		abandonStateId, preconditions, statesMap, prevStates, prevStatesForState, certaintyInfo);
     }
 
     protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, IXmlStateSystemContainer container, String id, boolean consuming,
             boolean multiple, String initialState, String finalState, String abandonState, List<TmfXmlBasicTransition> preconditions,
-            Map<String, TmfXmlState> states, Map<Pattern, Set<String>> prevStates, Map<Pattern, Set<String>> nextStates,
+            Map<String, TmfXmlState> states, Map<Pattern, Set<String>> prevStates, 
             Map<String, Set<TmfXmlFsmTransition>> prevStatesForState, Map<Pair<Pattern, String>, Set<String>> certaintyInfo) {
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
@@ -415,17 +403,12 @@ public class TmfXmlFsm {
         fStatesMap = ImmutableMap.copyOf(states);
         fActiveScenariosList = new LinkedHashMap<>();
         fPrevStates = prevStates;
-        fNextStates = nextStates;
         fPrevStatesForState = prevStatesForState;
         certaintyMap = certaintyInfo;
     }
     
     public Map<Pattern, Set<String>> getPrevStates() {
 		return fPrevStates;
-	}    
-    
-    public Map<Pattern, Set<String>> getNextStates() {
-		return fNextStates;
 	}
 
     /**
