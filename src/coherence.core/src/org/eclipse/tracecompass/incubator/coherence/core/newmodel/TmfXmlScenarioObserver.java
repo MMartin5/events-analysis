@@ -35,8 +35,8 @@ public abstract class TmfXmlScenarioObserver extends TmfXmlScenario {
 	ITmfEvent lastEvent; // the last event having triggered a transition
 	Set<TmfXmlFsmTransition> currentPossibleTransitions = new HashSet<>();
 	
-	public static String ALGO1 = "checkEvent";
-	public static String ALGO2 = "checkEvent2";
+	public static String ALGO1 = "naive";
+	public static String ALGO2 = "optimized";
 	
 	private class WaitingProblematicEvent {
 		public WaitingProblematicEvent(ITmfEvent event, Set<TmfXmlFsmTransition> currentPossibleTransitions, 
@@ -226,6 +226,7 @@ public abstract class TmfXmlScenarioObserver extends TmfXmlScenario {
         		for (WaitingProblematicEvent waitingEvent : waitingEvents) {
         			fFsm.addProblematicEvent(waitingEvent.event, fAttribute, waitingEvent.currentPossibleTransitions, waitingEvent.activeState, waitingEvent.lastEvent);
         		}
+        		waitingEvents.clear(); // now we can remove these events
         	}
         }
     }

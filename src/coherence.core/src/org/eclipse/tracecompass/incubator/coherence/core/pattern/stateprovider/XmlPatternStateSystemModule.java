@@ -49,7 +49,7 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
     private final boolean fForceObservation;
 
     List<TmfInferredEvent> fInferredEvents;
-    List<TmfInferredEvent> fMultiInferredEvents = new ArrayList<>();
+    boolean hasMultiInferredEvent;
 
     /**
      * Constructor
@@ -65,6 +65,7 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
         fAlgoId = TmfXmlScenarioObserver.ALGO1; // by default, use this coherence algorithm
         fForceObservation = forceObservation;
         fInferredEvents = null;
+        hasMultiInferredEvent = false;
     }
 
     @Override
@@ -146,7 +147,7 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 							index++;
 							
 							if (inferredEvent.isMulti()) {
-								fMultiInferredEvents.add(inferredEvent);
+								hasMultiInferredEvent = true;
 							}
 						}
 					}
@@ -170,11 +171,17 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 	}
 	
     public boolean hasMultiInferredEvents() {
-    	return !fMultiInferredEvents.isEmpty();
+    	return hasMultiInferredEvent;
     }
     
     public List<TmfInferredEvent> getMultiInferredEvents() {
-    	return fMultiInferredEvents;
+    	List<TmfInferredEvent> multiInferredEvents = new ArrayList<>();
+    	for (TmfInferredEvent inferredEvent : fInferredEvents) {
+    		if (inferredEvent.isMulti()) {
+    			multiInferredEvents.add(inferredEvent);
+    		}
+    	}
+		return multiInferredEvents;
     }
 
 }
