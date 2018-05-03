@@ -116,17 +116,19 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
      */
 	public List<TmfInferredEvent> getInferredEvents() {
 		if (fInferredEvents == null) {
+			fInferredEvents = new ArrayList<>();
+			/* Wait for the analysis to complete */
 			waitForCompletion();
+			/* Compute the inferences */
 			TmfXmlPatternEventHandler handler = getStateProvider().getEventHandler();
 			handler.computeInferences();
+			/* Create the inferred events */
 			ITmfTrace trace = getTrace();
-			List<TmfInferredEvent> eventsList = new ArrayList<>();
 			Map<String, TmfXmlTransitionValidator> testMap = handler.getTestMap();
-			for (TmfXmlFsm fsm : handler.getFsmMap().values()) {
-				Set<FsmStateIncoherence> incoherences = fsm.getIncoherences();
-				for (FsmStateIncoherence incoherence : incoherences) {
+			for (TmfXmlFsm fsm : handler.getFsmMap().values()) { // we need to get the incoherences of each FSM
+				for (FsmStateIncoherence incoherence : fsm.getIncoherences()) {
 					long index = 1;
-					Map<TmfXmlFsmTransition, TmfInferredEvent> localEventsMap = new HashMap<>();
+					Map<TmfXmlFsmTransition, TmfInferredEvent> localEventsMap = new HashMap<>(); // inferred events related to the current incoherence
 					List<TmfXmlFsmTransition> transitions = incoherence.getInferredTransitions();
 					Iterator<TmfXmlFsmTransition> it = transitions.iterator();
 					int nbInferred = transitions.size() - 1 ; // (nb transitions - 1) because no inferred event for the last transition
@@ -142,7 +144,7 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 									testMap,
 									getStateSystem(),
 									fsm.getActiveScenariosList().get(incoherence.getScenarioAttribute()).getScenarioInfos());
-							eventsList.add(inferredEvent);
+							fInferredEvents.add(inferredEvent);
 							localEventsMap.put(inferredTransition, inferredEvent);
 							index++;
 							
@@ -152,11 +154,11 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 						}
 					}
 					
-					incoherence.setInferences(localEventsMap);
+//					incoherence.setInferences(localEventsMap);
 				}
 			}
-			// Sort the list of inferred events before saving it
-			eventsList.sort(new Comparator<TmfInferredEvent>() {
+			/* Sort the list of inferred events before saving it */
+			fInferredEvents.sort(new Comparator<TmfInferredEvent>() {
 				@Override
 				public int compare(TmfInferredEvent event1, TmfInferredEvent event2) {
 					if (event1.equals(event2)) {
@@ -165,7 +167,6 @@ public class XmlPatternStateSystemModule extends TmfStateSystemAnalysisModule {
 					return event1.greaterThan(event2) ? 1 : -1;
 				}
 			});
-			fInferredEvents = eventsList;
 		}
 		return fInferredEvents;
 	}
