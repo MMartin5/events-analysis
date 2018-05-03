@@ -45,15 +45,14 @@ public class TmfXmlScenarioObserverOptimized extends TmfXmlScenarioObserver {
     protected boolean checkEvent(ITmfEvent event) {
         boolean isCoherent = true;
         
-        // Get every key where event name matches
-        Set<Pattern> matchingKeys = fFsm.getPrevStates().keySet()
-							        					.stream()
-							        					.filter(entry -> entry.matcher(event.getName()).matches())
-							        					.collect(Collectors.toSet());
-        // Get every possible value for each matching key
+        /* Get every key where event name matches
+           and get the associated states */
+        Map<Pattern, Set<String>> prevStatesMap = fFsm.getPrevStates();
         Set<String> prevStates = new HashSet<>();
-        for (Pattern key : matchingKeys) {
-        	prevStates.addAll(fFsm.getPrevStates().get(key));
+        for (Pattern pattern : fFsm.getPrevStates().keySet()) {
+        	if (pattern.matcher(event.getName()).matches()) {
+        		prevStates.addAll(prevStatesMap.get(pattern));
+        	}
         }
         
         if (prevStates != null) { // we might have a null set if this event is never accepted by any state of the FSM
