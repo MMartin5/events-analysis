@@ -647,10 +647,6 @@ public class TmfXmlFsm {
     	return attributes;
     }
     
-    private int computeRequiredTransitions(ITmfEvent event, IKernelAnalysisEventLayout layout) {
-    	return event.getName().equals(layout.eventSchedSwitch()) ? 2 : 1;
-    }
-    
     /**
      * Handle the current event
      *
@@ -665,7 +661,6 @@ public class TmfXmlFsm {
         fCoherenceCheckingNeeded = startChecking;
         
         // Initialize the counters
-        int transitionTotal = computeRequiredTransitions(event, layout);
         transitionCount = 0;
         
         // Handle only the scenarios related to this event, which are identified by the tid of the process it models
@@ -679,14 +674,14 @@ public class TmfXmlFsm {
 	        for (String attr : eventAttributes) {
 	        	TmfXmlScenario scenario = fActiveScenariosList.get(attr);
 	        	if (scenario != null) {
-	        		handleScenario(scenario, event, fCoherenceCheckingNeeded, transitionTotal);
+	        		handleScenario(scenario, event, fCoherenceCheckingNeeded, eventAttributes.size());
 	        	}
 	        }
         }
         
         if (!eventAttributes.isEmpty()) { // if we did not find any attribute for this event, it means it should be applied to no scenario
 	        boolean isValidInput = validatePreconditions(event, testMap);
-	        handlePendingScenario(event, isValidInput, transitionTotal);
+	        handlePendingScenario(event, isValidInput, eventAttributes.size());
         }
     }
 
