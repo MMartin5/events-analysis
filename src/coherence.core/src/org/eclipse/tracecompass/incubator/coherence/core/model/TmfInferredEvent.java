@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
@@ -324,26 +325,29 @@ public class TmfInferredEvent extends TmfEvent {
 								Activator.logError("Attribute not found while trying to get the value of inferred event", e); //$NON-NLS-1$
 				                continue;
 							}
-							/* Try to find a match between a possible value and the comparison value */
-	    					for (Integer quark : quarks) {
-								try {
-									// TODO should we use the event timestamp ??? we cannot query ongoing state because the state system has been close
-									ITmfStateValue currentValue = stateSystem.querySingleState(event.getTimestamp().getValue(), quark).getStateValue();
-									if ((!not && currentValue == compValue) || (not && currentValue != compValue)) { // we found a match for the desired value
+							/* Try to find a match between a possible value and the compared value */	
+							try {
+								// TODO should we use the incoherent event timestamp or the inferred event timestamp
+								Iterable<ITmfStateInterval> values = stateSystem.query2D(quarks, Arrays.asList(event.getTimestamp().getValue()));
+								for (ITmfStateInterval currentInterval : values) {
+									if ((!not && currentInterval.getStateValue() == compValue) || 
+											(not && currentInterval.getStateValue() != compValue)) { // we found a match for the desired value
+										
 										for (Pair<String, Integer> resField : resFields) {
 											fieldName = resField.getFirst();
 											/* Find the missing field value in the matching path */
 											int fieldIndex = resField.getSecond();
-											fieldValue = Long.valueOf(stateSystem.getFullAttributePathArray(quark)[fieldIndex]); // convert to Long
+											// FIXME it's not necessary a Long
+											fieldValue = Long.valueOf(stateSystem.getFullAttributePathArray(currentInterval.getAttribute())[fieldIndex]); // convert to Long
 											candidateFields.put(fieldName, fieldValue);
 										}
 										// we do not break from the loop because there can be more than one match
 									}
-								} catch (StateSystemDisposedException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
 								}
-	    					}
+							} catch (StateSystemDisposedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 	    				}
 	    			}
 	    			else { // get value for case 2
