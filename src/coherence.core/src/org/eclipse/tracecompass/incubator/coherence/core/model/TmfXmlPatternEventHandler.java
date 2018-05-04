@@ -22,6 +22,11 @@ import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEven
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlCpuScenarioModel;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlIrqScenarioModel;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlProcessScenarioModel;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioModel;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlSoftIrqScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -47,6 +52,7 @@ public class TmfXmlPatternEventHandler {
     protected final Map<String, ITmfXmlAction> fActionMap;
     protected final Map<String, TmfXmlFsm> fFsmMap = new LinkedHashMap<>();
     protected final List<TmfXmlFsm> fActiveFsmList = new ArrayList<>();
+    protected final Map<String, TmfXmlScenarioModel> fFsmIds;
     
     protected boolean fStartChecking;				/* indicated if we should start checking the coherence */ 
 
@@ -100,6 +106,8 @@ public class TmfXmlPatternEventHandler {
         builder.put(TmfXmlStrings.CONSTANT_PREFIX + ITmfXmlAction.CLEAR_STORED_FIELDS_STRING, new ResetStoredFieldsAction(fParent));
         builder.put(TmfXmlStrings.CONSTANT_PREFIX + ITmfXmlAction.SAVE_STORED_FIELDS_STRING, new UpdateStoredFieldsAction(fParent));
         fActionMap = builder.build();
+        
+        fFsmIds = buildFsmIds(((IKernelTrace) fParent.getTrace()).getKernelEventLayout());
 
         NodeList nodesFsm = node.getElementsByTagName(TmfXmlStrings.FSM);
         /* load fsm */
@@ -108,11 +116,22 @@ public class TmfXmlPatternEventHandler {
             if (element == null) {
                 throw new IllegalArgumentException();
             }
-            TmfXmlFsm fsm = modelFactory.createFsm(element, fParent);
+            TmfXmlFsm fsm = modelFactory.createFsm(element, fParent, fFsmIds.get(element.getAttribute(TmfXmlStrings.ID)));
             fFsmMap.put(fsm.getId(), fsm);
         }
         
         fStartChecking = false;
+    }
+    
+    private static Map<String, TmfXmlScenarioModel> buildFsmIds(IKernelAnalysisEventLayout layout) {
+        ImmutableMap.Builder<String, TmfXmlScenarioModel> builder = ImmutableMap.builder();
+        // TODO better fsm ids management
+        builder.put("cpu_fsm", new TmfXmlCpuScenarioModel());
+        builder.put("process_fsm", new TmfXmlProcessScenarioModel(layout));
+        builder.put("irq_fsm", new TmfXmlIrqScenarioModel());
+        builder.put("softirq_fsm", new TmfXmlSoftIrqScenarioModel(layout));
+
+       return builder.build();
     }
 
     /**
@@ -190,9 +209,8 @@ public class TmfXmlPatternEventHandler {
                 startScenario(fsmToStart, null, false, isObserver);
             }
         }
-        IKernelAnalysisEventLayout layout = ((IKernelTrace) fParent.getTrace()).getKernelEventLayout(); // get the event layout used to get the event attributes
         for (TmfXmlFsm fsm : activeFsmList) {
-            fsm.handleEvent(event, fTestMap, fStartChecking, layout);
+            fsm.handleEvent(event, fTestMap, fStartChecking);
         }
     }
 

@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioModel;
 import org.w3c.dom.Element;
 
 /**
@@ -152,7 +153,7 @@ public interface ITmfXmlModelFactory {
      *            The state system container this FSM belongs to
      * @return The new {@link TmfXmlFsm}
      */
-    TmfXmlFsm createFsm(Element node, IXmlStateSystemContainer container);
+    TmfXmlFsm createFsm(Element node, IXmlStateSystemContainer container, TmfXmlScenarioModel scenarioModel);
 
     /**
      * Create a new XML state

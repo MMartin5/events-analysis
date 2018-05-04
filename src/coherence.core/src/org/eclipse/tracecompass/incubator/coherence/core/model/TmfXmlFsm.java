@@ -23,23 +23,19 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
-import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelTidAspect;
-import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserverNaive;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserverOptimized;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
-import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
-import org.eclipse.tracecompass.tmf.core.event.aspect.TmfCpuAspect;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -73,18 +69,14 @@ public class TmfXmlFsm {
     protected boolean fHasIncoherence;              /* indicates if there is at least one possible transition that could have been taken */
     protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
     protected int transitionCount;					/* counter representing the number of transitions taken for the current event */
-    
     Map<Pattern, Set<String>> fPrevStates;
 	Map<String, Set<TmfXmlFsmTransition>> fPrevStatesForState;
-	
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
-	
 	private String fCoherenceAlgo;
-	
 	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new HashMap<>(); // temporarily save the possible transitions for each incoherence, before processing
-	
-	private Map<Pair<Pattern, String>, Set<String>> certaintyMap = new HashMap<>(); // map a pair of (event name, condition name) to a list of unique target state names
-	
+	private Map<Pair<Pattern, String>, Set<String>> certaintyMap = new HashMap<>(); // map a pair of (event name, condition name) to a list of unique target state names	
+	private final TmfXmlScenarioModel fScenarioModel;
+
 	/**
 	 * Increase the counter of the given transition
 	 * @param transition
@@ -263,9 +255,12 @@ public class TmfXmlFsm {
      *            The XML root of this fsm
      * @param container
      *            The state system container this fsm belongs to
+	 * @param scenarioModel
+	 * 			  The user-defined model used to get scenario-related attributes in events 
      * @return The new {@link TmfXmlFsm}
      */
-    public static TmfXmlFsm create(ITmfXmlModelFactory modelFactory, Element node, IXmlStateSystemContainer container) {
+    public static TmfXmlFsm create(ITmfXmlModelFactory modelFactory, Element node, IXmlStateSystemContainer container,
+    		TmfXmlScenarioModel scenarioModel) {
         String id = node.getAttribute(TmfXmlStrings.ID);
         boolean consuming = node.getAttribute(TmfXmlStrings.CONSUMING).isEmpty() ? true : Boolean.parseBoolean(node.getAttribute(TmfXmlStrings.CONSUMING));
         boolean instanceMultipleEnabled = node.getAttribute(TmfXmlStrings.MULTIPLE).isEmpty() ? true : Boolean.parseBoolean(node.getAttribute(TmfXmlStrings.MULTIPLE));
@@ -383,13 +378,24 @@ public class TmfXmlFsm {
         }
         
         return new TmfXmlFsm(modelFactory, container, id, consuming, instanceMultipleEnabled, initialState, finalStateId, 
-        		abandonStateId, preconditions, statesMap, prevStates, prevStatesForState, certaintyInfo);
+        		abandonStateId, preconditions, statesMap, prevStates, prevStatesForState, certaintyInfo, scenarioModel);
     }
 
-    protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, IXmlStateSystemContainer container, String id, boolean consuming,
-            boolean multiple, String initialState, String finalState, String abandonState, List<TmfXmlBasicTransition> preconditions,
-            Map<String, TmfXmlState> states, Map<Pattern, Set<String>> prevStates, 
-            Map<String, Set<TmfXmlFsmTransition>> prevStatesForState, Map<Pair<Pattern, String>, Set<String>> certaintyInfo) {
+    protected TmfXmlFsm(ITmfXmlModelFactory modelFactory, 
+    					IXmlStateSystemContainer container, 
+    					String id, 
+						boolean consuming, 
+						boolean multiple, 
+						String initialState, 
+						String finalState, 
+						String abandonState, 
+						List<TmfXmlBasicTransition> preconditions, 
+						Map<String, TmfXmlState> states, 
+						Map<Pattern, Set<String>> prevStates, 
+						Map<String, Set<TmfXmlFsmTransition>> prevStatesForState, 
+						Map<Pair<Pattern, String>, Set<String>> certaintyInfo, 
+						TmfXmlScenarioModel scenarioModel) {
+    	
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
         fContainer = container;
@@ -405,6 +411,7 @@ public class TmfXmlFsm {
         fPrevStates = prevStates;
         fPrevStatesForState = prevStatesForState;
         certaintyMap = certaintyInfo;
+        fScenarioModel = scenarioModel;
     }
     
     public Map<Pattern, Set<String>> getPrevStates() {
@@ -584,70 +591,6 @@ public class TmfXmlFsm {
     }
     
     /**
-     * Get the values of some predefined attributes in an event
-     * Here, we collect every attribute related to tid
-     * @param event
-     * 			The event from which we collect the values
-     * @param layout
-     * 			The event layout
-     * @return
-     * 			A list of attribute values as strings
-     */
-    List<String> getAttributesForEvent(ITmfEvent event, IKernelAnalysisEventLayout layout) {
-    	List<String> attributes = new ArrayList<>();
-    	// FIXME hardcoded pattern names
-    	if (fId.equals("process_fsm")) {
-	    	ITmfEventField content = event.getContent();
-	    	
-	    	// We want to collect tid information for process FSM
-	    	if (event.getName().equals("sched_switch")) {
-		    	ITmfEventField prevTid = content.getField(layout.fieldPrevTid());
-		    	if (prevTid != null) {
-		    		attributes.add(prevTid.getValue().toString());
-		    	}
-		    	
-		    	ITmfEventField nextTid = content.getField(layout.fieldNextTid());
-		    	if (nextTid != null) {
-		    		attributes.add(nextTid.getValue().toString());
-		    	}
-	    	}
-	    	else {
-		    	ITmfEventField childTid = content.getField(layout.fieldChildTid());
-		    	if (childTid != null) {
-		    		attributes.add(childTid.getValue().toString());
-		    	}
-		    	
-				Object tidAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), KernelTidAspect.class, event);
-				if (tidAspect != null) {
-					attributes.add(((Integer) tidAspect).toString());
-				}
-	    	}
-    	}
-    	else if (fId.equals("cpu_fsm")) {
-			Object cpuAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), TmfCpuAspect.class, event);
-			if (cpuAspect != null) {
-				attributes.add(((Integer) cpuAspect).toString());
-			}
-    	}
-    	else if (fId.equals("irq_fsm")) {
-    		Object tidAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), KernelTidAspect.class, event);
-			if (tidAspect != null) {
-				attributes.add(((Integer) tidAspect).toString());
-			}
-    	}
-    	else if (fId.equals("softirq_fsm")) {
-    		ITmfEventField content = event.getContent();
-
-    		ITmfEventField vecField = content.getField(layout.fieldVec());
-	    	if (vecField != null) {
-	    		attributes.add(vecField.getValue().toString());
-	    	}
-    	}
-    	
-    	return attributes;
-    }
-    
-    /**
      * Handle the current event
      *
      * @param event
@@ -655,8 +598,7 @@ public class TmfXmlFsm {
      * @param testMap
      *            The transitions of the pattern
      */
-    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, boolean startChecking, 
-    		IKernelAnalysisEventLayout layout) {
+    public void handleEvent(ITmfEvent event, Map<String, TmfXmlTransitionValidator> testMap, boolean startChecking) {
         setEventConsumed(false);
         fCoherenceCheckingNeeded = startChecking;
         
@@ -664,7 +606,7 @@ public class TmfXmlFsm {
         transitionCount = 0;
         
         // Handle only the scenarios related to this event, which are identified by the tid of the process it models
-        List<String> eventAttributes = getAttributesForEvent(event, layout);
+        List<String> eventAttributes = fScenarioModel.getAttributesForEvent(event);
         if (event instanceof ITmfLostEvent) { // check certainty here
         	for (TmfXmlScenario scenario : fActiveScenariosList.values()) {
         		scenario.updateCertainty(false, event.getTimestamp().getValue());

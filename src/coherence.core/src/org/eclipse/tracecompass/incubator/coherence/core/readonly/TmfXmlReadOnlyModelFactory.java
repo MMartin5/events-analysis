@@ -33,6 +33,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlStateTransi
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlTimestampCondition;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlTransitionValidator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioModel;
 import org.w3c.dom.Element;
 
 /**
@@ -109,8 +110,8 @@ public class TmfXmlReadOnlyModelFactory implements ITmfXmlModelFactory {
     }
 
     @Override
-    public TmfXmlFsm createFsm(Element node, IXmlStateSystemContainer container) {
-        return TmfXmlFsm.create(this, node, container);
+    public TmfXmlFsm createFsm(Element node, IXmlStateSystemContainer container, TmfXmlScenarioModel scenarioModel) {
+        return TmfXmlFsm.create(this, node, container, scenarioModel);
     }
 
     @Override
