@@ -5,6 +5,7 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -323,6 +324,24 @@ public class CoherenceView extends ControlFlowView {
             
             scenarios.putAll(fsm.getActiveScenariosList());
         }
+        
+        // Sort incoherences in chronological order
+        fIncoherences.sort(new Comparator<FsmStateIncoherence>() {
+
+			@Override
+			public int compare(FsmStateIncoherence inc1, FsmStateIncoherence inc2) {
+				if (inc1.getIncoherentEvent().getTimestamp().getValue() < inc2.getIncoherentEvent().getTimestamp().getValue()) {
+					return -1;
+				}
+				else if (inc1.getIncoherentEvent().getTimestamp().getValue() > inc2.getIncoherentEvent().getTimestamp().getValue()) {
+					return 1;
+				}
+				else {
+					return 0;
+				}
+			}
+        	
+		});
 
         for (FsmStateIncoherence incoherence : fIncoherences) {
     		if (monitor.isCanceled()) {
@@ -366,9 +385,9 @@ public class CoherenceView extends ControlFlowView {
             	// marker by entry
             	int tid =  Integer.valueOf(incoherence.getScenarioAttribute());
 				ControlFlowEntry entry = findEntry(getEntryQuarkFromTid(tid)); // TODO we should only look for the entry if the incoherence is related to a process (process_fsm)
-				IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
+				IMarkerEvent markerByEntry = new MarkerEvent(entry, eventTime, 0, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
 				// simple marker
-				IMarkerEvent marker = new MarkerEvent(null, eventTime, 1, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
+				IMarkerEvent marker = new MarkerEvent(null, eventTime, 0, COHERENCE, COHERENCE_COLOR, COHERENCE_LABEL, true);
 				
 				if (!fMarkers.contains(markerByEntry)) {
 					fMarkers.add(marker);
@@ -464,7 +483,13 @@ public class CoherenceView extends ControlFlowView {
 			// Add incoherent state intervals to the given list of intervals
 	        List<ITimeGraphState> newValue = new ArrayList<>();
 			
-			for (ITimeGraphState interval : values) {
+	        Iterator<ITimeGraphState> it = values.iterator();
+	        ITimeGraphState interval = null;
+	        boolean takeNext = true;
+			while (it.hasNext() || !takeNext) { // Make sure we don't erase the last state if there is no next interval but a waiting interval 
+				if (takeNext) {
+					interval = it.next();
+				}
 				// Case 1: the incoherent event is at the start of the next interval (end of the current interval)
 				if ((incoherentEvent != null) 
 						&& ((incoherentEventTs == (interval.getStartTime() + interval.getDuration())))) {
@@ -478,6 +503,7 @@ public class CoherenceView extends ControlFlowView {
 					}
 					
 					newValue.add(newInterval);
+					takeNext = true;
 					// Get the next incoherent event, if it exists
 	        		if (incoherentEventsIt.hasNext()) {
 	        			incoherentEvent = incoherentEventsIt.next();
@@ -504,7 +530,10 @@ public class CoherenceView extends ControlFlowView {
 					}
 					
 					newValue.add(newInterval1);
-					newValue.add(newInterval2);
+					// Don't add newInterval2 now, because there might be another incoherent event in the middle of this interval
+					takeNext = false;
+					interval = newInterval2;
+//					newValue.add(newInterval2);
 					// Get the next incoherent event, if it exists
 	        		if (incoherentEventsIt.hasNext()) {
 	        			incoherentEvent = incoherentEventsIt.next();
@@ -518,6 +547,7 @@ public class CoherenceView extends ControlFlowView {
 				// Default case
 				else {
 					newValue.add(interval);
+					takeNext = true;
 				}
 			}
 			
@@ -530,8 +560,8 @@ public class CoherenceView extends ControlFlowView {
 			 */
 			List<ITimeEvent> events = new ArrayList<>(newValue.size());
 	        ITimeEvent prev = null;
-	        for (ITimeGraphState interval : newValue) {
-	            ITimeEvent event = createTimeEventCustom(interval, controlFlowEntry);
+	        for (ITimeGraphState newInterval : newValue) {
+	            ITimeEvent event = createTimeEventCustom(newInterval, controlFlowEntry);
 	            if (prev != null) {
 	                long prevEnd = prev.getTime() + prev.getDuration();
 	                if (prevEnd < event.getTime()) {
