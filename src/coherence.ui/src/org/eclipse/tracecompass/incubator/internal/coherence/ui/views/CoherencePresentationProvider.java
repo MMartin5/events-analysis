@@ -8,16 +8,10 @@ import java.util.Map;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
 import org.eclipse.tracecompass.analysis.os.linux.core.model.ProcessStatus;
-import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
-import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
-import org.eclipse.tracecompass.internal.analysis.os.linux.core.kernel.Attributes;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.threadstatus.ThreadStatusDataProvider;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Messages;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.registry.LinuxStyle;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
@@ -25,18 +19,11 @@ import org.eclipse.tracecompass.internal.provisional.tmf.core.model.filters.Sele
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphDataProvider;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.TimeGraphEntryModel;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.response.TmfModelResponse;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
-import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
-import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.presentation.RGBAColor;
 import org.eclipse.tracecompass.tmf.ui.views.timegraph.BaseDataProviderTimeGraphView;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.StateItem;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEventStyleStrings;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NamedTimeEvent;
@@ -52,16 +39,10 @@ public class CoherencePresentationProvider extends TimeGraphPresentationProvider
 	private static final Map<Integer, StateItem> STATE_MAP;
     private static final List<StateItem> STATE_LIST;
     private static final StateItem[] STATE_TABLE;
+    private static final int LINK_VALUE = 8;
 
     private static StateItem createState(LinuxStyle style) {
-        int rgbInt = (int) style.toMap().getOrDefault(ITimeEventStyleStrings.fillColor(), 0);
-        RGB color = new RGB(rgbInt >> 24 & 0xff, rgbInt >> 16 & 0xff, rgbInt >> 8 & 0xff);
-        return new StateItem(color, style.getLabel()) {
-            @Override
-            public Map<String, Object> getStyleMap() {
-                return style.toMap();
-            }
-        };
+        return new StateItem(style.toMap());
     }
     
     static {
@@ -78,21 +59,23 @@ public class CoherencePresentationProvider extends TimeGraphPresentationProvider
         builder.put(ProcessStatus.WAIT_UNKNOWN.getStateValue().unboxInt(), createState(LinuxStyle.WAIT_UNKNOWN));
         
         // Declare the new style, not included in LinuxStyle
-        RGB incoherentStateColor = new RGB(100, 100, 100);
-        int alpha = 255;
+        RGBAColor incoherentStateColor = new RGBAColor(100, 100, 100, 255);
         float heightFactor = 0.50f;
-        StateItem newStyle = new StateItem(incoherentStateColor, IncoherentEvent.INCOHERENT_MSG) {
-            @Override
-            public Map<String, Object> getStyleMap() {
-                return ImmutableMap.of(ITimeEventStyleStrings.label(), IncoherentEvent.INCOHERENT_MSG,
-                        ITimeEventStyleStrings.fillStyle(), ITimeEventStyleStrings.solidColorFillStyle(),
-                        ITimeEventStyleStrings.fillColor(), incoherentStateColor.red << 24 | incoherentStateColor.green << 16 | incoherentStateColor.blue << 8 | alpha,
-                        ITimeEventStyleStrings.heightFactor(), heightFactor);
-            }
-        };
+        Map<String, Object> incoherentStateStyle = ImmutableMap.of(ITimeEventStyleStrings.label(), IncoherentEvent.INCOHERENT_MSG,
+                ITimeEventStyleStrings.fillStyle(), ITimeEventStyleStrings.solidColorFillStyle(),
+                ITimeEventStyleStrings.fillColor(), incoherentStateColor.toInt(),
+                ITimeEventStyleStrings.heightFactor(), heightFactor);
+        StateItem newStyle = new StateItem(incoherentStateStyle);
         // Add the new style to the builder
         builder.put(IncoherentEvent.INCOHERENT_VALUE, newStyle);
         
+        LinuxStyle link = LinuxStyle.LINK;
+        ImmutableMap.Builder<String, Object> linkyBuilder = new ImmutableMap.Builder<>();
+        linkyBuilder.putAll(link.toMap());
+        linkyBuilder.put(ITimeEventStyleStrings.itemTypeProperty(), ITimeEventStyleStrings.linkType());
+        StateItem linkItem = new StateItem(linkyBuilder.build());
+        builder.put(LINK_VALUE, linkItem);
+
         //builder.put()
         /*
          * DO NOT MODIFY AFTER
@@ -122,9 +105,14 @@ public class CoherencePresentationProvider extends TimeGraphPresentationProvider
 
     @Override
     public int getStateTableIndex(ITimeEvent event) {
-        if (event instanceof TimeEvent && ((TimeEvent) event).hasValue()) {
-            int status = ((TimeEvent) event).getValue();
-            return STATE_LIST.indexOf(getMatchingState(status));
+        if (event instanceof TimeEvent) {
+            if (event instanceof ILinkEvent) {
+                return STATE_LIST.indexOf(STATE_MAP.getOrDefault(LINK_VALUE, STATE_MAP.get(ProcessStatus.UNKNOWN.getStateValue().unboxInt())));
+            }
+            if (((TimeEvent) event).hasValue()) {
+                int status = ((TimeEvent) event).getValue();
+                return STATE_LIST.indexOf(getMatchingState(status));
+            }
         }
         if (event instanceof NullTimeEvent) {
             return INVISIBLE;
@@ -146,7 +134,18 @@ public class CoherencePresentationProvider extends TimeGraphPresentationProvider
     private static StateItem getMatchingState(int status) {
         return STATE_MAP.getOrDefault(status, STATE_MAP.get(ProcessStatus.WAIT_UNKNOWN.getStateValue().unboxInt()));
     }
-    
+
+    @Override
+    public Map<String, String> getEventHoverToolTipInfo(ITimeEvent event) {
+        Map<String, String> retMap = new LinkedHashMap<>(1);
+
+        if (event instanceof NamedTimeEvent) {
+            retMap.put(Messages.ControlFlowView_attributeSyscallName, ((NamedTimeEvent) event).getLabel());
+        }
+
+        return retMap;
+    }
+
     @Override
     public Map<String, String> getEventHoverToolTipInfo(ITimeEvent event, long hoverTime) {
         Map<String, String> retMap = super.getEventHoverToolTipInfo(event, hoverTime);
