@@ -96,7 +96,6 @@ import com.google.common.collect.Multimap;
 public class CoherenceView extends ControlFlowView {
 
 	private final List<IMarkerEvent> fMarkers = Collections.synchronizedList(new ArrayList<>());
-	private final List<ITmfEvent> fEvents = Collections.synchronizedList(new ArrayList<>()); // list of incoherent events
 
 	public String COHERENCE_LABEL = "Incoherent";
 	public String COHERENCE = "Coherence warning";
@@ -186,7 +185,6 @@ public class CoherenceView extends ControlFlowView {
 				@Override
 				protected IStatus run(IProgressMonitor monitor) {
 					try {
-						fEvents.clear();
 						fMarkers.clear();
 						fIncoherences.clear();
 						pEntries.clear();
@@ -218,7 +216,6 @@ public class CoherenceView extends ControlFlowView {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
-					fEvents.clear();
 					fMarkers.clear();
 					fIncoherences.clear();
 					pEntries.clear();
@@ -243,7 +240,6 @@ public class CoherenceView extends ControlFlowView {
                 fJob = null;
             }	
             super.traceClosed(signal);
-            fEvents.clear();
             fMarkers.clear();
             incoherencesMap.clear();
             scenarios.clear();
@@ -322,9 +318,6 @@ public class CoherenceView extends ControlFlowView {
         	if (monitor.isCanceled()) {
         		return Status.CANCEL_STATUS;
         	}
-        	
-            List<ITmfEvent> events = fsm.getIncoherentEvents();
-            fEvents.addAll(events);
             
             fIncoherences.addAll(fsm.getIncoherences());
             
@@ -500,11 +493,9 @@ public class CoherenceView extends ControlFlowView {
 				else if ((incoherentEvent != null) 
 						&& ((incoherentEventTs > interval.getStartTime()) 
 								&& (incoherentEventTs < interval.getStartTime() + interval.getDuration()))) {
-					ITimeGraphState newInterval1;
-					newInterval1 = new TimeGraphState(interval.getStartTime(), incoherentEventTs - interval.getStartTime(), IncoherentEvent.INCOHERENT_VALUE, interval.getLabel());
+					ITimeGraphState newInterval1 = new TimeGraphState(interval.getStartTime(), incoherentEventTs - interval.getStartTime(), IncoherentEvent.INCOHERENT_VALUE, interval.getLabel());
 					incoherencesMap.put(newInterval1, incoherentEvent);
-					ITimeGraphState newInterval2;
-					newInterval2 = new TimeGraphState(incoherentEventTs, interval.getDuration() - newInterval1.getDuration(), interval.getValue(), interval.getLabel());
+					ITimeGraphState newInterval2 = new TimeGraphState(incoherentEventTs, interval.getDuration() - newInterval1.getDuration(), interval.getValue(), interval.getLabel());
 					
 					if (!isCertainState(newInterval1.getStartTime(), ss, certaintyStatusQuark)) {
 						Activator.getDefault();
