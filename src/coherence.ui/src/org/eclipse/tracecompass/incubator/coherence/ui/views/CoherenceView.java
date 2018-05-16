@@ -27,7 +27,6 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.action.StatusLineContributionItem;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.events.MenuDetectEvent;
@@ -37,6 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
@@ -55,9 +55,15 @@ import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipH
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.actions.DisplayInferenceAction;
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.views.CoherencePresentationProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.filters.TimeQueryFilter;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphArrow;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphDataProvider;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphState;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.TimeGraphEntryModel;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.TimeGraphState;
+import org.eclipse.tracecompass.internal.provisional.tmf.core.response.TmfModelResponse;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
+import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
@@ -76,13 +82,16 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.ITimeGraphPresentationProvider2;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphPresentationProvider;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.TimeGraphViewer;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ILinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeGraphEntry;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NamedTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.NullTimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
+import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeLinkEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.widgets.TimeGraphControl;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
@@ -91,6 +100,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 
 
@@ -137,6 +147,8 @@ public class CoherenceView extends ControlFlowView {
 	private static final String LABEL_TEXT2 = "Open"; //$NON-NLS-1$
 	
 	Map<ITmfTrace, InferenceDialog> dialogs;
+
+	private Map<Long, ITmfEvent> fIncoherentEvents = new HashMap<>();
 
 	public CoherenceView() {
 	    super();
@@ -188,6 +200,7 @@ public class CoherenceView extends ControlFlowView {
 					try {
 						fMarkers.clear();
 						fIncoherences.clear();
+						fIncoherentEvents.clear();
 						pEntries.clear();
 						incoherencesMap.clear();
 						scenarios.clear();
@@ -219,6 +232,7 @@ public class CoherenceView extends ControlFlowView {
 				try {
 					fMarkers.clear();
 					fIncoherences.clear();
+					fIncoherentEvents.clear();
 					pEntries.clear();
 					incoherencesMap.clear();
 					scenarios.clear();
@@ -242,6 +256,9 @@ public class CoherenceView extends ControlFlowView {
             }	
             super.traceClosed(signal);
             fMarkers.clear();
+            fIncoherences.clear();
+			fIncoherentEvents.clear();
+			pEntries.clear();
             incoherencesMap.clear();
             scenarios.clear();
 	    }
@@ -358,6 +375,8 @@ public class CoherenceView extends ControlFlowView {
     		}
 			eventSet.add(incoherence);
 			pEntries.put(tidStr, eventSet);
+			
+			fIncoherentEvents.put(incoherence.getIncoherentEvent().getTimestamp().getValue(), incoherence.getIncoherentEvent());
 			
         }
         
@@ -615,6 +634,54 @@ public class CoherenceView extends ControlFlowView {
         	return new NamedTimeEvent(controlFlowEntry, startTime, duration, (int) status, label);
         }
         return new TimeEvent(controlFlowEntry, startTime, duration, (int) status);
+    }
+	
+	@Override
+    protected List<@NonNull ILinkEvent> getLinkList(long zoomStartTime, long zoomEndTime, long resolution,
+            @NonNull IProgressMonitor monitor) {
+        List<@NonNull TimeGraphEntry> traceEntries = getEntryList(getTrace());
+        if (traceEntries == null) {
+            return Collections.emptyList();
+        }
+        List<@NonNull ILinkEvent> linkList = new ArrayList<>();
+        List<@NonNull Long> times = StateSystemUtils.getTimes(zoomStartTime, zoomEndTime, resolution);
+        TimeQueryFilter queryFilter = new TimeQueryFilter(times);
+
+        for (TraceEntry entry : Iterables.filter(traceEntries, TraceEntry.class)) {
+            ITimeGraphDataProvider<? extends TimeGraphEntryModel> provider = entry.getProvider();
+            TmfModelResponse<List<ITimeGraphArrow>> response = provider.fetchArrows(queryFilter, monitor);
+            List<ITimeGraphArrow> model = response.getModel();
+
+            if (model != null) {
+                Map<Long, ControlFlowEntry> map = fControlFlowEntries.row(entry);
+                for (ITimeGraphArrow arrow : model) {
+                    ITimeGraphEntry prevEntry = map.get(arrow.getSourceId());
+                    ITimeGraphEntry nextEntry = map.get(arrow.getDestinationId());
+                    if (prevEntry != null && nextEntry != null) {
+                    	
+                    	/* Check coherence of the arrow
+                    	   If we lost some sched_switch events, the current thread may have not been updated correctly,
+                    	   thus leading to the prevEntry not being the entry corresponding to the prev_tid, in which
+                    	   case we want to fix that */
+                    	int prevTid = ((ControlFlowEntry) prevEntry).getThreadId();
+						ITmfEvent event = fIncoherentEvents.get(arrow.getStartTime());
+						ITmfTrace trace = getTrace();
+						if (event != null && trace instanceof IKernelTrace) {
+							long value = (long) event.getContent().getField(((IKernelTrace) trace).getKernelEventLayout().fieldPrevTid()).getValue();
+	                    	if (prevTid != value) {
+	                    		System.out.println("fixing!");
+								ControlFlowEntry newPrevEntry = map.get(getEntryQuarkFromTid((int) value));
+	                    		linkList.add(new TimeLinkEvent(newPrevEntry, nextEntry, arrow.getStartTime(), arrow.getDuration(), 0));
+	                    		continue;
+	                    	}							
+						}
+						
+						linkList.add(new TimeLinkEvent(prevEntry, nextEntry, arrow.getStartTime(), arrow.getDuration(), 0));
+                    }
+                }
+            }
+        }
+        return linkList;
     }
 	
 	/**
