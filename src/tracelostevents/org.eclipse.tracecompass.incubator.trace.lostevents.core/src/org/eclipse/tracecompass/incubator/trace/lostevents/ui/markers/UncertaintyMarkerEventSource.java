@@ -150,8 +150,9 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 		                    long duration = interval.getEndTime() - intervalStartTime;
 		                    // Display a marker only if the certainty status is uncertain
 		                    if (interval.getStateValue().unboxStr().equals(TmfXmlScenarioHistoryBuilder.UNCERTAIN)) {
-		                        /* Note that we query at 'end' because the attribute could have not been set yet at 'start' */
-		                    	int tid = ss.querySingleState(end, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
+		                        /* Note that we query at 'end - 1' because the attribute could have not been set yet at 'start'
+		                           and all fields are reset at end, so add a -1 offset */
+		                        int tid = ss.querySingleState(end - 1, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
 		                    	if (tid == -1) {
 		                    		continue;
 		                    	}

@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -732,8 +733,13 @@ public class TmfXmlFsm {
      * 			The certainty value (true if certain, false if uncertain)		
      */
     public boolean isCertain(ITmfEvent event, TmfXmlStateTransition transition) {
-    	Pair<String, String> key = new Pair<String, String>(event.getName(), transition.getCondition());
-    	Set<String> targets = certaintyMap.get(key);
-    	return targets != null && targets.size() == 1 ? true : false;
+    	Iterator<Pair<Pattern, String>> it = certaintyMap.keySet().iterator();
+    	while (it.hasNext()) {
+    		Pair<Pattern, String> key = it.next();
+    		if (key.getFirst().matcher(event.getName()).matches() && key.getSecond().equals(transition.getCondition())) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
 }
