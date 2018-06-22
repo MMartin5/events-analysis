@@ -9,4 +9,6 @@ public interface LostEventsStrings {
     String LOST_EVENTS_BEGIN = "lost_begin";
 
     String LOST_EVENTS_END = "lost_end";
+
+    String LOST_EVENTS_COUNT = "deleted_count";
 }

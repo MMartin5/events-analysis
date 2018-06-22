@@ -111,7 +111,7 @@ public class LostEventsTrace extends LttngKernelTrace implements IDefinitionScop
                     if (end != null) {
                         fTsEnd = end.longValue();
                     }
-                    Long lostEvents = (Long) packetAttr.get(CTFStrings.EVENTS_DISCARDED);
+                    Long lostEvents = (Long) packetAttr.get(LostEventsStrings.LOST_EVENTS_COUNT);
                     if (lostEvents != null) {
                         fLostEvents = lostEvents.longValue();
                     }
