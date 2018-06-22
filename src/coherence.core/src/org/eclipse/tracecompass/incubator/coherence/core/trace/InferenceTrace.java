@@ -12,9 +12,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
+import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfInferredEvent;
 import org.eclipse.tracecompass.tmf.core.TmfCommonConstants;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -203,6 +205,9 @@ public class InferenceTrace extends TmfTrace implements IKernelTrace {
 
 	@Override
 	public IStatus validate(IProject project, String path) {
+		if (fTrace == null) {
+			return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "Parent trace not set");
+		}
 		return fTrace.validate(project, path);
 	}
 
