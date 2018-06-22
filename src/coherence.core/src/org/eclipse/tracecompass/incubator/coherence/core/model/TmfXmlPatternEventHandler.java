@@ -43,6 +43,11 @@ import com.google.common.collect.ImmutableMap.Builder;
  * @author Jean-Christian Kouame
  */
 public class TmfXmlPatternEventHandler {
+	
+	public static String FSM_CPU_ID = "cpu_fsm";
+	public static String FSM_PROCESS_ID = "process_fsm";
+	public static String FSM_IRQ_ID = "irq_fsm";
+	public static String FSM_SOFTIRQ_ID = "softirq_fsm";
 
     /* list of states changes */
     protected final XmlPatternStateProvider fParent;
@@ -126,10 +131,10 @@ public class TmfXmlPatternEventHandler {
     private static Map<String, TmfXmlScenarioModel> buildFsmIds(IKernelAnalysisEventLayout layout) {
         ImmutableMap.Builder<String, TmfXmlScenarioModel> builder = ImmutableMap.builder();
         // TODO better fsm ids management
-        builder.put("cpu_fsm", new TmfXmlCpuScenarioModel());
-        builder.put("process_fsm", new TmfXmlProcessScenarioModel(layout));
-        builder.put("irq_fsm", new TmfXmlIrqScenarioModel());
-        builder.put("softirq_fsm", new TmfXmlSoftIrqScenarioModel(layout));
+        builder.put(FSM_CPU_ID, new TmfXmlCpuScenarioModel());
+        builder.put(FSM_PROCESS_ID, new TmfXmlProcessScenarioModel(layout));
+        builder.put(FSM_IRQ_ID, new TmfXmlIrqScenarioModel());
+        builder.put(FSM_SOFTIRQ_ID, new TmfXmlSoftIrqScenarioModel(layout));
 
        return builder.build();
     }

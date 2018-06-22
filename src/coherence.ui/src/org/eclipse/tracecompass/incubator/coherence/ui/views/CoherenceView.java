@@ -42,6 +42,7 @@ import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateProvider;
@@ -54,6 +55,7 @@ import org.eclipse.tracecompass.incubator.coherence.ui.model.IncoherentEvent;
 import org.eclipse.tracecompass.incubator.coherence.ui.widgets.CoherenceTooltipHandler;
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.actions.DisplayInferenceAction;
 import org.eclipse.tracecompass.incubator.internal.coherence.ui.views.CoherencePresentationProvider;
+import org.eclipse.tracecompass.incubator.trace.lostevents.ui.markers.UncertaintyMarkerEventSource;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.filters.TimeQueryFilter;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.timegraph.ITimeGraphArrow;
@@ -66,6 +68,8 @@ import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
+import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
@@ -112,9 +116,7 @@ public class CoherenceView extends ControlFlowView {
 	public String COHERENCE = "Coherence warning";
 	private static final RGBA COHERENCE_COLOR = new RGBA(255, 0, 0, 50);
 	
-	public static String ID = "org.eclipse.tracecompass.incubator.coherence.ui.view"; 
-
-	public static String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
+	public static String ID = "org.eclipse.tracecompass.incubator.coherence.ui.view";
 		
 	private CoherenceTooltipHandler fCoherenceToolTipHandler;
 	private List<FsmStateIncoherence> fIncoherences = new ArrayList<>();
@@ -275,7 +277,7 @@ public class CoherenceView extends ControlFlowView {
     		return Status.CANCEL_STATUS;
     	}
 	    
-		XmlPatternAnalysis moduleParent = TmfTraceUtils.getAnalysisModuleOfClass(trace, XmlPatternAnalysis.class, FSM_ANALYSIS_ID);
+		XmlPatternAnalysis moduleParent = TmfTraceUtils.getAnalysisModuleOfClass(trace, XmlPatternAnalysis.class, UncertaintyMarkerEventSource.FSM_ANALYSIS_ID);
 		if (moduleParent == null) {
 			if( monitor.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -287,7 +289,7 @@ public class CoherenceView extends ControlFlowView {
 						if (helper.appliesToTraceType(trace.getClass())) {
 							if (TmfAnalysisModuleHelperXml.class.isAssignableFrom(helper.getClass())) {
 								try {
-									if (FSM_ANALYSIS_ID.equals(helper.getId())) {
+									if (UncertaintyMarkerEventSource.FSM_ANALYSIS_ID.equals(helper.getId())) {
 										IAnalysisModule module = helper.newModule(trace);
 										fModules.put(trace, module);
 										moduleParent = (XmlPatternAnalysis) module;
@@ -386,7 +388,7 @@ public class CoherenceView extends ControlFlowView {
 
 	@Override
 	protected @NonNull List<String> getViewMarkerCategories() {
-	    return Arrays.asList(COHERENCE);
+	    return Arrays.asList(COHERENCE, TmfXmlPatternEventHandler.FSM_PROCESS_ID);
 
 	}
 
@@ -414,6 +416,103 @@ public class CoherenceView extends ControlFlowView {
 				}            	
             }
 		}
+		
+		/* Uncertainty process markers */
+		
+		if (fModule != null) {
+			ITmfStateSystem ss = fModule.getStateSystem();
+			int startingNodeQuark;
+	        try {
+	        	startingNodeQuark = ss.getQuarkAbsolute(TmfXmlStrings.SCENARIOS);
+	        } catch (AttributeNotFoundException e) {
+	        	startingNodeQuark = -1;
+	        }
+		    if (startingNodeQuark == -1) {
+		    	return Collections.emptyList();
+		    }
+	
+		    if (fModule == null) {
+		    	return Collections.emptyList();
+		    }
+	
+		    List<Integer> fsmQuarks = ss.getQuarks(startingNodeQuark, TmfXmlPatternEventHandler.FSM_PROCESS_ID); // get the quark of the FSM designated by the category string
+		    for (Integer fsmQuark : fsmQuarks) {
+		        List<Integer> quarks = ss.getQuarks(fsmQuark, "*"); // get every scenario quark
+		    	for (Integer scenarioQuark : quarks) {
+		    		// Check if scenario is active
+	                try {
+	                    ITmfStateInterval stateInterval = ss.querySingleState(getTrace().getEndTime().getValue() - 2, ss.getQuarkRelative(scenarioQuark, TmfXmlStrings.STATE));
+	    	    	    String value = (String) stateInterval.getValue();
+	    	    	    if (value == null || value.equals(TmfXmlState.INITIAL_STATE_ID)) {
+	    	    	        continue;
+	    	    	    }
+	                } catch (StateSystemDisposedException | AttributeNotFoundException e2) {
+	                    // TODO Auto-generated catch block
+	                    e2.printStackTrace();
+	                }
+		    		int quark;
+					try {
+						quark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS); // get the certainty attribute quark
+					} catch (AttributeNotFoundException e1) {
+						quark = -1;
+					}
+					if (quark == -1) {
+				    	continue;
+				    }
+	
+		    		int attributeQuark;
+					try {
+						attributeQuark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenario.ATTRIBUTE_PATH); // get the "scenario attribute" attribute quark
+					} catch (AttributeNotFoundException e1) {
+						attributeQuark = -1;
+					}
+					if (attributeQuark == -1) {
+				    	continue;
+				    }
+	
+				    try {
+			            long start = Math.max(startTime, ss.getStartTime());
+			            long end = Math.min(endTime, ss.getCurrentEndTime());
+			            if (start <= end) {
+			                /* Update start to ensure that the previous marker is included. */
+			                start = Math.max(start - 1, ss.getStartTime());
+			                /* Update end to ensure that the next marker is included. */
+			                long nextStartTime = ss.querySingleState(end, quark).getEndTime() + 1;
+			                end = Math.min(nextStartTime, ss.getCurrentEndTime());
+			                List<ITmfStateInterval> intervals = StateSystemUtils.queryHistoryRange(ss, quark, start, end, resolution, monitor);
+			                for (ITmfStateInterval interval : intervals) {
+			                    if (interval.getStateValue().isNull()) {
+			                        continue;
+			                    }
+	
+			                    long intervalStartTime = interval.getStartTime();
+			                    long duration = interval.getEndTime() - intervalStartTime;
+			                    // Display a marker only if the certainty status is uncertain
+			                    if (interval.getStateValue().unboxStr().equals(TmfXmlScenarioHistoryBuilder.UNCERTAIN)) {
+			                        /* Note that we query at 'end - 1' because the attribute could have not been set yet at 'start'
+			                           and all fields are reset at end, so add a -1 offset */
+			                        int tid = ss.querySingleState(end - 2, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
+			                    	if (tid == -1) {
+			                    		continue;
+			                    	}
+			                    	long entryQuark = getEntryQuarkFromTid(tid);
+			                    	if (entryQuark == -1) { // no entry with this tid exists in the view, don't add a marker 
+			                    		continue;
+			                    	}
+			                    	ControlFlowEntry threadEntry = findEntry(entryQuark);
+			                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, TmfXmlPatternEventHandler.FSM_PROCESS_ID, UncertaintyMarkerEventSource.CERTAINTY_COLOR, null, true);
+			                        if (!fMarkers.contains(uncertainZone)) {
+			                        	fMarkers.add(uncertainZone);
+			                        }
+			                    }
+			                }
+			            }
+			        } catch (AttributeNotFoundException | StateSystemDisposedException e) {
+			            /* ignored */
+			        }
+		    	}
+		    }
+	    }
 		
         return fMarkers;
 	}

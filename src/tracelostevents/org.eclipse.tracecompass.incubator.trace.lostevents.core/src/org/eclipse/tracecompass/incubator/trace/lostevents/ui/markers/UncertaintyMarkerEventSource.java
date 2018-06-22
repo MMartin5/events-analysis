@@ -8,25 +8,31 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.graphics.RGBA;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlFsm;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlPatternEventHandler;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenario;
 import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlScenarioHistoryBuilder;
+import org.eclipse.tracecompass.incubator.coherence.core.model.TmfXmlState;
+import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternAnalysis;
 import org.eclipse.tracecompass.incubator.coherence.core.pattern.stateprovider.XmlPatternStateSystemModule;
-import org.eclipse.tracecompass.incubator.coherence.ui.views.CoherenceView;
-import org.eclipse.tracecompass.internal.analysis.os.linux.ui.views.controlflow.ControlFlowEntry;
+import org.eclipse.tracecompass.incubator.coherence.module.TmfAnalysisModuleHelperXml;
+import org.eclipse.tracecompass.incubator.internal.trace.lostevents.core.Activator;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
+import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
+import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
+import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
+import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
+import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEventSource;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PlatformUI;
+import com.google.common.collect.Multimap;
 
 /**
  * IMarkerEventSource implementation for Certainty Markers, which highlight areas on entries
@@ -38,12 +44,13 @@ import org.eclipse.ui.PlatformUI;
  */
 public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 
-	private static final RGBA CERTAINTY_COLOR = new RGBA(0, 0, 0, 50);
+	public static final RGBA CERTAINTY_COLOR = new RGBA(0, 0, 0, 50);
+	public static String FSM_ANALYSIS_ID = "kernel.linux.pattern.from.fsm";
 
 	private @NonNull ITmfTrace fTrace;
 	private  List<IMarkerEvent> fMarkers = Collections.synchronizedList(new ArrayList<>());
 	private long[] fLastRequest;
-	CoherenceView fView = null;
+	XmlPatternStateSystemModule fModule = null;
 
 
 	/**
@@ -62,19 +69,18 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 	@Override
 	public List<@NonNull String> getMarkerCategories() {
 	    List<@NonNull String> fsmIds = new ArrayList<>();
-	    if (fView == null) {
-	        getView();
+	    if (fModule == null) {
+	        getModule();
 	    }
-	    if (fView != null) { // the view is open
-    	    XmlPatternStateSystemModule module = fView.getModule();
-    	    if (module != null) { // some data has been requested
-        	    TmfXmlPatternEventHandler handler = module.getStateProvider().getEventHandler();
-                if (handler != null) {
-        	        for (TmfXmlFsm fsm  : handler.getFsmMap().values()) {
-        	            fsmIds.add(fsm.getId());
-        	        }
-                }
-    	    }
+	    if (fModule != null) { // the view is open
+    	    TmfXmlPatternEventHandler handler = fModule.getStateProvider().getEventHandler();
+            if (handler != null) {
+    	        for (TmfXmlFsm fsm  : handler.getFsmMap().values()) {
+    	            if (!fsm.getId().equals(TmfXmlPatternEventHandler.FSM_PROCESS_ID)) { // these markers are view-specific
+    	                fsmIds.add(fsm.getId());
+    	            }
+    	        }
+            }
 	    }
         return fsmIds;
 	}
@@ -95,7 +101,7 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 
         int startingNodeQuark;
         try {
-        	startingNodeQuark = ss.getQuarkAbsolute("scenarios");
+        	startingNodeQuark = ss.getQuarkAbsolute(TmfXmlStrings.SCENARIOS);
         } catch (AttributeNotFoundException e) {
         	startingNodeQuark = -1;
         }
@@ -103,7 +109,7 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 	    	return Collections.emptyList();
 	    }
 
-	    if (fView == null) {
+	    if (fModule == null) {
 	    	return Collections.emptyList();
 	    }
 
@@ -111,6 +117,17 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 	    for (Integer fsmQuark : fsmQuarks) {
 	        List<Integer> quarks = ss.getQuarks(fsmQuark, "*"); // get every scenario quark
 	    	for (Integer scenarioQuark : quarks) {
+	    	    // Check if scenario is active
+                try {
+                    ITmfStateInterval stateInterval = ss.querySingleState(fTrace.getEndTime().getValue() - 1, ss.getQuarkRelative(scenarioQuark, TmfXmlStrings.STATE));
+    	    	    String value = (String) stateInterval.getValue();
+    	    	    if (value == null || value.equals(TmfXmlState.INITIAL_STATE_ID)) {
+    	    	        continue;
+    	    	    }
+                } catch (StateSystemDisposedException | AttributeNotFoundException e2) {
+                    // TODO Auto-generated catch block
+                    e2.printStackTrace();
+                }
 	    		int quark;
 				try {
 					quark = ss.getQuarkRelative(scenarioQuark, TmfXmlScenarioHistoryBuilder.CERTAINTY_STATUS); // get the certainty attribute quark
@@ -150,15 +167,7 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 		                    long duration = interval.getEndTime() - intervalStartTime;
 		                    // Display a marker only if the certainty status is uncertain
 		                    if (interval.getStateValue().unboxStr().equals(TmfXmlScenarioHistoryBuilder.UNCERTAIN)) {
-		                        /* Note that we query at 'end - 1' because the attribute could have not been set yet at 'start'
-		                           and all fields are reset at end, so add a -1 offset */
-		                        int tid = ss.querySingleState(end - 1, attributeQuark).getStateValue().unboxInt(); // the scenario tid is the entry tid
-		                    	if (tid == -1) {
-		                    		continue;
-		                    	}
-		                    	long entryQuark = fView.getEntryQuarkFromTid(tid);
-		                    	ControlFlowEntry threadEntry = fView.findEntry(entryQuark);
-		                    	IMarkerEvent uncertainZone = new MarkerEvent(threadEntry, intervalStartTime, duration, category, CERTAINTY_COLOR, null, true);
+		                        IMarkerEvent uncertainZone = new MarkerEvent(null, intervalStartTime, duration, category, CERTAINTY_COLOR, null, true);
 		                        if (!fMarkers.contains(uncertainZone)) {
 		                        	fMarkers.add(uncertainZone);
 		                        }
@@ -174,37 +183,52 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 	    return fMarkers;
 	}
 
-	private void getView() {
-	    Display display = Display.getDefault();
-	    if (display != null) {
-    	    display.syncExec(new Runnable() {
-    	        @Override
-                public void run() {
-            		final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-                    fView = (CoherenceView) page.findView(CoherenceView.ID);
-    	        }
-
-    	    });
+	private void getModule() {
+	    if (fModule != null) {
+	        return;
 	    }
+	    XmlPatternAnalysis moduleParent = TmfTraceUtils.getAnalysisModuleOfClass(fTrace, XmlPatternAnalysis.class, FSM_ANALYSIS_ID);
+        if (moduleParent == null) {
+            Multimap<String, IAnalysisModuleHelper> helpers = TmfAnalysisManager.getAnalysisModules();
+            for (IAnalysisModuleHelper helper : helpers.values()) {
+                if (helper.appliesToTraceType(fTrace.getClass())) {
+                    if (TmfAnalysisModuleHelperXml.class.isAssignableFrom(helper.getClass())) {
+                        try {
+                            if (FSM_ANALYSIS_ID.equals(helper.getId())) {
+                                IAnalysisModule module = helper.newModule(fTrace);
+                                moduleParent = (XmlPatternAnalysis) module;
+                                break;
+                            }
+                        } catch (TmfAnalysisException e) {
+                            Activator.getInstance().logWarning("Error creating analysis module", e);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (moduleParent == null) {
+            return;
+        }
+
+        moduleParent.schedule();
+        moduleParent.waitForCompletion();
+
+        fModule = moduleParent.getStateSystemModule();
 	}
 
 	private ITmfStateSystem getStateSystem() {
-        getView();
-        if (fView == null) {
+        getModule();
+        if (fModule == null) {
             return null;
         }
 
-        XmlPatternStateSystemModule module = fView.getModule();
-        if (module == null) {
+        if (fModule.getTrace() != this.fTrace) { // the view's trace has not been updated yet
             return null;
         }
 
-        if (module.getTrace() != this.fTrace) { // the view's trace has not been updated yet
-            return null;
-        }
-
-        module.waitForCompletion();
-        return module.getStateSystem();
+        fModule.waitForCompletion();
+        return fModule.getStateSystem();
     }
 
 }
