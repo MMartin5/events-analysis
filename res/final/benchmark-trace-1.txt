@@ -1,0 +1,163 @@
+###### consistency check without event inference ######
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm no checking' (average over 25 samples):
+  System Time:            1.38s         (95% in [1.29s, 1.48s])        Measurable effect: 181ms (0.8 SDs) (required sample size for an effect of 5% of mean: 172)
+  Used Java Heap:         5.73M         (95% in [-10.26M, 21.72M])     Measurable effect: 30.99M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:          219.52K         (95% in [-1.49M, 1.92M])       Measurable effect: 3.3M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:        1.38s         (95% in [1.29s, 1.48s])        Measurable effect: 181ms (0.8 SDs) (required sample size for an effect of 5% of mean: 172)
+  Kernel time:              31ms        (95% in [25ms, 37ms])          Measurable effect: 11ms (0.8 SDs) (required sample size for an effect of 5% of mean: 1443)
+  CPU Time:               1.18s         (95% in [760ms, 1.61s])        Measurable effect: 820ms (0.8 SDs) (required sample size for an effect of 5% of mean: 4805)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        745          (95% in [245, 1.25K])          Measurable effect: 969 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:           1.93M         (95% in [-489.53K, 4.34M])     Measurable effect: 4.66M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm optimized' (average over 25 samples):
+  System Time:            1.35s         (95% in [1.33s, 1.37s])        Measurable effect: 36ms (0.8 SDs)
+  Used Java Heap:        -2.11M         (95% in [-19.66M, 15.45M])     Measurable effect: 34.02M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:          363.84K         (95% in [-594.52K, 1.29M])     Measurable effect: 1.81M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        1.35s         (95% in [1.33s, 1.37s])        Measurable effect: 36ms (0.8 SDs)
+  Kernel time:              27ms        (95% in [25ms, 29ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 230)
+  CPU Time:                662ms        (95% in [509ms, 814ms])        Measurable effect: 295ms (0.8 SDs) (required sample size for an effect of 5% of mean: 1995)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        503          (95% in [249, 756])            Measurable effect: 490 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:           1.16M         (95% in [-1.41M, 3.74M])       Measurable effect: 4.99M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm naive' (average over 25 samples):
+  System Time:            1.32s         (95% in [1.3s, 1.34s])         Measurable effect: 36ms (0.8 SDs)
+  Used Java Heap:        -1.13M         (95% in [-10.68M, 8.41M])      Measurable effect: 18.5M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:          307.84K         (95% in [-357.45K, 973.13K])   Measurable effect: 1.26M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:        1.32s         (95% in [1.3s, 1.34s])         Measurable effect: 36ms (0.8 SDs)
+  Kernel time:              26ms        (95% in [22ms, 29ms])          Measurable effect: 6ms (0.8 SDs) (required sample size for an effect of 5% of mean: 711)
+  CPU Time:                538ms        (95% in [445ms, 630ms])        Measurable effect: 179ms (0.8 SDs) (required sample size for an effect of 5% of mean: 1107)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        503          (95% in [347, 659])            Measurable effect: 302 (0.8 SDs) (required sample size for an effect of 5% of mean: 3611)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         144.16K         (95% in [-273.04K, 561.37K])   Measurable effect: 808.58K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+no new datapoints in DB
+disconnecting from DB
+
+###### consistency check with event inference (+debug info) ######
+
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+scenarios: 134  inferred events: 0
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm no checking' (average over 25 samples):
+  System Time:            1.37s         (95% in [1.3s, 1.44s])         Measurable effect: 139ms (0.8 SDs) (required sample size for an effect of 5% of mean: 105)
+  Used Java Heap:       453.94K         (95% in [-14.95M, 15.84M])     Measurable effect: 29.84M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:          747.36K         (95% in [-608.13K, 2.05M])     Measurable effect: 2.57M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        1.37s         (95% in [1.3s, 1.44s])         Measurable effect: 139ms (0.8 SDs) (required sample size for an effect of 5% of mean: 105)
+  Kernel time:              31ms        (95% in [26ms, 36ms])          Measurable effect: 9ms (0.8 SDs) (required sample size for an effect of 5% of mean: 891)
+  CPU Time:               1.13s         (95% in [764ms, 1.5s])         Measurable effect: 710ms (0.8 SDs) (required sample size for an effect of 5% of mean: 3946)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        686          (95% in [304, 1.07K])          Measurable effect: 740 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:            1.9M         (95% in [-831.92K, 4.61M])     Measurable effect: 5.26M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm optimized' (average over 25 samples):
+  System Time:            1.35s         (95% in [1.33s, 1.38s])        Measurable effect: 53ms (0.8 SDs)
+  Used Java Heap:         9.28M         (95% in [-8.06M, 26.63M])      Measurable effect: 33.62M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:          372.48K         (95% in [-450.07K, 1.17M])     Measurable effect: 1.56M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        1.35s         (95% in [1.33s, 1.38s])        Measurable effect: 53ms (0.8 SDs)
+  Kernel time:              28ms        (95% in [25ms, 30ms])          Measurable effect: 5ms (0.8 SDs) (required sample size for an effect of 5% of mean: 409)
+  CPU Time:                700ms        (95% in [544ms, 855ms])        Measurable effect: 301ms (0.8 SDs) (required sample size for an effect of 5% of mean: 1859)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        504          (95% in [297, 711])            Measurable effect: 401 (0.8 SDs) (required sample size for an effect of 5% of mean: 6332)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:           1.09M         (95% in [-2.08M, 4.26M])       Measurable effect: 6.14M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm naive' (average over 25 samples):
+  System Time:             1.3s         (95% in [1.28s, 1.33s])        Measurable effect: 43ms (0.8 SDs)
+  Used Java Heap:        12.05M         (95% in [-3.2M, 27.3M])        Measurable effect: 29.55M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:              80K         (95% in [-475.59K, 635.59K])   Measurable effect: 1.05M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:         1.3s         (95% in [1.28s, 1.33s])        Measurable effect: 43ms (0.8 SDs)
+  Kernel time:              25ms        (95% in [22ms, 28ms])          Measurable effect: 5ms (0.8 SDs) (required sample size for an effect of 5% of mean: 514)
+  CPU Time:                515ms        (95% in [434ms, 596ms])        Measurable effect: 156ms (0.8 SDs) (required sample size for an effect of 5% of mean: 928)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        415          (95% in [277, 553])            Measurable effect: 267 (0.8 SDs) (required sample size for an effect of 5% of mean: 4152)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         126.72K         (95% in [-440.63K, 694.07K])   Measurable effect: 1.07M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+no new datapoints in DB
+disconnecting from DB
+

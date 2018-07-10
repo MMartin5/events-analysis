@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tmfxml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="xmlDefinition.xsd">
+
+    <!-- Pattern definition -->
+    <pattern id="test.pattern.from.fsm" version="1">
+        <head>
+            <traceType id="org.eclipse.tracecompass.analysis.os.linux.core.kernel.trace.stub" />
+            <label value="Xml Test Pattern from FSM" />
+        </head>
+        
+        
+        <patternHandler>
+
+            <!-- Actions -->
+
+            <action id="update_to_1">
+                <stateChange>
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="1" />
+                </stateChange>
+            </action>
+            
+            <action id="update_to_2">
+                <stateChange>
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="2" />
+                </stateChange>
+            </action>
+            
+            <action id="update_to_3">
+                <stateChange>
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="3" />
+                </stateChange>
+            </action>
+            
+            <action id="update_to_4">
+                <stateChange>
+                    <stateAttribute type="constant" value="Status" />
+                    <stateValue type="int" value="4" />
+                </stateChange>
+            </action>
+
+            <!-- Other actions used when a transition occurs -->
+
+            <action id="init_scenario">
+                <stateChange>
+                    <stateAttribute type="constant" value="#CurrentScenario" />
+                    <stateAttribute type="constant" value="attribute" />
+                    <stateValue type="eventField" value="obj_id" forcedType="int" />
+                </stateChange>
+                <stateChange>
+                    <stateAttribute type="constant" value="Objects" />
+                    <stateAttribute  type="eventField" value="obj_id" />
+                    <stateAttribute type="constant" value="hasScenario" />
+                    <stateValue type="string" value="true" />
+                </stateChange>
+            </action>
+
+            <!-- Conditions on cpu id -->
+            
+            <test id="initial_test">
+                <if>
+                  <and>
+                      <!-- this condition is used only in the initial state
+                          to make sure no scenario has already been
+                          instantiated for this process -->
+                      <condition>
+                          <stateAttribute type="constant" value="Objects" />
+                    	  <stateAttribute  type="eventField" value="obj_id" />
+                          <stateAttribute type="constant" value="hasScenario" />
+                          <stateValue type="null" />
+                      </condition>
+                      <condition>
+                          <stateAttribute type="constant" value="#CurrentScenario" />
+                          <stateAttribute type="constant" value="attribute" />
+                          <stateValue type="null" />
+                      </condition>
+                    </and>
+                </if>
+            </test>
+
+            <test id="obj_id_is_current_scenario_attribute">
+                <if>
+                    <condition>
+                        <stateAttribute type="constant" value="#CurrentScenario" />
+                        <stateAttribute type="constant" value="attribute" />
+                        <stateValue type="eventField" value="obj_id" />
+                    </condition>
+                </if>
+            </test>
+
+            <!-- State machines -->
+            
+            <fsm id="dummy_fsm" consuming="false">
+                <initialState>
+                <!-- initial state with initialization action -->
+					<transition event="B" target="3" action="update_to_3:init_scenario" cond="initial_test" />
+					<transition event="C" target="4" action="update_to_4:init_scenario" cond="initial_test" />
+                    <transition event="D" target="1" action="update_to_1:init_scenario" cond="initial_test" />
+                </initialState>
+                <state id="1">
+                    <transition event="A" target="2" action="update_to_2" cond="obj_id_is_current_scenario_attribute" />
+                </state>
+                <state id="2">
+                	<transition event="B" target="3" action="update_to_3" cond="obj_id_is_current_scenario_attribute" />
+                	<transition event="A" target="1" action="update_to_1" cond="obj_id_is_current_scenario_attribute" />
+                </state>
+                <state id="3">
+                    <transition event="C" target="4" action="update_to_4" cond="obj_id_is_current_scenario_attribute" />
+                </state>
+                <state id="4">
+                	<transition event="B" target="3" action="update_to_3" cond="obj_id_is_current_scenario_attribute" />
+                	<transition event="D" target="1" action="update_to_1" cond="obj_id_is_current_scenario_attribute" />
+                </state>
+            </fsm>
+
+        </patternHandler>
+    </pattern>
+</tmfxml>
