@@ -1,0 +1,348 @@
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/snap-session-cafe-20180302-160841/snapshot-20180302-170233-0/kernel/) Using Algorithm no checking' (average over 25 samples):
+  System Time:            3.69s         (95% in [3.27s, 4.1s])         Measurable effect: 808ms (0.8 SDs) (required sample size for an effect of 5% of mean: 482)
+  Used Java Heap:         9.93M         (95% in [-28.29M, 48.14M])     Measurable effect: 74.06M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:            6.23M         (95% in [963.66K, 11.52M])     Measurable effect: 10.25M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        3.69s         (95% in [3.27s, 4.1s])         Measurable effect: 808ms (0.8 SDs) (required sample size for an effect of 5% of mean: 482)
+  Kernel time:             196ms        (95% in [184ms, 208ms])        Measurable effect: 23ms (0.8 SDs) (required sample size for an effect of 5% of mean: 150)
+  CPU Time:               7.39s         (95% in [5.62s, 9.17s])        Measurable effect: 3.44s (0.8 SDs) (required sample size for an effect of 5% of mean: 2168)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:       2.95K         (95% in [1.55K, 4.34K])        Measurable effect: 2.7K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:           8.48M         (95% in [3.1M, 13.86M])        Measurable effect: 10.43M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/snap-session-cafe-20180302-160841/snapshot-20180302-170233-0/kernel/) Using Algorithm optimized' (average over 25 samples):
+  System Time:            5.52s         (95% in [5.47s, 5.56s])        Measurable effect: 86ms (0.8 SDs)
+  Used Java Heap:         7.41M         (95% in [-52.68M, 67.51M])     Measurable effect: 116.47M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:         -697.28K         (95% in [-3.55M, 2.19M])       Measurable effect: 5.56M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:        5.52s         (95% in [5.47s, 5.56s])        Measurable effect: 86ms (0.8 SDs)
+  Kernel time:             244ms        (95% in [237ms, 250ms])        Measurable effect: 12ms (0.8 SDs) (required sample size for an effect of 5% of mean: 27)
+  CPU Time:               8.33s         (95% in [8.09s, 8.58s])        Measurable effect: 474ms (0.8 SDs) (required sample size for an effect of 5% of mean: 33)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:       1.34K         (95% in [437, 2.24K])          Measurable effect: 1.75K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:              1M         (95% in [-1.27M, 3.28M])       Measurable effect: 4.41M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/snap-session-cafe-20180302-160841/snapshot-20180302-170233-0/kernel/) Using Algorithm optimized with inference' (average over 25 samples):
+  System Time:            5.48s         (95% in [5.43s, 5.52s])        Measurable effect: 90ms (0.8 SDs)
+  Used Java Heap:          -10M         (95% in [-62.98M, 42.97M])     Measurable effect: 102.67M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:           -2.61M         (95% in [-3.68M, -1.55M])      Measurable effect: 2.06M (0.8 SDs) (required sample size for an effect of 5% of mean: 6213)
+  Elapsed Process:        5.48s         (95% in [5.43s, 5.52s])        Measurable effect: 90ms (0.8 SDs)
+  Kernel time:             238ms        (95% in [232ms, 245ms])        Measurable effect: 12ms (0.8 SDs) (required sample size for an effect of 5% of mean: 28)
+  CPU Time:               8.29s         (95% in [8.11s, 8.47s])        Measurable effect: 349ms (0.8 SDs)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        677          (95% in [558, 796])            Measurable effect: 230 (0.8 SDs) (required sample size for an effect of 5% of mean: 1161)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         228.32K         (95% in [54.22K, 402.42K])     Measurable effect: 337.41K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/snap-session-cafe-20180302-160841/snapshot-20180302-170233-0/kernel/) Using Algorithm naive' (average over 25 samples):
+  System Time:            5.64s         (95% in [5.58s, 5.69s])        Measurable effect: 106ms (0.8 SDs)
+  Used Java Heap:       -30.61M         (95% in [-82.39M, 21.16M])     Measurable effect: 100.35M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:           -2.83M         (95% in [-4.06M, -1.61M])      Measurable effect: 2.37M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:        5.64s         (95% in [5.58s, 5.69s])        Measurable effect: 106ms (0.8 SDs)
+  Kernel time:             238ms        (95% in [232ms, 243ms])        Measurable effect: 10ms (0.8 SDs)
+  CPU Time:               8.38s         (95% in [8.18s, 8.58s])        Measurable effect: 387ms (0.8 SDs)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        489          (95% in [376, 602])            Measurable effect: 218 (0.8 SDs) (required sample size for an effect of 5% of mean: 2005)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:           30.4K         (95% in [-94.95K, 155.75K])    Measurable effect: 242.94K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+scenarios: 149  inferred events: 412
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/snap-session-cafe-20180302-160841/snapshot-20180302-170233-0/kernel/) Using Algorithm naive with inference' (average over 25 samples):
+  System Time:            5.58s         (95% in [5.53s, 5.64s])        Measurable effect: 113ms (0.8 SDs)
+  Used Java Heap:         8.37M         (95% in [-52.75M, 69.49M])     Measurable effect: 118.46M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:           -2.35M         (95% in [-3.55M, -1.16M])      Measurable effect: 2.32M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:        5.58s         (95% in [5.53s, 5.64s])        Measurable effect: 113ms (0.8 SDs)
+  Kernel time:             241ms        (95% in [233ms, 249ms])        Measurable effect: 16ms (0.8 SDs) (required sample size for an effect of 5% of mean: 46)
+  CPU Time:                8.3s         (95% in [8.12s, 8.48s])        Measurable effect: 352ms (0.8 SDs)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        438          (95% in [330, 546])            Measurable effect: 209 (0.8 SDs) (required sample size for an effect of 5% of mean: 2275)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         219.84K         (95% in [60.93K, 378.75K])     Measurable effect: 307.97K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/ciena/r1210FX/kernel/) Using Algorithm no checking' (average over 25 samples):
+  System Time:            1.22s         (95% in [1.22s, 1.22s])        Measurable effect: 6ms (0.8 SDs)
+  Used Java Heap:         3.73M         (95% in [-24.01M, 31.46M])     Measurable effect: 53.75M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:          -75.68K         (95% in [-318.72K, 167.36K])   Measurable effect: 471.02K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:        1.22s         (95% in [1.22s, 1.22s])        Measurable effect: 6ms (0.8 SDs)
+  Kernel time:              16ms        (95% in [14ms, 19ms])          Measurable effect: 5ms (0.8 SDs) (required sample size for an effect of 5% of mean: 892)
+  CPU Time:                254ms        (95% in [167ms, 341ms])        Measurable effect: 168ms (0.8 SDs) (required sample size for an effect of 5% of mean: 4364)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        112          (95% in [53, 172])             Measurable effect: 115 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         -12.16K         (95% in [-93.51K, 69.19K])     Measurable effect: 157.67K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/ciena/r1210FX/kernel/) Using Algorithm optimized' (average over 25 samples):
+  System Time:            1.26s         (95% in [1.24s, 1.28s])        Measurable effect: 40ms (0.8 SDs)
+  Used Java Heap:        -7.18M         (95% in [-32.83M, 18.47M])     Measurable effect: 49.71M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:         -460.48K         (95% in [-1.02M, 118.44K])     Measurable effect: 1.1M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        1.26s         (95% in [1.24s, 1.28s])        Measurable effect: 40ms (0.8 SDs)
+  Kernel time:              18ms        (95% in [16ms, 20ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 501)
+  CPU Time:                342ms        (95% in [260ms, 425ms])        Measurable effect: 159ms (0.8 SDs) (required sample size for an effect of 5% of mean: 2175)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         98          (95% in [28, 167])             Measurable effect: 135 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         188.96K         (95% in [-103.78K, 481.7K])    Measurable effect: 567.35K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/ciena/r1210FX/kernel/) Using Algorithm optimized with inference' (average over 25 samples):
+  System Time:            1.23s         (95% in [1.22s, 1.24s])        Measurable effect: 27ms (0.8 SDs)
+  Used Java Heap:        48.27M         (95% in [24.32M, 72.23M])      Measurable effect: 46.43M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:         -218.08K         (95% in [-395.28K, -40.88K])   Measurable effect: 343.42K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        1.23s         (95% in [1.22s, 1.24s])        Measurable effect: 27ms (0.8 SDs)
+  Kernel time:              14ms        (95% in [11ms, 16ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 1089)
+  CPU Time:                275ms        (95% in [231ms, 318ms])        Measurable effect: 84ms (0.8 SDs) (required sample size for an effect of 5% of mean: 935)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         65          (95% in [59, 71])              Measurable effect: 11 (0.8 SDs) (required sample size for an effect of 5% of mean: 335)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         -33.12K         (95% in [-334.15K, 267.91K])   Measurable effect: 583.42K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/ciena/r1210FX/kernel/) Using Algorithm naive' (average over 25 samples):
+  System Time:            1.22s         (95% in [1.22s, 1.22s])        Measurable effect: 6ms (0.8 SDs)
+  Used Java Heap:        -2.26M         (95% in [-29.71M, 25.19M])     Measurable effect: 53.2M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:         -220.64K         (95% in [-397.03K, -44.25K])   Measurable effect: 341.87K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Elapsed Process:        1.22s         (95% in [1.22s, 1.22s])        Measurable effect: 6ms (0.8 SDs)
+  Kernel time:              15ms        (95% in [13ms, 17ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 721)
+  CPU Time:                248ms        (95% in [225ms, 270ms])        Measurable effect: 43ms (0.8 SDs) (required sample size for an effect of 5% of mean: 313)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         86          (95% in [49, 123])             Measurable effect: 71 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:           5.28K         (95% in [-164.56K, 175.12K])   Measurable effect: 329.16K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+scenarios: 43  inferred events: 784
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/ciena/r1210FX/kernel/) Using Algorithm naive with inference' (average over 25 samples):
+  System Time:            1.22s         (95% in [1.22s, 1.23s])        Measurable effect: 17ms (0.8 SDs)
+  Used Java Heap:        -2.89M         (95% in [-28.21M, 22.43M])     Measurable effect: 49.07M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:         -238.24K         (95% in [-340.12K, -136.36K])  Measurable effect: 197.46K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        1.22s         (95% in [1.22s, 1.23s])        Measurable effect: 17ms (0.8 SDs)
+  Kernel time:              17ms        (95% in [15ms, 19ms])          Measurable effect: 3ms (0.8 SDs) (required sample size for an effect of 5% of mean: 393)
+  CPU Time:                252ms        (95% in [229ms, 275ms])        Measurable effect: 44ms (0.8 SDs) (required sample size for an effect of 5% of mean: 315)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         68          (95% in [51, 85])              Measurable effect: 32 (0.8 SDs) (required sample size for an effect of 5% of mean: 2235)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:              0          (95% in [-211.34K, 211.34K])   Measurable effect: 409.6K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-delete-100-109/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm no checking' (average over 25 samples):
+  System Time:            1.26s         (95% in [1.25s, 1.27s])        Measurable effect: 23ms (0.8 SDs)
+  Used Java Heap:         3.62M         (95% in [-17.89M, 25.14M])     Measurable effect: 41.7M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:         -789.28K         (95% in [-1.05M, -503.7K])     Measurable effect: 553.48K (0.8 SDs) (required sample size for an effect of 5% of mean: 4918)
+  Elapsed Process:        1.26s         (95% in [1.25s, 1.27s])        Measurable effect: 23ms (0.8 SDs)
+  Kernel time:              22ms        (95% in [19ms, 24ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 331)
+  CPU Time:                434ms        (95% in [358ms, 509ms])        Measurable effect: 147ms (0.8 SDs) (required sample size for an effect of 5% of mean: 1149)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         97          (95% in [71, 122])             Measurable effect: 49 (0.8 SDs) (required sample size for an effect of 5% of mean: 2634)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:          60.48K         (95% in [-34.83K, 155.79K])    Measurable effect: 184.73K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-delete-100-109/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm optimized' (average over 25 samples):
+  System Time:            1.37s         (95% in [1.34s, 1.4s])         Measurable effect: 48ms (0.8 SDs)
+  Used Java Heap:       -10.63M         (95% in [-39.68M, 18.41M])     Measurable effect: 56.28M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:           -1.24M         (95% in [-1.73M, -764.84K])    Measurable effect: 971.75K (0.8 SDs) (required sample size for an effect of 5% of mean: 5890)
+  Elapsed Process:        1.37s         (95% in [1.34s, 1.4s])         Measurable effect: 48ms (0.8 SDs)
+  Kernel time:              24ms        (95% in [21ms, 26ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 366)
+  CPU Time:                532ms        (95% in [399ms, 664ms])        Measurable effect: 256ms (0.8 SDs) (required sample size for an effect of 5% of mean: 2318)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         64          (95% in [58, 71])              Measurable effect: 12 (0.8 SDs) (required sample size for an effect of 5% of mean: 381)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:          17.92K         (95% in [-548.37K, 584.21K])   Measurable effect: 1.07M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-delete-100-109/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm optimized with inference' (average over 25 samples):
+  System Time:            1.35s         (95% in [1.35s, 1.36s])        Measurable effect: 10ms (0.8 SDs)
+  Used Java Heap:         3.18M         (95% in [-9.63M, 15.99M])      Measurable effect: 24.83M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:          -700.8K         (95% in [-1,004.47K, -397.13K]) Measurable effect: 588.54K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Elapsed Process:        1.35s         (95% in [1.35s, 1.36s])        Measurable effect: 10ms (0.8 SDs)
+  Kernel time:              24ms        (95% in [22ms, 27ms])          Measurable effect: 5ms (0.8 SDs) (required sample size for an effect of 5% of mean: 444)
+  CPU Time:                430ms        (95% in [420ms, 440ms])        Measurable effect: 18ms (0.8 SDs)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:        116          (95% in [37, 194])             Measurable effect: 151 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         -61.44K         (95% in [-745.12K, 622.24K])   Measurable effect: 1.29M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-delete-100-109/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm naive' (average over 25 samples):
+  System Time:            1.33s         (95% in [1.31s, 1.34s])        Measurable effect: 30ms (0.8 SDs)
+  Used Java Heap:        -1.42M         (95% in [-12.88M, 10.04M])     Measurable effect: 22.21M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6401)
+  Working Set:              -1,010.24K  (95% in [-1.22M, -775.49K])    Measurable effect: 454.96K (0.8 SDs) (required sample size for an effect of 5% of mean: 2029)
+  Elapsed Process:        1.33s         (95% in [1.31s, 1.34s])        Measurable effect: 30ms (0.8 SDs)
+  Kernel time:              25ms        (95% in [21ms, 28ms])          Measurable effect: 6ms (0.8 SDs) (required sample size for an effect of 5% of mean: 682)
+  CPU Time:                403ms        (95% in [387ms, 419ms])        Measurable effect: 30ms (0.8 SDs) (required sample size for an effect of 5% of mean: 59)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         55          (95% in [52, 59])              Measurable effect: 6 (0.8 SDs) (required sample size for an effect of 5% of mean: 151)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:         -61.44K         (95% in [-664.15K, 541.27K])   Measurable effect: 1.14M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+scenarios: 134  inferred events: 1
+Scenario 'org.eclipse.tracecompass#Coherence checking#Running Coherence Analysis (/home/mmartin/Master/Traces/trace-delete-100-109/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/) Using Algorithm naive with inference' (average over 25 samples):
+  System Time:             1.3s         (95% in [1.28s, 1.32s])        Measurable effect: 40ms (0.8 SDs)
+  Used Java Heap:         4.33M         (95% in [-12.22M, 20.89M])     Measurable effect: 32.09M (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Working Set:         -771.04K         (95% in [-929.02K, -613.06K])  Measurable effect: 306.17K (0.8 SDs) (required sample size for an effect of 5% of mean: 1577)
+  Elapsed Process:         1.3s         (95% in [1.28s, 1.32s])        Measurable effect: 40ms (0.8 SDs)
+  Kernel time:              24ms        (95% in [21ms, 26ms])          Measurable effect: 4ms (0.8 SDs) (required sample size for an effect of 5% of mean: 278)
+  CPU Time:                408ms        (95% in [391ms, 426ms])        Measurable effect: 33ms (0.8 SDs) (required sample size for an effect of 5% of mean: 68)
+  Hard Page Faults:          0          (95% in [0, 0])               
+  Soft Page Faults:         71          (95% in [38, 103])             Measurable effect: 62 (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+  Text Size:                 0          (95% in [0, 0])               
+  Data Size:                 0          (95% in [0, 0])               
+  Library Size:          64.48K         (95% in [-131.86K, 260.82K])   Measurable effect: 380.52K (0.8 SDs) (required sample size for an effect of 5% of stdev: 6400)
+
+no new datapoints in DB
+disconnecting from DB
+

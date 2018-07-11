@@ -1,0 +1,371 @@
+!SESSION 2018-07-10 17:28:18.530 -----------------------------------------------
+eclipse.buildId=unknown
+java.version=1.8.0_171
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_CA
+Framework arguments:  -version 3 -port 38277 -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader -loaderpluginname org.eclipse.jdt.junit4.runtime -classNames org.eclipse.tracecompass.incubator.coherence.core.tests.benchmark.CoherenceAnalysisEvaluation -application org.eclipse.pde.junit.runtime.nonuithreadtestapplication -testApplication org.eclipse.pde.junit.runtime.coretestapplication -testpluginname org.eclipse.tracecompass.incubator.coherence.core.tests
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -consoleLog -consolelog -version 3 -port 38277 -testLoaderClass org.eclipse.jdt.internal.junit4.runner.JUnit4TestLoader -loaderpluginname org.eclipse.jdt.junit4.runtime -classNames org.eclipse.tracecompass.incubator.coherence.core.tests.benchmark.CoherenceAnalysisEvaluation -application org.eclipse.pde.junit.runtime.nonuithreadtestapplication -testApplication org.eclipse.pde.junit.runtime.coretestapplication -data /home/mmartin/Master/ws-clean-usecases/../junit-workspace -dev file:/home/mmartin/Master/ws-clean-usecases/.metadata/.plugins/org.eclipse.pde.core/pde-junit/dev.properties -os linux -ws gtk -arch x86_64 -consoleLog -consolelog -testpluginname org.eclipse.tracecompass.incubator.coherence.core.tests
+
+!ENTRY org.eclipse.tracecompass.incubator.trace.server.jersey.rest.core 4 0 2018-07-10 17:28:21.520
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Could not resolve module: org.eclipse.tracecompass.incubator.trace.server.jersey.rest.core [366]
+  Unresolved requirement: Require-Bundle: javax.ws.rs
+
+	at org.eclipse.osgi.container.Module.start(Module.java:444)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+
+!ENTRY org.eclipse.tracecompass.incubator.xaf.ui 4 0 2018-07-10 17:28:21.527
+!MESSAGE FrameworkEvent ERROR
+!STACK 0
+org.osgi.framework.BundleException: Could not resolve module: org.eclipse.tracecompass.incubator.xaf.ui [382]
+  Unresolved requirement: Import-Package: org.apache.commons.math3.util
+
+	at org.eclipse.osgi.container.Module.start(Module.java:444)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1682)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.incStartLevel(ModuleContainer.java:1661)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.doContainerStartLevel(ModuleContainer.java:1624)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1555)
+	at org.eclipse.osgi.container.ModuleContainer$ContainerStartLevel.dispatchEvent(ModuleContainer.java:1)
+	at org.eclipse.osgi.framework.eventmgr.EventManager.dispatchEvent(EventManager.java:230)
+	at org.eclipse.osgi.framework.eventmgr.EventManager$EventThread.run(EventManager.java:340)
+scenarios: 3  inferred events: 3
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_11.xml
+[19:00:00.000 000 010] C { obj_id=1 }
+[19:00:00.000 000 011] D { obj_id=1 }
+[19:00:00.000 000 012] A { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_62.xml
+[19:00:00.000 000 062] B { obj_id=-1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_29.xml
+[19:00:00.000 000 029] B { obj_id=3 }
+scenarios: 3  inferred events: 18
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_42.xml
+[19:00:00.000 000 043] A { obj_id=3 }
+[19:00:00.000 000 044] A { obj_id=3 }
+[19:00:00.000 000 044] A { obj_id=3 }
+[19:00:00.000 000 044] A { obj_id=3 }
+[19:00:00.000 000 045] B { obj_id=3 }
+[19:00:00.000 000 045] A { obj_id=3 }
+[19:00:00.000 000 045] A { obj_id=3 }
+[19:00:00.000 000 046] A { obj_id=3 }
+[19:00:00.000 000 047] C { obj_id=3 }
+[19:00:00.000 000 047] B { obj_id=3 }
+[19:00:00.000 000 047] B { obj_id=3 }
+[19:00:00.000 000 047] B { obj_id=3 }
+[19:00:00.000 000 049] B { obj_id=3 }
+[19:00:00.000 000 049] B { obj_id=3 }
+[19:00:00.000 000 050] C { obj_id=3 }
+[19:00:00.000 000 050] C { obj_id=3 }
+[19:00:00.000 000 051] B { obj_id=3 }
+[19:00:00.000 000 053] C { obj_id=3 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_53.xml
+[19:00:00.000 000 053] B { obj_id=3 }
+scenarios: 3  inferred events: 4
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_17.xml
+[19:00:00.000 000 017] C { obj_id=1 }
+[19:00:00.000 000 017] C { obj_id=1 }
+[19:00:00.000 000 018] C { obj_id=1 }
+[19:00:00.000 000 018] D { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_47.xml
+[19:00:00.000 000 047] B { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_25.xml
+[19:00:00.000 000 025] B { obj_id=3 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_56.xml
+[19:00:00.000 000 056] C { obj_id=3 }
+scenarios: 3  inferred events: 2
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_13.xml
+[19:00:00.000 000 016] D { obj_id=3 }
+[19:00:00.000 000 020] A { obj_id=3 }
+scenarios: 3  inferred events: 9
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_8.xml
+[19:00:00.000 000 008] A { obj_id=1 }
+[19:00:00.000 000 008] A { obj_id=1 }
+[19:00:00.000 000 009] B { obj_id=1 }
+[19:00:00.000 000 009] A { obj_id=1 }
+[19:00:00.000 000 010] A { obj_id=1 }
+[19:00:00.000 000 011] A { obj_id=1 }
+[19:00:00.000 000 011] B { obj_id=1 }
+[19:00:00.000 000 013] B { obj_id=1 }
+[19:00:00.000 000 013] C { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_39.xml
+[19:00:00.000 000 039] B { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_9.xml
+[19:00:00.000 000 009] B { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_27.xml
+[19:00:00.000 000 027] B { obj_id=3 }
+scenarios: 3  inferred events: 9
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_7.xml
+[19:00:00.000 000 008] A { obj_id=1 }
+[19:00:00.000 000 009] A { obj_id=1 }
+[19:00:00.000 000 010] B { obj_id=1 }
+[19:00:00.000 000 010] A { obj_id=1 }
+[19:00:00.000 000 011] A { obj_id=1 }
+[19:00:00.000 000 012] A { obj_id=1 }
+[19:00:00.000 000 012] B { obj_id=1 }
+[19:00:00.000 000 014] B { obj_id=1 }
+[19:00:00.000 000 014] C { obj_id=1 }
+scenarios: 3  inferred events: 16
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_20.xml
+[19:00:00.000 000 020] B { obj_id=1 }
+[19:00:00.000 000 020] B { obj_id=1 }
+[19:00:00.000 000 021] C { obj_id=1 }
+[19:00:00.000 000 035] A { obj_id=1 }
+[19:00:00.000 000 035] B { obj_id=1 }
+[19:00:00.000 000 035] C { obj_id=1 }
+[19:00:00.000 000 036] A { obj_id=1 }
+[19:00:00.000 000 036] A { obj_id=1 }
+[19:00:00.000 000 036] A { obj_id=1 }
+[19:00:00.000 000 037] A { obj_id=1 }
+[19:00:00.000 000 037] B { obj_id=1 }
+[19:00:00.000 000 037] B { obj_id=1 }
+[19:00:00.000 000 037] B { obj_id=1 }
+[19:00:00.000 000 038] C { obj_id=1 }
+[19:00:00.000 000 039] B { obj_id=1 }
+[19:00:00.000 000 041] C { obj_id=1 }
+scenarios: 3  inferred events: 5
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_60.xml
+[19:00:00.000 000 061] A { obj_id=-1 }
+[19:00:00.000 000 061] B { obj_id=-1 }
+[19:00:00.000 000 061] A { obj_id=-1 }
+[19:00:00.000 000 061] B { obj_id=-1 }
+[19:00:00.000 000 061] C { obj_id=-1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_16.xml
+[19:00:00.000 000 014] B { obj_id=1 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_12.xml
+scenarios: 3  inferred events: 5
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_61.xml
+[19:00:00.000 000 060] A { obj_id=-1 }
+[19:00:00.000 000 060] B { obj_id=-1 }
+[19:00:00.000 000 060] C { obj_id=-1 }
+[19:00:00.000 000 061] A { obj_id=-1 }
+[19:00:00.000 000 062] B { obj_id=-1 }
+scenarios: 3  inferred events: 8
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_2.xml
+[19:00:00.000 000 002] C { obj_id=1 }
+[19:00:00.000 000 002] C { obj_id=1 }
+[19:00:00.000 000 003] C { obj_id=1 }
+[19:00:00.000 000 003] C { obj_id=1 }
+[19:00:00.000 000 003] D { obj_id=1 }
+[19:00:00.000 000 005] C { obj_id=1 }
+[19:00:00.000 000 005] D { obj_id=1 }
+[19:00:00.000 000 005] D { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_31.xml
+[19:00:00.000 000 031] B { obj_id=3 }
+scenarios: 3  inferred events: 8
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_50.xml
+[19:00:00.000 000 052] C { obj_id=1 }
+[19:00:00.000 000 052] C { obj_id=1 }
+[19:00:00.000 000 053] C { obj_id=1 }
+[19:00:00.000 000 053] C { obj_id=1 }
+[19:00:00.000 000 055] C { obj_id=-1 }
+[19:00:00.000 000 055] D { obj_id=1 }
+[19:00:00.000 000 055] D { obj_id=1 }
+[19:00:00.000 000 057] D { obj_id=1 }
+scenarios: 3  inferred events: 4
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_40.xml
+[19:00:00.000 000 040] C { obj_id=1 }
+[19:00:00.000 000 041] D { obj_id=1 }
+[19:00:00.000 000 041] C { obj_id=1 }
+[19:00:00.000 000 042] C { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_52.xml
+[19:00:00.000 000 052] C { obj_id=3 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_1.xml
+scenarios: 3  inferred events: 3
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_57.xml
+[19:00:00.000 000 054] D { obj_id=1 }
+[19:00:00.000 000 055] D { obj_id=1 }
+[19:00:00.000 000 055] D { obj_id=1 }
+scenarios: 3  inferred events: 4
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_21.xml
+[19:00:00.000 000 021] C { obj_id=1 }
+[19:00:00.000 000 025] C { obj_id=1 }
+[19:00:00.000 000 028] C { obj_id=1 }
+[19:00:00.000 000 030] D { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_51.xml
+[19:00:00.000 000 047] B { obj_id=3 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_45.xml
+[19:00:00.000 000 045] B { obj_id=1 }
+scenarios: 3  inferred events: 5
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_32.xml
+[19:00:00.000 000 033] C { obj_id=3 }
+[19:00:00.000 000 035] D { obj_id=3 }
+[19:00:00.000 000 036] C { obj_id=3 }
+[19:00:00.000 000 037] A { obj_id=3 }
+[19:00:00.000 000 041] C { obj_id=3 }
+scenarios: 3  inferred events: 3
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_38.xml
+[19:00:00.000 000 037] C { obj_id=1 }
+[19:00:00.000 000 037] D { obj_id=1 }
+[19:00:00.000 000 037] A { obj_id=1 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_33.xml
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_10.xml
+scenarios: 3  inferred events: 8
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_19.xml
+[19:00:00.000 000 018] A { obj_id=1 }
+[19:00:00.000 000 018] B { obj_id=1 }
+[19:00:00.000 000 018] C { obj_id=1 }
+[19:00:00.000 000 019] A { obj_id=1 }
+[19:00:00.000 000 019] A { obj_id=1 }
+[19:00:00.000 000 020] B { obj_id=1 }
+[19:00:00.000 000 020] B { obj_id=1 }
+[19:00:00.000 000 021] C { obj_id=1 }
+scenarios: 3  inferred events: 3
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_46.xml
+[19:00:00.000 000 045] C { obj_id=1 }
+[19:00:00.000 000 045] D { obj_id=1 }
+[19:00:00.000 000 045] A { obj_id=1 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_34.xml
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_54.xml
+[19:00:00.000 000 054] C { obj_id=3 }
+scenarios: 3  inferred events: 3
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_48.xml
+[19:00:00.000 000 047] C { obj_id=1 }
+[19:00:00.000 000 047] D { obj_id=1 }
+[19:00:00.000 000 047] A { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_55.xml
+[19:00:00.000 000 055] B { obj_id=3 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_36.xml
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_22.xml
+[19:00:00.000 000 028] D { obj_id=1 }
+scenarios: 3  inferred events: 2
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_41.xml
+[19:00:00.000 000 035] D { obj_id=3 }
+[19:00:00.000 000 038] A { obj_id=3 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_49.xml
+[19:00:00.000 000 049] B { obj_id=1 }
+scenarios: 3  inferred events: 12
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_44.xml
+[19:00:00.000 000 044] A { obj_id=1 }
+[19:00:00.000 000 044] A { obj_id=1 }
+[19:00:00.000 000 044] A { obj_id=1 }
+[19:00:00.000 000 045] B { obj_id=1 }
+[19:00:00.000 000 045] A { obj_id=1 }
+[19:00:00.000 000 045] A { obj_id=1 }
+[19:00:00.000 000 045] B { obj_id=1 }
+[19:00:00.000 000 046] A { obj_id=1 }
+[19:00:00.000 000 046] A { obj_id=1 }
+[19:00:00.000 000 047] B { obj_id=1 }
+[19:00:00.000 000 049] B { obj_id=1 }
+[19:00:00.000 000 052] C { obj_id=1 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_23.xml
+scenarios: 3  inferred events: 9
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_6.xml
+[19:00:00.000 000 008] A { obj_id=1 }
+[19:00:00.000 000 009] A { obj_id=1 }
+[19:00:00.000 000 010] B { obj_id=1 }
+[19:00:00.000 000 010] A { obj_id=1 }
+[19:00:00.000 000 011] A { obj_id=1 }
+[19:00:00.000 000 012] A { obj_id=1 }
+[19:00:00.000 000 012] B { obj_id=1 }
+[19:00:00.000 000 014] B { obj_id=1 }
+[19:00:00.000 000 014] C { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_26.xml
+[19:00:00.000 000 026] C { obj_id=3 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_58.xml
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_28.xml
+[19:00:00.000 000 028] C { obj_id=3 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_18.xml
+[19:00:00.000 000 018] D { obj_id=1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_30.xml
+[19:00:00.000 000 030] C { obj_id=3 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_63.xml
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_5.xml
+scenarios: 3  inferred events: 3
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_3.xml
+[19:00:00.000 000 004] D { obj_id=1 }
+[19:00:00.000 000 004] D { obj_id=1 }
+[19:00:00.000 000 005] D { obj_id=1 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_15.xml
+scenarios: 3  inferred events: 23
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_24.xml
+[19:00:00.000 000 016] A { obj_id=3 }
+[19:00:00.000 000 016] A { obj_id=3 }
+[19:00:00.000 000 017] A { obj_id=3 }
+[19:00:00.000 000 017] A { obj_id=3 }
+[19:00:00.000 000 017] A { obj_id=3 }
+[19:00:00.000 000 018] A { obj_id=3 }
+[19:00:00.000 000 018] A { obj_id=3 }
+[19:00:00.000 000 019] B { obj_id=3 }
+[19:00:00.000 000 019] A { obj_id=3 }
+[19:00:00.000 000 019] B { obj_id=3 }
+[19:00:00.000 000 020] A { obj_id=3 }
+[19:00:00.000 000 021] B { obj_id=3 }
+[19:00:00.000 000 021] B { obj_id=3 }
+[19:00:00.000 000 021] B { obj_id=3 }
+[19:00:00.000 000 022] C { obj_id=3 }
+[19:00:00.000 000 022] C { obj_id=3 }
+[19:00:00.000 000 023] B { obj_id=3 }
+[19:00:00.000 000 023] B { obj_id=3 }
+[19:00:00.000 000 025] C { obj_id=3 }
+[19:00:00.000 000 025] C { obj_id=3 }
+[19:00:00.000 000 025] B { obj_id=3 }
+[19:00:00.000 000 027] B { obj_id=3 }
+[19:00:00.000 000 034] C { obj_id=3 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_43.xml
+[19:00:00.000 000 042] D { obj_id=1 }
+scenarios: 2  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_4.xml
+scenarios: 3  inferred events: 9
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_35.xml
+[19:00:00.000 000 027] A { obj_id=1 }
+[19:00:00.000 000 027] A { obj_id=1 }
+[19:00:00.000 000 028] A { obj_id=1 }
+[19:00:00.000 000 029] A { obj_id=1 }
+[19:00:00.000 000 030] A { obj_id=1 }
+[19:00:00.000 000 032] B { obj_id=1 }
+[19:00:00.000 000 032] B { obj_id=1 }
+[19:00:00.000 000 034] B { obj_id=1 }
+[19:00:00.000 000 037] C { obj_id=1 }
+scenarios: 3  inferred events: 5
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_59.xml
+[19:00:00.000 000 061] A { obj_id=-1 }
+[19:00:00.000 000 061] B { obj_id=-1 }
+[19:00:00.000 000 061] C { obj_id=-1 }
+[19:00:00.000 000 061] A { obj_id=-1 }
+[19:00:00.000 000 061] B { obj_id=-1 }
+scenarios: 3  inferred events: 1
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_37.xml
+[19:00:00.000 000 036] B { obj_id=1 }
+scenarios: 3  inferred events: 0
+TRACE /home/mmartin/Master/new-events-analysis/events-analysis/src/coherence.core.tests/test_traces/eval_traces/testTrace_format_14.xml
+
