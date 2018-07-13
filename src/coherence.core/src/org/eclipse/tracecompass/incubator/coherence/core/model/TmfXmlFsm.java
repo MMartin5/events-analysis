@@ -9,6 +9,7 @@
 package org.eclipse.tracecompass.incubator.coherence.core.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -74,9 +75,11 @@ public class TmfXmlFsm {
 	Map<String, Set<TmfXmlFsmTransition>> fPrevStatesForState;
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	private String fCoherenceAlgo;
-	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new HashMap<>(); // temporarily save the possible transitions for each incoherence, before processing
+	private Map<FsmStateIncoherence, Set<TmfXmlFsmTransition>> possibleTransitionsMap = new LinkedHashMap<>(); // temporarily save the possible transitions for each incoherence, before processing
 	private Map<Pair<Pattern, String>, Set<String>> certaintyMap = new HashMap<>(); // map a pair of (event name, condition name) to a list of unique target state names	
 	private final TmfXmlScenarioModel fScenarioModel;
+	private static final String fErrorStateId = "#error";
+	private static final String fInitialCond = "initial_test";
 
 	/**
 	 * Increase the counter of the given transition
@@ -212,8 +215,17 @@ public class TmfXmlFsm {
 	 * 			The status of this operation
 	 */
 	public void setTransitions() {
+		FsmStateIncoherence lastIncoherence = null; 
 		for (FsmStateIncoherence incoherence : getIncoherences()) {
 			String targetState = incoherence.getLastCoherentStateName();
+			/* The current incoherence is following the previous one.
+			      It could have been caused by the FSM being blocked in the same state by the previous incoherent event, 
+			      when the event associated with this  incoherence is actually consistent. So, we have to update this 
+			      incoherence's targetState with the last state computed from the inferred events for the previous incoherence */
+			if (lastIncoherence != null && lastIncoherence.getIncoherentEvent().getTimestamp().equals(incoherence.getPrevEvent().getTimestamp())) {
+				TmfXmlFsmTransition lastTransition = lastIncoherence.getInferredTransitions().get(lastIncoherence.getInferredTransitions().size() - 1); // get last transition
+				targetState = lastTransition.to().getTarget();
+			}
 			Set<TmfXmlFsmTransition> possibleTransitions = possibleTransitionsMap.get(incoherence);
 			// Infer transitions
 			Map<TmfXmlFsmTransition, Long> counters = ((TmfXmlScenarioObserver) fActiveScenariosList.get(incoherence.getScenarioAttribute())).getTransitionsCounters();
@@ -224,6 +236,7 @@ public class TmfXmlFsm {
 	    			isGlobal));
 			inferredTransitions.add(lastTransition);
 			incoherence.setInferredTransitions(inferredTransitions);
+			lastIncoherence = incoherence;
 		}
 	}
 	
@@ -339,6 +352,16 @@ public class TmfXmlFsm {
                 statesMap.put(abandonState.getId(), abandonState);
             }
         }
+        
+        // TODO later
+//        // Create the FSM error state from the initial state
+//		TmfXmlState errorState = statesMap.get(TmfXmlState.INITIAL_STATE_ID);
+//		for (TmfXmlStateTransition transition : errorState.getTransitionList()) {
+//			List<String> trimmedCond =Arrays.asList(transition.getCondition().split(":"));
+//			trimmedCond.remove(fInitialCond);
+//			Element newTransition = new 
+//		}
+//        statesMap.put(fErrorStateId, errorState);
 
         Map<Pattern, Set<String>> prevStates = new HashMap<>();
         Map<String, Set<TmfXmlFsmTransition>> prevStatesForState = new HashMap<>();
@@ -371,7 +394,7 @@ public class TmfXmlFsm {
     				
     				// Add a certainty information
     				Pair<Pattern, String> p = new Pair<>(eventPattern, transition.getCondition());
-    				Set<String> targets = certaintyInfo.containsKey(p) ? certaintyInfo.get(p) : new HashSet<>();
+    				Set<String> targets = certaintyInfo.containsKey(p) ? certaintyInfo.get(p) : new HashSet<>(); // TODO: NEED FIXING !!!! key is not checked correctly, duplicates (pattern,string) are happening !!
     				targets.add(targetState);
     				certaintyInfo.put(p, targets);
 				}
@@ -453,6 +476,15 @@ public class TmfXmlFsm {
      */
     public String getAbandonStateId() {
         return fAbandonStateId;
+    }
+    
+    /**
+     * Get the error state ID
+     *
+     * @return the id of the error state
+     */
+    public String getErrorStateId() {
+        return fErrorStateId;
     }
 
     /**
@@ -737,7 +769,7 @@ public class TmfXmlFsm {
     	while (it.hasNext()) {
     		Pair<Pattern, String> key = it.next();
     		if (key.getFirst().matcher(event.getName()).matches() && key.getSecond().equals(transition.getCondition())) {
-    			return true;
+    			return (certaintyMap.get(key).size() == 1);
     		}
     	}
     	return false;

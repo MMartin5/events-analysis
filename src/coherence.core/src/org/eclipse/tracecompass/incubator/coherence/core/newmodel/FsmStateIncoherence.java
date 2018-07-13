@@ -19,7 +19,7 @@ public class FsmStateIncoherence {
 	/* The attribute of the scenario on which the incoherent event was detected */
 	private final String fScenarioAttribute;
 	/* The last coherent event before the incoherent one */
-	private final ITmfEvent fPrevCoherentEvent;
+	private final ITmfEvent fPrevEvent;
 	/* The name of the state the scenario was in when the coherent event happened */
 	private final String fLastCoherentStateName;
 	/* The list of inferred transitions computed for this incoherence */
@@ -28,10 +28,10 @@ public class FsmStateIncoherence {
 	private Map<TmfXmlFsmTransition, TmfInferredEvent> fInferredEvents = new HashMap<>();
 
 	
-	public FsmStateIncoherence(ITmfEvent incoherentEvent, String scenarioAttribute, ITmfEvent prevCoherentEvent, String currentStateName) {
+	public FsmStateIncoherence(ITmfEvent incoherentEvent, String scenarioAttribute, ITmfEvent prevEvent, String currentStateName) {
 		fIncoherentEvent = incoherentEvent;
 		fScenarioAttribute = scenarioAttribute;
-		fPrevCoherentEvent = prevCoherentEvent;
+		fPrevEvent = prevEvent;
 		fLastCoherentStateName = currentStateName;
 	}
 
@@ -44,8 +44,8 @@ public class FsmStateIncoherence {
 		return fScenarioAttribute;
 	}
 
-	public ITmfEvent getPrevCoherentEvent() {
-		return fPrevCoherentEvent;
+	public ITmfEvent getPrevEvent() {
+		return fPrevEvent;
 	}
 	
 	public String getLastCoherentStateName() {
