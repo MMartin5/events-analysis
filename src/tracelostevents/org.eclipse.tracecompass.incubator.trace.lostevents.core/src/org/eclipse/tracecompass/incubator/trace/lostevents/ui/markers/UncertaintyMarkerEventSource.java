@@ -119,7 +119,7 @@ public class UncertaintyMarkerEventSource implements IMarkerEventSource {
 	    	for (Integer scenarioQuark : quarks) {
 	    	    // Check if scenario is active
                 try {
-                    ITmfStateInterval stateInterval = ss.querySingleState(fTrace.getEndTime().getValue() - 1, ss.getQuarkRelative(scenarioQuark, TmfXmlStrings.STATE));
+                    ITmfStateInterval stateInterval = ss.querySingleState(ss.getCurrentEndTime() - 1, ss.getQuarkRelative(scenarioQuark, TmfXmlStrings.STATE));
     	    	    String value = (String) stateInterval.getValue();
     	    	    if (value == null || value.equals(TmfXmlState.INITIAL_STATE_ID)) {
     	    	        continue;
