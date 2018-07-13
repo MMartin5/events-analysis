@@ -23,6 +23,7 @@ import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlCpuScenarioModel;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlEvalScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlIrqScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlProcessScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioModel;
@@ -48,6 +49,7 @@ public class TmfXmlPatternEventHandler {
 	public static String FSM_PROCESS_ID = "process_fsm";
 	public static String FSM_IRQ_ID = "irq_fsm";
 	public static String FSM_SOFTIRQ_ID = "softirq_fsm";
+	public static String FSM_EVAL_ID = "dummy_fsm";
 
     /* list of states changes */
     protected final XmlPatternStateProvider fParent;
@@ -135,6 +137,7 @@ public class TmfXmlPatternEventHandler {
         builder.put(FSM_PROCESS_ID, new TmfXmlProcessScenarioModel(layout));
         builder.put(FSM_IRQ_ID, new TmfXmlIrqScenarioModel());
         builder.put(FSM_SOFTIRQ_ID, new TmfXmlSoftIrqScenarioModel(layout));
+        builder.put(FSM_EVAL_ID, new TmfXmlEvalScenarioModel(layout));
 
        return builder.build();
     }
