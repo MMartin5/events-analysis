@@ -74,6 +74,7 @@ import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModuleHelper;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAnalysisManager;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
@@ -361,7 +362,7 @@ public class CoherenceView extends ControlFlowView {
 			}
         	
 		});
-
+        
         for (FsmStateIncoherence incoherence : fIncoherences) {
     		if (monitor.isCanceled()) {
         		return Status.CANCEL_STATUS;
@@ -441,7 +442,7 @@ public class CoherenceView extends ControlFlowView {
 		    	for (Integer scenarioQuark : quarks) {
 		    		// Check if scenario is active
 	                try {
-	                    ITmfStateInterval stateInterval = ss.querySingleState(getTrace().getEndTime().getValue() - 2, ss.getQuarkRelative(scenarioQuark, TmfXmlStrings.STATE));
+	                    ITmfStateInterval stateInterval = ss.querySingleState(ss.getCurrentEndTime() - 1, ss.getQuarkRelative(scenarioQuark, TmfXmlStrings.STATE));
 	    	    	    String value = (String) stateInterval.getValue();
 	    	    	    if (value == null || value.equals(TmfXmlState.INITIAL_STATE_ID)) {
 	    	    	        continue;
@@ -766,13 +767,16 @@ public class CoherenceView extends ControlFlowView {
 						ITmfEvent event = fIncoherentEvents.get(arrow.getStartTime());
 						ITmfTrace trace = getTrace();
 						if (event != null && trace instanceof IKernelTrace) {
-							long value = (long) event.getContent().getField(((IKernelTrace) trace).getKernelEventLayout().fieldPrevTid()).getValue();
-	                    	if (prevTid != value) {
-	                    		System.out.println("fixing!");
-								ControlFlowEntry newPrevEntry = map.get(getEntryQuarkFromTid((int) value));
-	                    		linkList.add(new TimeLinkEvent(newPrevEntry, nextEntry, arrow.getStartTime(), arrow.getDuration(), 0));
-	                    		continue;
-	                    	}							
+							ITmfEventField field = event.getContent().getField(((IKernelTrace) trace).getKernelEventLayout().fieldPrevTid());
+							if (field != null) {
+								long value = (long) event.getContent().getField(((IKernelTrace) trace).getKernelEventLayout().fieldPrevTid()).getValue();
+		                    	if (prevTid != value) {
+		                    		System.out.println("fixing!");
+									ControlFlowEntry newPrevEntry = map.get(getEntryQuarkFromTid((int) value));
+		                    		linkList.add(new TimeLinkEvent(newPrevEntry, nextEntry, arrow.getStartTime(), arrow.getDuration(), 0));
+		                    		continue;
+		                    	}
+							}
 						}
 						
 						linkList.add(new TimeLinkEvent(prevEntry, nextEntry, arrow.getStartTime(), arrow.getDuration(), 0));

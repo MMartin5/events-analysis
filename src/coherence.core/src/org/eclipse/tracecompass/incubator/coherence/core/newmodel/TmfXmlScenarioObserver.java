@@ -32,7 +32,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
  */
 public abstract class TmfXmlScenarioObserver extends TmfXmlScenario {
 	
-	ITmfEvent lastEvent; // the last event having triggered a transition
+	ITmfEvent lastEvent; // the last event having been handled
 	Set<TmfXmlFsmTransition> currentPossibleTransitions = new HashSet<>();
 	
 	public static String ALGO1 = "naive";
@@ -158,10 +158,12 @@ public abstract class TmfXmlScenarioObserver extends TmfXmlScenario {
 	        	fPatternHandler.setStartChecking(true);
         	}
         }
+        
 
         TmfXmlStateTransition out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
         if (out == null) { // No transition from the current state has been found
             /* If there is no transition and checking is needed, we need to check the coherence of the event */
+        	boolean mustContinue = false;
 			if (isCoherenceCheckingNeeded && !((boolean) checkEvent(event))) {
 			    // Save incoherences
 				if (fAttribute == null) {
@@ -170,13 +172,23 @@ public abstract class TmfXmlScenarioObserver extends TmfXmlScenario {
 				else {
 					fFsm.addProblematicEvent(event, fAttribute, currentPossibleTransitions, fFsm.getStatesMap().get(fScenarioInfo.getActiveState()).getId(), lastEvent); // currentPossibleTransitions has been set in checkEvent
 				}
+				// Update scenario state to error
+				fScenarioInfo.setActiveState(fFsm.getErrorStateId());
+		        fHistoryBuilder.update(fContainer, fScenarioInfo, event);
+		        // Try to find a transition from error right now
+		        out = fFsm.next(event, fPatternHandler.getTestMap(), fScenarioInfo);
+		        mustContinue = out != null;
 			}
-            return;
+			lastEvent = event;
+			if (!mustContinue) {
+				return;
+			}
         }
+        
+        lastEvent = event;
         
         // Increase transitions counter
         TmfXmlState currentState = fFsm.getStatesMap().get(fScenarioInfo.getActiveState());
-        lastEvent = event;
         TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(out, currentState, event.getName());
         fFsm.increaseTransitionCounter(fsmTransition);
         increaseTransitionCounter(fsmTransition);

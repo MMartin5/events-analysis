@@ -100,6 +100,12 @@
 					<transition event="C" target="4" action="update_to_4:init_scenario" cond="initial_test" />
                     <transition event="D" target="1" action="update_to_1:init_scenario" cond="initial_test" />
                 </initialState>
+                <state id ="#error">
+                <!-- error state similar to initial state, without init test and action -->
+					<transition event="B" target="3" action="update_to_3" cond="obj_id_is_current_scenario_attribute" />
+					<transition event="C" target="4" action="update_to_4" cond="obj_id_is_current_scenario_attribute" />
+                    <transition event="D" target="1" action="update_to_1" cond="obj_id_is_current_scenario_attribute" />
+                </state>
                 <state id="1">
                     <transition event="A" target="2" action="update_to_2" cond="obj_id_is_current_scenario_attribute" />
                 </state>

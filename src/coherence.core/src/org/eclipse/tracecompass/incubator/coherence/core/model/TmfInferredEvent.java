@@ -97,7 +97,7 @@ public class TmfInferredEvent extends TmfEvent {
 			ITmfStateSystem stateSystem, 
 			TmfXmlScenarioInfo scenarioInfo) {
 		
-		ITmfTimestamp tsStart = incoherence.getPrevCoherentEvent() == null ? trace.getStartTime() : incoherence.getPrevCoherentEvent().getTimestamp();
+		ITmfTimestamp tsStart = incoherence.getPrevEvent() == null ? trace.getStartTime() : incoherence.getPrevEvent().getTimestamp();
 		ITmfTimestamp tsEnd = incoherence.getIncoherentEvent().getTimestamp();
 		// set the timestamp to be in the middle of the possible interval + some factor given the local rank
 		ITmfTimestamp ts = TmfTimestamp.create(
