@@ -40,7 +40,8 @@ import org.xml.sax.SAXException;
 
 public class CoherenceAnalysisEvaluation {
     
-    private static final String fTraceFolder = "test_traces/eval_traces/";
+	/* Relative path to the folder containing the evaluation traces */
+    private static final String fTraceFolder = "test_traces/eval_traces_3/"; // modify this path to test a different set of traces
     
     private static final String fXMLAnalysisFile = "testfiles/eval_fsm.xml";
     
