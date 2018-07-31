@@ -47,13 +47,7 @@ public class TmfXmlScenarioObserverOptimized extends TmfXmlScenarioObserver {
         
         /* Get every key where event name matches
            and get the associated states */
-        Map<Pattern, Set<String>> prevStatesMap = fFsm.getPrevStates();
-        Set<String> prevStates = new HashSet<>();
-        for (Pattern pattern : fFsm.getPrevStates().keySet()) {
-        	if (pattern.matcher(event.getName()).matches()) {
-        		prevStates.addAll(prevStatesMap.get(pattern));
-        	}
-        }
+        Set<String> prevStates = fFsm.getPrevStates().get(event.getName());
         
         if (prevStates != null) { // we might have a null set if this event is never accepted by any state of the FSM
 	        Map<String, TmfXmlState> states = fFsm.getStatesMap();

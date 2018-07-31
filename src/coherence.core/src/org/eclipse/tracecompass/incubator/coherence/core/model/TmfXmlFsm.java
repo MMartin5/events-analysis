@@ -25,19 +25,28 @@ import java.util.regex.Pattern;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.incubator.coherence.core.Activator;
 import org.eclipse.tracecompass.incubator.coherence.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.FsmStateIncoherence;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlCpuScenarioModel;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlEvalScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlFsmTransition;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlIrqScenarioModel;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlProcessScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioModel;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserver;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserverNaive;
 import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlScenarioObserverOptimized;
+import org.eclipse.tracecompass.incubator.coherence.core.newmodel.TmfXmlSoftIrqScenarioModel;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfLostEvent;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
+import org.eclipse.tracecompass.tmf.core.statistics.ITmfStatistics;
+import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsModule;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.util.Pair;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -71,7 +80,7 @@ public class TmfXmlFsm {
     protected boolean fHasIncoherence;              /* indicates if there is at least one possible transition that could have been taken */
     protected boolean fCoherenceCheckingNeeded;     /* indicates if we need to keep on checking the coherence for the current event */
     protected int transitionCount;					/* counter representing the number of transitions taken for the current event */
-    Map<Pattern, Set<String>> fPrevStates;
+    Map<String, Set<String>> fPrevStates;
 	Map<String, Set<TmfXmlFsmTransition>> fPrevStatesForState;
 	private Map<TmfXmlFsmTransition, Long> fTransitionsCounters = new HashMap<>();
 	private String fCoherenceAlgo;
@@ -80,6 +89,22 @@ public class TmfXmlFsm {
 	private final TmfXmlScenarioModel fScenarioModel;
 	private static final String fErrorStateId = "#error";
 	private static final String fInitialCond = "initial_test";
+	
+	// TODO should be done dynamically when parsing the FSM
+	private static Map<String, Set<String>> buildEventTypes() {
+        ImmutableMap.Builder<String, Set<String>> builder = ImmutableMap.builder();
+        builder.put("sys_.*", new HashSet<>(Arrays.asList("")));
+        builder.put("compat_sys_.*", new HashSet<>(Arrays.asList("")));
+        builder.put("syscall_entry_.*", new HashSet<>(Arrays.asList("syscall_entry_accept","syscall_entry_access","syscall_entry_brk","syscall_entry_clone","syscall_entry_close","syscall_entry_connect","syscall_entry_epoll_wait","syscall_entry_execve","syscall_entry_exit_group","syscall_entry_fcntl","syscall_entry_futex","syscall_entry_getdents","syscall_entry_getegid","syscall_entry_geteuid","syscall_entry_getgid","syscall_entry_getpid","syscall_entry_getrusage","syscall_entry_gettid","syscall_entry_getuid","syscall_entry_ioctl","syscall_entry_lseek","syscall_entry_mmap","syscall_entry_mprotect","syscall_entry_munmap","syscall_entry_nanosleep","syscall_entry_newfstat","syscall_entry_open","syscall_entry_pipe","syscall_entry_poll","syscall_entry_prlimit64","syscall_entry_pselect6","syscall_entry_read","syscall_entry_readlink","syscall_entry_recvmsg","syscall_entry_set_tid_address","syscall_entry_rt_sigaction","syscall_entry_rt_sigprocmask","syscall_entry_sendmsg","syscall_entry_set_robust_list","syscall_entry_set_tid_address","syscall_entry_setitimer","syscall_entry_setsockopt","syscall_entry_socket","syscall_entry_unknown","syscall_entry_wait","syscall_entry_wait4","syscall_entry_write","syscall_entry_writev")));
+        builder.put("syscall_exit_.*", new HashSet<>(Arrays.asList("syscall_exit_accept","syscall_exit_access","syscall_exit_brk","syscall_exit_clone","syscall_exit_close","syscall_exit_connect","syscall_exit_epoll_wait","syscall_exit_execve","syscall_exit_exit_group","syscall_exit_fcntl","syscall_exit_futex","syscall_exit_getdents","syscall_exit_getegid","syscall_exit_geteuid","syscall_exit_getgid","syscall_exit_getpid","syscall_exit_getrusage","syscall_exit_gettid","syscall_exit_getuid","syscall_exit_ioctl","syscall_exit_lseek","syscall_exit_mmap","syscall_exit_mprotect","syscall_exit_munmap","syscall_exit_nanosleep","syscall_exit_newfstat","syscall_exit_open","syscall_exit_pipe","syscall_exit_poll","syscall_exit_prlimit64","syscall_exit_pselect6","syscall_exit_read","syscall_exit_readlink","syscall_exit_recvmsg","syscall_exit_rt_sigaction","syscall_exit_rt_sigprocmask","syscall_exit_set_tid_address","syscall_exit_sendmsg","syscall_exit_set_robust_list","syscall_exit_set_tid_address","syscall_exit_setitimer","syscall_exit_setsockopt","syscall_exit_socket","syscall_exit_unknown","syscall_exit_wait","syscall_exit_wait4","syscall_exit_write","syscall_exit_writev")));
+        builder.put("sched_wakeup.*", new HashSet<>(Arrays.asList("sched_wakeup","sched_wakeup_new")));
+        builder.put("x86_irq_vectors_.*_entry", new HashSet<>(Arrays.asList("x86_irq_vectors_local_timer_entry","x86_irq_vectors_reschedule_entry","x86_irq_vectors_spurious_apic_entry","x86_irq_vectors_error_apic_entry","x86_irq_vectors_ipi_entry","x86_irq_vectors_irq_work_entry","x86_irq_vectors_call_function_entry","x86_irq_vectors_call_function_single_entry","x86_irq_vectors_threshold_apic_entry","x86_irq_vectors_thermal_apic_entry","x86_irq_vectors_deferred_error_apic_entry")));
+        builder.put("x86_irq_vectors_.*_exit", new HashSet<>(Arrays.asList("x86_irq_vectors_local_timer_exit","x86_irq_vectors_reschedule_exit","x86_irq_vectors_spurious_apic_exit","x86_irq_vectors_error_apic_exit","x86_irq_vectors_ipi_exit","x86_irq_vectors_irq_work_exit","x86_irq_vectors_call_function_exit","x86_irq_vectors_call_function_single_exit","x86_irq_vectors_threshold_apic_exit","x86_irq_vectors_deferred_error_apic_exit,x86_irq_vectors_thermal_apic_exit")));
+        builder.put("compat_syscall_entry_.*", new HashSet<>(Arrays.asList("")));
+        builder.put("compat_syscall_exit_.*", new HashSet<>(Arrays.asList("")));
+
+       return builder.build();
+    }
 
 	/**
 	 * Increase the counter of the given transition
@@ -178,6 +203,7 @@ public class TmfXmlFsm {
 				else {
 					weight = counters.get(neighborTransition);
 				}
+				
 				float newDist = currentDist + (1f / (float) weight); 
 				if (distances.get(neighbor) > newDist) {	// this is a shorter path to target
 					distances.put(neighbor, newDist);
@@ -363,10 +389,10 @@ public class TmfXmlFsm {
 //		}
 //        statesMap.put(fErrorStateId, errorState);
 
-        Map<Pattern, Set<String>> prevStates = new HashMap<>();
+        Map<String, Set<String>> prevStates = new HashMap<>();
         Map<String, Set<TmfXmlFsmTransition>> prevStatesForState = new HashMap<>();
         Map<Pair<Pattern, String>, Set<String>> certaintyInfo = new HashMap<>();
-        
+        Map<String, Set<String>> fEventTypes = buildEventTypes();
         // Create the maps of previous states and next states
         for (TmfXmlState state : statesMap.values()) {
         	if (!prevStatesForState.containsKey(state.getId())) {
@@ -374,16 +400,25 @@ public class TmfXmlFsm {
         	}
 	        for (TmfXmlStateTransition transition : state.getTransitionList()) {
 	        	for (Pattern eventPattern : transition.getAcceptedEvents()) {
-	        		// Add a state to the list of previous states for the current event
-	        		Set<String> statesId;
-	        		if (prevStates.containsKey(eventPattern)) {
-	                	statesId = prevStates.get(eventPattern);
+	        		Set<String> typesList = new HashSet<>();
+	        		if (eventPattern.toString().contains("*")) {
+	        			typesList.addAll(fEventTypes.get(eventPattern.toString()));
 	        		}
 	        		else {
-	        			statesId = new HashSet<>();
+	        			typesList.add(eventPattern.toString());
 	        		}
-	        		statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
-    				prevStates.put(eventPattern, statesId);
+	        		for (String eventType : typesList) {
+		        		// Add a state to the list of previous states for the current event
+		        		Set<String> statesId;
+		        		if (prevStates.containsKey(eventType)) {
+		                	statesId = prevStates.get(eventType);
+		        		}
+		        		else {
+		        			statesId = new HashSet<>();
+		        		}
+		        		statesId.add(state.getId()); // Set cannot contain duplicate elements, so no need to check
+	    				prevStates.put(eventType, statesId);
+	        		}
     				    				
     				// Add a state to the list of previous states for the target state
     				TmfXmlFsmTransition fsmTransition = new TmfXmlFsmTransition(transition, state, eventPattern);
@@ -415,11 +450,10 @@ public class TmfXmlFsm {
 						String abandonState, 
 						List<TmfXmlBasicTransition> preconditions, 
 						Map<String, TmfXmlState> states, 
-						Map<Pattern, Set<String>> prevStates, 
+						Map<String, Set<String>> prevStates, 
 						Map<String, Set<TmfXmlFsmTransition>> prevStatesForState, 
 						Map<Pair<Pattern, String>, Set<String>> certaintyInfo, 
 						TmfXmlScenarioModel scenarioModel) {
-    	
         fModelFactory = modelFactory;
         fTotalScenarios = 0;
         fContainer = container;
@@ -438,7 +472,7 @@ public class TmfXmlFsm {
         fScenarioModel = scenarioModel;
     }
     
-    public Map<Pattern, Set<String>> getPrevStates() {
+    public Map<String, Set<String>> getPrevStates() {
 		return fPrevStates;
 	}
 
@@ -722,7 +756,7 @@ public class TmfXmlFsm {
             		fPendingScenario = new TmfXmlScenarioObserverOptimized(event, eventHandler, fId, fContainer, fModelFactory);
             	}
             }
-            else {
+            if (fPendingScenario == null) {
             	fPendingScenario = new TmfXmlScenario(event, eventHandler, fId, fContainer, fModelFactory);
             }
             /* We have no information on certainty before the scenario starts, so set state to uncertain */
