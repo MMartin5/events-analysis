@@ -64,12 +64,12 @@ public class CoherenceAnalysisBenchmark {
         System.gc();
         pm.stop();
     };
-
+    
     private static final Set<String> fTraceSet = new HashSet<>(Arrays.asList(
     		"/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/",
     		"/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/",
     		"/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/",
-    		"/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/many-threads/")); // FIXME
+    		"/home/mmartin/Master/Traces/test-with-stress-20180320-172616/kernel/")); // FIXME
     
     private static final String fXMLAnalysisFile = "testfiles/kernel_analysis_from_fsm.xml";
     
@@ -85,24 +85,19 @@ public class CoherenceAnalysisBenchmark {
         	runOneBenchmark(trace,
                     String.format(TEST_BUILD, trace.toString(), "no checking"),
                     cpu,
-                    Dimension.CPU_TIME, null);
-
-            runOneBenchmark(trace,
-                    String.format(TEST_MEMORY, trace.toString(), "no checking"),
-                    memory,
-                    Dimension.USED_JAVA_HEAP, null);
+                    Dimension.CPU_TIME, null, false);
         	
         	for (String algo : fAlgoIds) {
 
 	            runOneBenchmark(trace,
 	                    String.format(TEST_BUILD, trace.toString(), algo),
 	                    cpu,
-	                    Dimension.CPU_TIME, algo);
-	
+	                    Dimension.CPU_TIME, algo, false);
+	            
 	            runOneBenchmark(trace,
-	                    String.format(TEST_MEMORY, trace.toString(), algo),
-	                    memory,
-	                    Dimension.USED_JAVA_HEAP, algo);
+	                    String.format(TEST_BUILD, trace.toString(), algo + " with inference"),
+	                    cpu,
+	                    Dimension.CPU_TIME, algo, true);
         	}
         }
     }
@@ -116,11 +111,11 @@ public class CoherenceAnalysisBenchmark {
      * @param method
      * @param dimension
      */
-    private static void runOneBenchmark(@NonNull String testTrace, String testName, RunMethod method, Dimension dimension, String algo) {
+    private static void runOneBenchmark(@NonNull String testTrace, String testName, RunMethod method, Dimension dimension, String algo, boolean withInference) {
         Performance perf = Performance.getDefault();
         PerformanceMeter pm = perf.createPerformanceMeter(TEST_ID + testName);
         perf.tagAsSummary(pm, "Execution graph " + testName, dimension);
-
+        
         for (int i = 0; i < LOOP_COUNT; i++) {
         	LostEventsTrace trace = null;
         	XmlPatternAnalysis module = null;
@@ -143,7 +138,7 @@ public class CoherenceAnalysisBenchmark {
                 assertNotNull(node);
                                
             	// Create module
-            	module = new XmlPatternAnalysis(false);
+            	module = new XmlPatternAnalysis(true);
                 module.setXmlFile(path.toFile().toPath());
                 module.setName(XmlModuleTestBase.getName(node));
                 
@@ -155,7 +150,17 @@ public class CoherenceAnalysisBenchmark {
                 
                 module.getStateSystemModule().changeCoherenceAlgorithm(algo); // set the algorithm we want to test
             	
-                method.execute(pm, module);
+                // Don't take the first 10 runs into account --> warmup time
+                if (i < 10) {
+                	TmfTestHelper.executeAnalysis(module);
+                }
+                else {
+                	method.execute(pm, module);
+                }
+                
+                if (withInference) {
+                	module.getStateSystemModule().getInferredEvents();
+                }
             	
                 /*
                  * Delete the supplementary files, so that the next iteration
