@@ -1,0 +1,183 @@
+<event timestamp="1" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="2" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="3" name="D">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="4" name="D">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="5" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="6" name="A">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="9" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="10" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="11" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="12" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="13" name="D">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="14" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="15" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="16" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="17" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="18" name="D">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="19" name="A">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="20" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="21" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="22" name="D">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="23" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="24" name="A">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="25" name="B">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="26" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="27" name="B">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="28" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="29" name="B">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="30" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="31" name="B">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="32" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="33" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="34" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="35" name="A">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="36" name="A">
+<field name="obj_id" type="int" value="2" />
+</event>
+<event timestamp="37" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="38" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="39" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="40" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="41" name="D">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="42" name="A">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="43" name="D">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="44" name="A">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="45" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="46" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="47" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="48" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="49" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="50" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="51" name="B">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="52" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="53" name="B">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="54" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="55" name="B">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="56" name="C">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="57" name="D">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="58" name="D">
+<field name="obj_id" type="int" value="3" />
+</event>
+<event timestamp="59" name="A">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="60" name="A">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="61" name="A">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="62" name="B">
+<field name="obj_id" type="int" value="1" />
+</event>
+<event timestamp="63" name="C">
+<field name="obj_id" type="int" value="1" />
+</event>

@@ -36,14 +36,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class CoherenceAnalysisBenchmark {
+public class BenchmarkTrace3Algo1Inference {
 
     /**
      * Test test ID for kernel analysis benchmarks
      */
     public static final String TEST_ID = "org.eclipse.tracecompass#Coherence checking#";
     private static final String TEST_BUILD = "Running Coherence Analysis (%s) Using Algorithm %s";
-    private static final String TEST_MEMORY = "Memory Usage (%s) Using Algorithm %s";
 
     private static final int LOOP_COUNT = 25;
 
@@ -56,50 +55,20 @@ public class CoherenceAnalysisBenchmark {
         TmfTestHelper.executeAnalysis(module);
         pm.stop();
     };
-
-    private RunMethod memory = (pm, module) -> {
-        System.gc();
-        pm.start();
-        TmfTestHelper.executeAnalysis(module);
-        System.gc();
-        pm.stop();
-    };
-    
-    private static final Set<String> fTraceSet = new HashSet<>(Arrays.asList(
-    		"/home/mmartin/Master/Traces/trace-sched-switch-delete100-109-with-lost/Sansfil-Securise-Etudiants-Lassonde-241-79.polymtl.ca/kernel/",
-    		"/home/mmartin/Master/Traces/sched_switch_big_delete_1345-1360/service-WIFI-EDUROAM-LA-17-67.nat.polymtl.ca/kernel/",
-    		"/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/",
-    		"/home/mmartin/Master/Traces/test-with-stress-20180320-172616/kernel/")); // FIXME
     
     private static final String fXMLAnalysisFile = "testfiles/kernel_analysis_from_fsm.xml";
-    
-    private static Set<String> fAlgoIds = new HashSet<>(Arrays.asList(TmfXmlScenarioObserver.ALGO1, TmfXmlScenarioObserver.ALGO2));
     
     /**
      * Run all benchmarks
      */
     @Test
     public void runAllBenchmarks() {
-        for (String trace : fTraceSet) {
-        	
-        	runOneBenchmark(trace,
-                    String.format(TEST_BUILD, trace.toString(), "no checking"),
-                    cpu,
-                    Dimension.CPU_TIME, null, false);
-        	
-        	for (String algo : fAlgoIds) {
-
-	            runOneBenchmark(trace,
-	                    String.format(TEST_BUILD, trace.toString(), algo),
-	                    cpu,
-	                    Dimension.CPU_TIME, algo, false);
-	            
-	            runOneBenchmark(trace,
-	                    String.format(TEST_BUILD, trace.toString(), algo + " with inference"),
-	                    cpu,
-	                    Dimension.CPU_TIME, algo, true);
-        	}
-        }
+    	String trace = "/home/mmartin/Master/tracecompass-test-traces/ctf/src/main/resources/trace2/";
+    	String algo = TmfXmlScenarioObserver.ALGO1;
+        runOneBenchmark(trace,
+                String.format(TEST_BUILD, trace.toString(), algo),
+                cpu,
+                Dimension.CPU_TIME, algo, true);
     }
 
     /**
